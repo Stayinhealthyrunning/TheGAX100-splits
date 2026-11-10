@@ -275,3 +275,57 @@ a{transition:color .16s}
  .gax-gpx-file-label{width:100%;justify-content:space-between}
  #gax-gpx-upload{max-width:100%;width:100%}
 }
+
+
+/* GAX100 UX review 2026-11-10: more analysis above the fold. */
+.gax-guide-dialog{
+  width:min(1240px,calc(100vw - 30px));max-width:1240px;
+  max-height:min(92vh,950px);margin:auto;padding:0;border:1px solid #d4d6c6;
+  border-radius:17px;background:#f8f3ea;color:#2b4b42;
+  box-shadow:0 24px 70px #172f305c;overflow:hidden;
+}
+.gax-guide-dialog::backdrop{background:rgba(23,44,44,.67);backdrop-filter:blur(4px)}
+.gax-guide-scroll{overflow-y:auto;overscroll-behavior:contain;max-height:min(92vh,950px);padding:30px 26px 20px}
+.gax-guide-dialog .section{max-width:100%;padding:18px 0!important}
+.gax-guide-dialog .gax-landscape-section{padding-top:12px!important}
+.gax-guide-dialog .gax-stations-section{padding-bottom:25px!important}
+.gax-guide-dialog .gax-stages{gap:11px}
+.gax-guide-close{position:absolute;right:14px;top:12px;z-index:11;width:36px;height:36px;
+ display:grid;place-items:center;border:1px solid #b9c8b8;background:#fffcf5;color:#245148;
+ border-radius:50%;font-size:25px;line-height:1;cursor:pointer;box-shadow:0 3px 10px #36544722}
+.gax-guide-close:hover,.gax-guide-close:focus-visible{background:#f2e4cf}
+.gax-mode-switch{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:7px 0 15px;
+ padding:5px;border:1px solid #d9dfd2;border-radius:13px;background:#ecefe8}
+.gax-mode-switch button{padding:10px 17px;border:1px solid transparent;border-radius:9px;
+ background:transparent;color:#456358;font-weight:800;font-size:12px;cursor:pointer}
+.gax-mode-switch button[aria-pressed="true"]{background:#28534b;color:white;
+ box-shadow:0 4px 10px #1f403526}
+.gax-mode-switch button:hover:not([aria-pressed="true"]){background:#f9faf6}
+.gax-mode-caption{font-size:11px;color:#61766a;margin-left:16px}
+#gax-segment-analytics[hidden],#gax-personal-plan-panel[hidden],#extra-segments[hidden],
+#group-bars[hidden]{display:none!important}
+#gax-segment-analytics>.panel{margin-bottom:14px}
+#gax-personal-plan-panel>.plan-card{max-width:none}
+#gax-personal-plan-panel .plan-tools{margin-top:12px}
+.gax-group-summary{margin-top:14px;padding-top:14px;border-top:1px solid #dce2d6}
+.gax-group-summary h4{color:#36564a;font-size:13px;margin:0 0 11px;
+ font-family:inherit;letter-spacing:.01em}
+.gax-group-summary h4 small{font-weight:450;color:#718178;font-size:10px}
+.gax-group-summary #group-bars{padding:0!important;min-height:0}
+.overview-layout{grid-template-columns:minmax(0,1.14fr) minmax(0,.86fr)}
+.gax-added-info{flex-shrink:0;margin-left:9px}
+.section-heading .gax-added-info{align-self:flex-start;margin-left:auto}
+.gax-guide-dialog .gax-stations-section .table-scroll{overflow-x:auto}
+@media(max-width:900px){
+ .overview-layout{grid-template-columns:1fr}
+ .gax-guide-scroll{padding:21px 16px 16px}
+ .gax-mode-caption{flex:1 1 100%;padding:3px 11px}
+}
+@media(max-width:600px){
+ .gax-guide-dialog{width:calc(100vw - 14px);max-height:94vh}
+ .gax-guide-scroll{max-height:94vh;padding:46px 12px 20px}
+ .gax-guide-dialog .gax-stages{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .gax-guide-dialog .gax-stage{min-height:190px}
+ .gax-guide-close{right:9px;top:8px}
+ .gax-mode-switch button{font-size:11px;padding:10px 13px}
+}
