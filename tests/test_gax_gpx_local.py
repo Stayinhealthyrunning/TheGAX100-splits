@@ -72,7 +72,8 @@ def check(file:Path):
         page.locator("#map-duel-dialog [data-close='map-duel-dialog']").first.click()
         page.select_option("#year-select","2023-gax100")
         page.wait_for_function("()=>document.querySelector('#race-title')?.textContent.includes('2023')")
-        assert page.locator("#gax-local-gpx-card").is_hidden(), "2026 route must not appear for historical 2023"
+        assert page.locator("#gax-local-gpx-card").is_visible(), "2023 has a source-linked external route candidate"
+        assert "2332034" in page.locator("#gax-gpx-source-link").get_attribute("href"), "2023 candidate source missing"
         assert page.locator("#open-map-duel").is_disabled(), "No historical GPX should leak from 2026 demo"
         page.select_option("#year-select","2026-gax100")
         page.wait_for_function("()=>document.querySelector('#gax-gpx-status')?.textContent.includes('inläst')")
@@ -84,7 +85,7 @@ def check(file:Path):
         assert not writes, "Original GPX should never upload or send POST/PUT"
         assert not errors,f"Browser errors: {errors}"
         browser.close()
-    print("GAX_LOCAL_GPX_KARTDUELL_PASS: private-in-browser import, 2026 only, two moving runners, no upload, no persistence")
+    print("GAX_LOCAL_GPX_KARTDUELL_PASS: private-in-browser import, scoped to each selected edition, two moving runners, no upload, no persistence")
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
