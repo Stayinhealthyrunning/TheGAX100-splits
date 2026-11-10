@@ -39,6 +39,8 @@ def run(path: Path):
             locator=page.locator(f"#{sid} > .section-heading .gax-added-info")
             assert locator.count()==1, f"Missing section info for {sid}"
             assert locator.get_attribute("aria-label"), f"Info lacks accessible label in {sid}"
+        assert page.locator("#race-context .gax-added-info").count()==1
+        assert page.locator("#method > .gax-added-info").count()==1
         page.locator("#overview > .section-heading .gax-added-info").click()
         assert page.locator("#help-dialog").evaluate("(el)=>el.open"),"Section explanation dialog did not open"
         explanation=page.locator("#help-content").inner_text().lower()
