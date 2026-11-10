@@ -71,12 +71,18 @@ def check(file:Path):
         assert "Tävlingsklocka" in page.locator("#map-duel-readout").inner_text()
         page.locator("#map-duel-dialog [data-close='map-duel-dialog']").first.click()
         page.select_option("#year-select","2023-gax100")
-        page.wait_for_function("()=>document.querySelector('#race-title')?.textContent.includes('2023')")
+        # Race title changes before the async data and route controls finish;
+        # check the actual source-link state, not just the year heading.
+        page.wait_for_function("""() => document.querySelector('#race-title')?.textContent.includes('2023')
+          && document.querySelector('#gax-gpx-source-link')?.getAttribute('href')?.includes('2332034')
+          && document.querySelector('#gax-gpx-status')?.textContent.includes('2023')""",timeout=15000)
         assert page.locator("#gax-local-gpx-card").is_visible(), "2023 has a source-linked external route candidate"
         assert "2332034" in page.locator("#gax-gpx-source-link").get_attribute("href"), "2023 candidate source missing"
         assert page.locator("#open-map-duel").is_disabled(), "No historical GPX should leak from 2026 demo"
         page.select_option("#year-select","2026-gax100")
-        page.wait_for_function("()=>document.querySelector('#gax-gpx-status')?.textContent.includes('inläst')")
+        page.wait_for_function("""() => document.querySelector('#race-title')?.textContent.includes('2026')
+          && document.querySelector('#gax-gpx-status')?.textContent.includes('inläst')
+          && document.querySelector('#gax-gpx-source-link')?.getAttribute('href')?.includes('484861455')""",timeout=15000)
         assert page.locator("#gax-local-gpx-card").is_visible(), "2026 local route should restore from RAM"
         page.reload(wait_until="domcontentloaded")
         page.wait_for_function("()=>document.querySelector('#source-indicator')?.textContent.includes('DESIGNDEMO')")
