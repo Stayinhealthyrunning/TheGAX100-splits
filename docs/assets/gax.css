@@ -242,3 +242,6 @@ a{transition:color .16s}
  .gax-cutoffs table{min-width:360px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* In offline/Pages design mode, avoid repeating the status banner beneath the hero. */
+.gax-is-demo .gax-preview-note{display:none!important}
