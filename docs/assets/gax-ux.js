@@ -6,6 +6,8 @@
 const $=(q,root=document)=>root.querySelector(q);
 const $$=(q,root=document)=>Array.from(root.querySelectorAll(q));
 const HELP={
+ 'race-context':'Välj loppår eller 2021-A/B. Fältet under årsväljaren berättar om innehållet är en fiktiv design-demo eller en källa som har passerat publiceringskontrollerna. Kartor och kontrollpunkter kan skilja sig mellan upplagorna.',
+ method:'Metodavsnittet skiljer på officiella årsantal, fiktiva analysvärden och lokalt inlästa GPX-filer. I den här granskningssidan är varje enskild löpares namn, kön, tider och kontrollpassager påhittade.',
  overview:'Översikten visar fördelningen av starter, fullföljare och sluttider. Diagram och tabeller följer valda filter. I designversionen är enskilda resultat och kön simulerade; årens antal hämtas från arrangörskällor.',
  dynamics:'Här hittar du placeringar, starka avslutningar och avvikande prestationer. Jämför löpare inom samma upplaga. I designversionen bygger analyserna på fiktiva passertider och placeringar.',
  segments:'Hela loppet visar fördelningar för varje delsträcka. Växla till Min loppplan och ange din önskade sluttid för att få en fördelning av tiden per kontroll. Standardvärdet är fältets median. I demoversionen används simulerade tider; det är ingen prognos.',
@@ -54,7 +56,23 @@ function decorate(){
    const heading=$(':scope > .section-heading',section);
    if(heading)addInfo(heading,human($('h2',heading)),HELP[section.id]||'Avsnittet visar resultat eller metod för aktuell upplaga. Välj år och granska underlaget genom metodinformationen vid analyskorten.');
  });
- $$('article.panel').forEach(card=>{
+ const context=$('#race-context .context-main');
+ if(context)addInfo(context,'Loppår och datatyp',HELP['race-context']);
+ const method=$('#method');
+ if(method&&!$('.gax-added-info',method)){
+   const title=$('h2',method);
+   if(title){
+     const btn=document.createElement('button');
+     btn.className='info gax-added-info';
+     btn.type='button';
+     btn.textContent='i';
+     btn.setAttribute('aria-label','Förklaring: Metod och datakällor');
+     btn.dataset.gaxHelpTitle='Så ska metodinformationen tolkas';
+     btn.dataset.gaxHelpText=HELP.method;
+     title.after(btn);
+   }
+ }
+  $('article.panel').forEach(card=>{
    const heading=$(':scope > .panel-heading',card);
    if(!heading)return;
    const title=human($('h3',heading));
