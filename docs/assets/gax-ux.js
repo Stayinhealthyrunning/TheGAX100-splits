@@ -72,7 +72,7 @@ function decorate(){
      title.after(btn);
    }
  }
-  $('article.panel').forEach(card=>{
+  document.querySelectorAll('article.panel').forEach(card=>{
    const heading=$(':scope > .panel-heading',card);
    if(!heading)return;
    const title=human($('h3',heading));
