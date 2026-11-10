@@ -52,6 +52,10 @@ def run(path: Path):
         assert group.is_visible(),"Classes and sex are missing under Start till mål"
         assert page.locator("#extra-overview #sex-completion").count()==1
         assert page.locator("#group-bars").locator("div").count()>0
+        assert page.locator("#history #group-table").count()==0
+        assert group.locator("details.gax-group-details").count()==1
+        group.locator("details.gax-group-details summary").click()
+        assert group.locator("#group-table tbody tr").count()>0
 
         # 4. Strongest finishers: 2026 has 66 fabricated finishers,
         # so both sex cohorts can be ranked.
