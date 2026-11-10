@@ -12,6 +12,12 @@ Här publiceras enbart en **demonstrationsversion**. En enda HTML med **945 fikt
 
 Första aktivering av Pages måste ske av repoägaren via `Settings → Pages → Source: GitHub Actions`. Det automatiska flödet `.github/workflows/pages.yml` skapar sidan endast efter automatiskt godkänt källskydd.
 
+## Kartduell: verifierat banunderlag kontra publicerad bangeometri
+
+Arrangörens 2026-spår är publicerat som Garmin-kurs för nedladdning: https://connect.garmin.com/app/course/484861455. Det gamla GAX-projektet identifierade kursen men lagrade inte nedladdad GPX eftersom exporten då returnerade tomt innehåll och återpubliceringsrätten var oklar. Detta är **inte samma sak som att GAX2026 saknar GPX**.
+
+Kartduellen är nu tillgänglig för **2026-design-demon** efter att användaren själv väljer en GPX-fil. Programmet parsar och visar bangeometrin tillfälligt i webbläsaren, utan uppladdning och utan commit i GitHub. Alla markörer är interpolerade påhittade löpare. Historiska upplagor lånar inte automatiskt 2026 års bana. Riktig GPX-replay på publika resultat kräver särskilt rättighets- och datagodkännande.
+
 ## Verkliga resultat och publiceringsbeslut
 
 Privat källa: `Stayinhealthyrunning/loppanalys-private-data/main:gax100/fresh/gax100.sqlite`. De riktiga **945 posterna**, **651 målgångarna** och **1 838 originalpassagerna** är kvar där.

@@ -129,7 +129,7 @@ function requestedEdition(){const query=new URLSearchParams(location.search),has
 function parseQuery(){const requested=requestedEdition(),family=requested.family;if(family==='gax100')S.family=family;const year=requested.year;if(year&&S.boot.editions.some(e=>e.family===S.family&&e.year===year))S.year=year;if(requested.edition&&S.boot.editions.some(e=>e.race_key===requested.edition)){S.editionKey=requested.edition;S.year=S.boot.editions.find(e=>e.race_key===requested.edition).year;}}
 async function init(){try{S.boot=await fetch('data/bootstrap.json').then(r=>{if(!r.ok)throw Error('Katalogen kunde inte läsas ('+r.status+')');return r.json()});window.SatilaMultiYearComparison?.init?.({boot:S.boot,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
 async function loadRace(historyMode='replace'){window.SatilaMultiYearComparison?.captureCurrentSelection?.();let id=++S.loading;let ed=S.boot.editions.find(e=>e.race_key===S.editionKey)||S.boot.editions.find(e=>e.family===S.family&&e.year===S.year);if(!ed)return;S.editionKey=ed.race_key;S.year=ed.year;$('#race-title').textContent=`${famLabel(S.family)} · ${ed.edition_label||S.year}`;$('#race-subtitle').textContent=ed.date?ed.label+' · '+ed.date:ed.label;$('#source-indicator').textContent='Hämtar publicerade resultatdata…';let race;try{let req=await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`);if(!req.ok)throw Error('Detta lopp saknar datafil ('+req.status+')');race=await req.json();}catch(err){if(id!==S.loading)return;S.race=null;S.route=null;$('#source-indicator').textContent='Kunde inte hämta tävlingsdata: '+err.message;$('#source-indicator').setAttribute('role','alert');$('#race-subtitle').textContent='Upplagan kan inte visas just nu. Välj ett annat år eller försök igen.';$('#segment-table tbody').innerHTML='';$('#results-table tbody').innerHTML='';return;}if(id!==S.loading)return;$('#source-indicator').removeAttribute('role');S.race=race;S._splits=null;S._distanceCapability=null;buildSplitIndex();S.page=0;S.selectedSegment=0;S.podiumStart=0;S.podiumEnd=1;S.placementZoom=0;S.placementWindow=null;S.segmentSeriesMode='all';S.courseD=null;S.courseFromSegment=false;S.sex='all';S.status='all';S.className='all';S.club='';S.clubExact=false;S.compare=[];S.mapDuel=[];S.duelClock=0;S.compareSegment=null;S.duelCamera='both';S.duelManualZoom=false;S.selectedClubs=null;S.extraClassSelection=null;document.querySelectorAll('[data-family]').forEach(b=>{b.classList.toggle('selected',b.dataset.family===S.family);b.setAttribute('aria-pressed',String(b.dataset.family===S.family))});$('#year-select').innerHTML=S.boot.editions.filter(e=>e.family===S.family).map(e=>`<option value="${html(e.race_key)}" ${e.race_key===S.editionKey?'selected':''}>${html(e.edition_label||e.year)} · 100 miles</option>`).join('');const releaseLocked=race.release_state==='PRIVATE_DATA_WITHHELD',demo=Boolean(race.demo_only);$('#source-indicator').textContent=releaseLocked?'Källor verifierade · deltagaruppgifter ej publicerade':demo?'DESIGNDEMO · fiktiva resultat och kontrolltider':'Officiella GAX100-källor · '+race.stations.length+' kontroller';$('#official-source').href=ed.source_url;$('#official-source').textContent=demo?'Officiella årssummor ↗':'Originalresultat ↗';$('#scope-status').textContent=releaseLocked?`${format(ed.results)} resultat i privat databas · individuell visning spärrad`:demo?`${format(race.results.length)} fiktiva löpare · ${format(race.results.filter(r=>r.status==='FINISHED').length)} simulerade målgångar · ${format(race.splits.length)} simulerade passager`:`${format(ed.results)} resultat · ${format(ed.finishers)} målgångar · ${format(ed.split_observations)} tidspassager`;
-$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');S.route=null;const source=ed.route_file;if(source){try{S.route=await fetch('data/'+source,source==='routes/ultra85-2026.json'?{cache:'no-store'}:undefined).then(r=>r.ok?r.json():null)}catch{S.route=null}}if(id!==S.loading)return;$('#course-source').textContent=race.demo_only?'GAX design-demo: ingen verifierad års-GPX. Delsträckor och passertider nedan är fiktiva och modellerade efter aktuell tävlingsinformation.':S.route?'Årsbunden, rättighetsklar GAX100-geometri visas som separat banreferens. Kontrolltidtagning och faktiska deltagarpassager är separata uppgifter.':'Ingen publicerbar GAX100-GPX har rättighets- och årsverifierats. Verkliga kontroll- och sluttider påverkas inte.';const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
+$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');S.route=null;const source=ed.route_file;if(source){try{S.route=await fetch('data/'+source,source==='routes/ultra85-2026.json'?{cache:'no-store'}:undefined).then(r=>r.ok?r.json():null)}catch{S.route=null}}if(id!==S.loading)return;if(S.editionKey==='2026-gax100'&&race.demo_only&&S._localGpxRoute)S.route=S._localGpxRoute;$('#course-source').textContent=race.demo_only?(S.route?.local_only?'2026-GPX läses enbart lokalt; banan används som visningsrutt för fiktiva demolöpare.':'GAX design-demo: ingen lokal GPX inläst. Delsträckor och passertider är fiktiva och modellerade efter aktuell tävlingsinformation.'):S.route?'Årsbunden, rättighetsklar GAX100-geometri visas som separat banreferens. Kontrolltidtagning och faktiska deltagarpassager är separata uppgifter.':'Ingen publicerbar GAX100-GPX har rättighets- och årsverifierats. Verkliga kontroll- och sluttider påverkas inte.';const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();refreshGaxLocalRouteControls();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
 function renderAll(){window.GaxCheckpointView?.render?.(S.race);subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderCourse();renderHistory();renderResults();renderFavorites();renderCompareChips();renderMapDuelChips();renderSearchSuggestions();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderAll?.()}catch(err){console.error('GAX100 analytics extension:',err)}},100);}
 function rerenderFilter(){S.page=0;subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderResults();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderFiltered?.()}catch(err){console.error('GAX100 analytics filter:',err)}},50);}
 function setFamily(v){if(v===S.family)return;S.family=v;S.year=Math.max(...S.boot.editions.filter(e=>e.family===v).map(e=>e.year));S.editionKey=null;loadRace('push').catch(console.error)}
@@ -667,6 +667,88 @@ function renderProfileLegacy(r){
   renderProfileReplay(r);
 }
 
+
+/* GAX100 2026: user-selected course only. GPX is parsed in RAM;
+   no upload, no localStorage, no public redistribution. A route file is NOT
+   a runner GPS log. The demo positions are interpolated from fabricated TIME. */
+function parseGaxLocalGPX(xmlText){
+  if(typeof xmlText!=='string'||xmlText.length>5_500_000||/<!DOCTYPE|<!ENTITY/i.test(xmlText))
+    throw Error('GPX-filen är för stor eller har en ogiltig XML-deklaration.');
+  const xml=new DOMParser().parseFromString(xmlText,'application/xml');
+  if(xml.getElementsByTagName('parsererror').length||xml.documentElement?.localName!=='gpx')
+    throw Error('Filen är inte en läsbar GPX-bana.');
+  let nodes=Array.from(xml.getElementsByTagNameNS('*','trkpt'));
+  if(nodes.length<100)nodes=Array.from(xml.getElementsByTagNameNS('*','rtept'));
+  if(nodes.length<100||nodes.length>150000)
+    throw Error('GPX-filen måste innehålla minst 100 och högst 150 000 banpunkter.');
+  const earthRadius=6371.0088,toRadians=Math.PI/180;
+  const haversine=(a,b)=>{
+    const dlat=(b[0]-a[0])*toRadians,dlon=(b[1]-a[1])*toRadians;
+    const h=Math.sin(dlat/2)**2+Math.cos(a[0]*toRadians)*Math.cos(b[0]*toRadians)*Math.sin(dlon/2)**2;
+    return 2*earthRadius*Math.asin(Math.min(1,Math.sqrt(h)));
+  };
+  const keepEvery=Math.max(1,Math.floor(nodes.length/1800));
+  const points=[];
+  let total=0,last=null;
+  for(let i=0;i<nodes.length;i++){
+    const node=nodes[i],lat=Number(node.getAttribute('lat')),lon=Number(node.getAttribute('lon'));
+    const eleTag=Array.from(node.children).find(child=>child.localName==='ele');
+    const elevation=eleTag?Number(eleTag.textContent):0;
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(elevation)||
+       lat<55.1||lat>56.2||lon<13.2||lon>14.8||elevation< -50||elevation>850)
+      throw Error('GPX-punkterna ligger inte inom det rimliga GAX100-området i Skåne.');
+    const current=[lat,lon,elevation];
+    if(last){
+      const leg=haversine(last,current);
+      if(leg>2.5)throw Error('GPX-filen har ett hopp över 2,5 km; banan kan inte användas för Kartduell.');
+      total+=leg;
+    }
+    if(i%keepEvery===0||i===nodes.length-1)points.push([total,lat,lon,elevation]);
+    last=current;
+  }
+  if(total<140||total>185)
+    throw Error('GPX-spåret är '+total.toFixed(1).replace('.',',')+' km; Kartduellen kräver en komplett GAX100-bana (140–185 km).');
+  if(points.length<100)throw Error('GPX-spåret innehåller för få användbara punkter.');
+  return {points,source:'selected-local-gpx',status:'local-gpx-2026',course_year:2026,
+    synthetic_projection_only:true,valid_source_geometry_for_publication:false,local_only:true};
+}
+function refreshGaxLocalRouteControls(){
+  const panel=$('#gax-local-gpx-card'),input=$('#gax-gpx-upload'),status=$('#gax-gpx-status');
+  if(!panel||!input)return;
+  const available=S.editionKey==='2026-gax100'&&Boolean(S.race?.demo_only);
+  panel.hidden=!available;input.disabled=!available;
+  if(available&&status){
+    status.textContent=S._localGpxRoute
+      ?'2026-bana inläst endast lokalt: '+S._localGpxRoute.points.length+
+        ' punkter och '+fmtKm(S._localGpxRoute.points.at(-1)[0])+
+        ' km. Välj 2–5 demolöpare och öppna Kartduellen.'
+      :'Ingen GPX inläst. Hämta 2026-banan från Garmin och välj din GPX-fil här.';
+    status.removeAttribute('role');status.setAttribute('role','status');
+  }
+}
+async function loadGaxLocalGPX(event){
+  const input=event.currentTarget,status=$('#gax-gpx-status'),file=input.files?.[0];
+  if(!file)return;
+  if(!S.race?.demo_only||S.editionKey!=='2026-gax100'){
+    if(status){status.textContent='Välj först design-demoversionen för 2026.';status.setAttribute('role','alert')}
+    input.value='';return;
+  }
+  try{
+    if(!/\.gpx$/i.test(file.name)||file.size>5_500_000)
+      throw Error('Välj en vanlig GPX-fil för 2026 (högst 5,5 MB).');
+    const route=parseGaxLocalGPX(await file.text());
+    if(!S.race?.demo_only||S.editionKey!=='2026-gax100')
+      throw Error('Loppåret ändrades medan GPX-filen lästes. Välj 2026 igen.');
+    S._localGpxRoute=route;S.route=route;S.courseD=null;
+    $('#course-source').textContent='2026-GPX inläst lokalt på din enhet. Visningsrutten används endast för fiktiva demolöpare och inga koordinater publiceras.';
+    refreshGaxLocalRouteControls();renderMapDuelChips();renderCourse();renderProfileIfOpen();
+  }catch(err){
+    S._localGpxRoute=null;S.route=null;
+    if(status){status.textContent=err.message||'GPX-filen kunde inte läsas.';status.setAttribute('role','alert')}
+    renderMapDuelChips();renderCourse();
+  }finally{input.value=''}
+}
+
 function validRouteComparison(){return !!S.route&&routePoints().length>=2} // Map availability must not depend on checkpoint coverage.
 function updateReplayElevation(host,pts,d,callback){
   if(!host.querySelector('svg')){
@@ -1091,6 +1173,7 @@ function restoreMapDuelFromUrl(params=comparisonParams()){
 }
 function ensureMapDuelControls(){
   if(!$('#map-duel-builder'))return;
+  $('#gax-gpx-upload')?.addEventListener('change',loadGaxLocalGPX);
   $('#open-map-duel').addEventListener('click',openMapDuel);
   $('#share-map-duel-selection')?.addEventListener('click',()=>shareMapDuel(0,'#map-duel-share-status'));
   $('#map-duel-share')?.addEventListener('click',()=>shareMapDuel(Number($('#map-duel-clock')?.value)||0,'#map-duel-modal-share-status'));
@@ -1110,7 +1193,7 @@ function addMapDuel(id){
 function renderMapDuelChips(){
   if(!$('#map-duel-chips'))return;
   $('#map-duel-counter').textContent=String(S.mapDuel.length);
-  $('#open-map-duel').disabled=S.mapDuel.length<2;
+  $('#open-map-duel').disabled=S.mapDuel.length<2||!validRouteComparison();
   $('#share-map-duel-selection').disabled=S.mapDuel.length<2;
   $('#open-compare').disabled=S.mapDuel.length!==2;
   $('#compare-counter').textContent=`(${S.mapDuel.length}/2)`;
@@ -1140,7 +1223,7 @@ function openMapDuel(){
   cancelAnimationFrame(S._mapDuelFrame);
   $('#map-duel-modal-share-status').textContent='';
   if(!validRouteComparison()){
-    host.innerHTML=empty('Kartduell kräver en godkänd lokal rutt för exakt denna tävlingsupplaga. Resultaten kan fortfarande jämföras två och två utan karta.');
+    host.innerHTML=empty(S.race?.demo_only?'Kartduellen behöver en lokal GPX-fil för 2026. Öppna officiella Garmin-kursen och välj sedan filen i banpanelen.':'Kartduell kräver en godkänd lokal rutt för exakt denna tävlingsupplaga. Resultaten kan fortfarande jämföras två och två utan karta.');
     dialog.showModal();return;
   }
   const data=runners.map((runner,i)=>({runner,anchors:runnerAnchors(runner),color:['#d8ad62','#69a07b','#8e9dc4','#d28975','#b58ec4'][i]}));
@@ -1149,7 +1232,7 @@ function openMapDuel(){
   const pts=routePoints(),maxClock=Math.ceil(Math.max(0,...data.map(item=>item.anchors.at(-1).t)));
   let clock=0,playing=false,startedAt=0,startedClock=0;
   S.mapDuelCamera='full';
-  host.innerHTML=`<p class="muted small">Gemensam tävlingsklocka. Markörerna följer verifierade EQ-passager. Vid saknade mellankontroller används en robust fartprofil från minst fem närliggande löpare med kompletta passager; annars jämn medelfart mellan de verifierade punkterna. Uppskattningarna används enbart för animeringen, visas inte som resultat och markörerna fryser efter sista säkra ankarpunkt. De är inte uppmätta GPS-positioner.</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
+  host.innerHTML=`<p class="muted small">${S.race?.demo_only?'DESIGNDEMO: Banan visas från din lokalt valda GPX. Alla löpare och tidsankare är fiktiva. Markörernas positioner mellan de påhittade kontrollerna är interpolerade och får inte tolkas som verkliga GPS-positioner eller officiell placeringsordning.':'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
   dialog.showModal();
   const map=$('#map-duel-map'),elev=$('#map-duel-elevation'),play=$('#map-duel-play'),range=$('#map-duel-clock');
   replaySoundtrack.bind(host);
