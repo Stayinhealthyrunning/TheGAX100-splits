@@ -102,6 +102,28 @@ class FictionalRaceDataTests(unittest.TestCase):
             self.assertEqual([r["finish_seconds"] for r in finishers],
                              sorted(r["finish_seconds"] for r in finishers))
 
+    def test_annual_sex_trend_is_actually_available_in_fictional_catalog(self):
+        coverage=self.files["data/coverage.json"]
+        self.assertEqual(len(coverage),14)
+        self.assertTrue(all(row["sex_known"]==row["sex_f"]+row["sex_m"]==row["results"]
+                            for row in coverage))
+        self.assertTrue(all(row["sex_source"]=="fictional_design_demo" for row in coverage))
+        self.assertEqual({row["edition_label"] for row in coverage
+                          if row["year"]==2021},{"2021-A","2021-B"})
+
+    def test_preserved_route_provenance_has_no_republished_geometry(self):
+        manifest=self.files["data/route-candidates.json"]
+        self.assertEqual(len(manifest["editions"]),14)
+        lookup={row["race_key"]:row for row in manifest["editions"]}
+        self.assertEqual(lookup["2022-gax100"]["discontinuities"],0)
+        self.assertEqual(lookup["2018-gax100"]["discontinuities"],2)
+        self.assertTrue(lookup["2026-gax100"]["verified_official"])
+        self.assertFalse(lookup["2022-gax100"]["verified_official"])
+        self.assertTrue(all(row["publication_rights"]=="not_cleared"
+                            for row in manifest["editions"]))
+        self.assertFalse(any("points" in row or "coordinates" in row
+                             for row in manifest["editions"]))
+
     def test_reproducible_demo_build(self):
         other=prepare_payload(ROOT/"docs")
         for ed in self.boot["editions"]:
