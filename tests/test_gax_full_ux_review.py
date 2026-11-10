@@ -41,7 +41,8 @@ def run(path: Path):
             assert locator.get_attribute("aria-label"), f"Info lacks accessible label in {sid}"
         page.locator("#overview > .section-heading .gax-added-info").click()
         assert page.locator("#help-dialog").evaluate("(el)=>el.open"),"Section explanation dialog did not open"
-        assert "fiktiva" in page.locator("#help-content").inner_text().lower()
+        explanation=page.locator("#help-content").inner_text().lower()
+        assert len(explanation)>100 and ("simulerade" in explanation or "fiktiva" in explanation)
         page.locator("#help-dialog [data-close='help-dialog']").click()
 
         # 3. No duplicate wide classes panel, only a summary under Start till mål.
