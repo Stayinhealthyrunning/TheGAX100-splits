@@ -329,3 +329,9 @@ a{transition:color .16s}
  .gax-guide-close{right:9px;top:8px}
  .gax-mode-switch button{font-size:11px;padding:10px 13px}
 }
+
+.gax-group-details{margin:12px 0 0;border:1px solid #dfe4d8;background:#fcfcf6;border-radius:8px;overflow:hidden}
+.gax-group-details summary{cursor:pointer;padding:9px 13px;font-size:11px;font-weight:800;color:#365b4d}
+.gax-group-details[open] summary{border-bottom:1px solid #e6e7dd;background:#f4f5ec}
+.gax-group-details #group-table{padding:12px}
+.gax-group-details #group-table table{font-size:11px}
