@@ -51,7 +51,7 @@ a{transition:color .16s}
 .gax-hero-inner{
  position:relative;display:grid!important;grid-template-columns:minmax(0,1.14fr) minmax(300px,.86fr);
  min-height:0!important;gap:14px;align-items:center!important;
- max-width:1260px;margin:0 auto;padding:30px 0 23px
+ max-width:1260px;margin:0 auto;padding:20px 0 13px
 }
 .gax-hero-copy{max-width:620px;position:relative;z-index:3;padding:0}
 .gax-hero .hero-eyebrow{display:flex;align-items:center;gap:9px;color:#8a7958;font-size:10px;letter-spacing:.20em;margin:0 0 9px}
@@ -67,7 +67,7 @@ a{transition:color .16s}
  font-weight:400;font-style:italic;color:#3b6259!important;margin:5px 0 9px!important;max-width:none
 }
 .gax-hero .gax-hero-desc{font-size:13px!important;color:#526e65!important;max-width:480px!important;margin:0!important;line-height:1.55}
-.gax-hero .hero-actions{margin-top:19px;gap:9px;align-items:center}
+.gax-hero .hero-actions{margin-top:12px;gap:9px;align-items:center}
 .gax-hero .btn{min-height:38px;font-size:12px;padding:8px 15px;border-radius:7px;box-shadow:none;letter-spacing:.005em}
 .gax-hero .gax-primary{background:#244a43;color:#fff;border-color:#244a43}
 .gax-hero .gax-primary:hover{background:#3a665c;color:#fff}
@@ -75,13 +75,13 @@ a{transition:color .16s}
 .gax-hero .gax-secondary:hover{background:rgba(255,255,255,.72);color:#214039}
 .gax-hero-art{align-self:stretch;position:relative;min-height:200px;display:flex;align-items:center;justify-content:center}
 .gax-hero-art:before{content:"";position:absolute;inset:5% -12% 2% 7%;border-radius:50%;background:#fce5ba;filter:blur(39px);opacity:.34}
-.gax-summer-scene{display:block;position:relative;width:100%;height:auto;max-height:250px;border-radius:120px 10px 11px 10px;opacity:.94;box-shadow:0 18px 36px #6b93831c;overflow:hidden}
+.gax-summer-scene{display:block;position:relative;width:100%;height:auto;max-height:225px;border-radius:120px 10px 11px 10px;opacity:.94;box-shadow:0 18px 36px #6b93831c;overflow:hidden}
 .gax-art-caption{position:absolute;bottom:3px;right:0;font-size:8px;font-weight:850;letter-spacing:.19em;color:#62766b;background:#f2e9d8c9;padding:6px 9px;border-radius:4px}
 .gax-fact-band{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 auto;width:100%;max-width:1260px;border-top:1px solid #d8d8cb;gap:0}
-.gax-fact-band div{padding:10px 16px 11px;text-align:center;border-right:1px solid #d8d8cb}
+.gax-fact-band div{padding:7px 16px 8px;text-align:center;border-right:1px solid #d8d8cb}
 .gax-fact-band div:first-child{text-align:left;padding-left:0}
 .gax-fact-band div:last-child{border-right:0;text-align:right;padding-right:0}
-.gax-fact-band strong{display:block;color:#284b44;font-family:Georgia,serif;font-weight:600;font-size:22px;letter-spacing:-.03em;line-height:1.15}
+.gax-fact-band strong{display:block;color:#284b44;font-family:Georgia,serif;font-weight:600;font-size:20px;letter-spacing:-.03em;line-height:1.15}
 .gax-fact-band strong small{font-family:inherit;font-size:12px}
 .gax-fact-band span{display:block;margin-top:2px;color:#64786c;font-weight:700;font-size:10px;letter-spacing:.04em}
 .gax-single-card{display:none!important}
