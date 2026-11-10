@@ -1,0 +1,49 @@
+name: GAX100 clean-room quality and privacy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          for js in docs/assets/*.js; do node --check "$js"; done
+      - name: Verify official GAX aggregates and empty public individual-data files
+        run: python3 -B tests/test_blueprint_contract.py
+      - name: Build synthetic offline GAX review
+        run: python3 -B scripts/build_offline_preview.py --docs docs --out preview/GAX100-UI-DEMO.html
+      - name: Install browser for actual preview acceptance
+        run: |
+          python3 -m pip install --disable-pip-version-check playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Test 390px mobile and 1440px desktop, profiles and comparisons
+        run: python3 -B tests/test_offline_preview_browser.py --file preview/GAX100-UI-DEMO.html
+      - name: Verify only test names in generated output
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html=Path('preview/GAX100-UI-DEMO.html').read_text(encoding='utf-8')
+          assert html.count('Demolöpare ') >= 945
+          assert 'FÖRHANDSGRANSKNING' in html
+          assert 'ALL NAMES AND TIMES ARE FABRICATED' in html
+          assert 'gax100.sqlite' not in html
+          print('GAX100_CLEAN_MIGRATION_PASS: 14 years, 945 synthetic demo entrants')
+          PY
+# No private registry, source DB, artifacts or participant details handled here.
