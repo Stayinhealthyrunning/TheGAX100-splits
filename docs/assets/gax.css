@@ -246,36 +246,12 @@ a{transition:color .16s}
 /* In offline/Pages design mode, avoid repeating the status banner beneath the hero. */
 .gax-is-demo .gax-preview-note{display:none!important}
 
-/* 2026 map duel: organizer GPX is opened by the visitor locally only. */
-#gax-local-gpx-card[hidden]{display:none!important}
 #map-duel-builder #open-map-duel{display:inline-flex!important;align-items:center}
 #map-duel-builder #open-map-duel:disabled{opacity:.48;cursor:not-allowed}
-.gax-gpx-import{margin:0 0 12px;padding:17px 20px!important;background:linear-gradient(130deg,#f5f1e5,#edf3ec)!important;border-left:4px solid #81a8aa!important}
-.gax-gpx-intro{display:flex;align-items:center;justify-content:space-between;gap:24px}
-.gax-gpx-intro>div{max-width:760px}
-.gax-gpx-import h3{font:600 clamp(20px,2.6vw,28px)/1.2 Georgia,serif;margin:5px 0 8px;color:#315a51}
-.gax-gpx-import p{margin:4px 0;color:#61746b;line-height:1.5;font-size:12px}
-.gax-gpx-import strong{color:#315a51}
-.gax-gpx-import .gax-gpx-official-link{background:#285950;color:#fff;border:1px solid #285950;border-radius:7px;white-space:nowrap;font-size:11px;padding:8px 13px;min-height:38px}
-.gax-gpx-actions{display:flex;gap:13px;align-items:center;flex-wrap:wrap;margin:13px 0 8px}
-.gax-gpx-file-label{display:inline-flex;align-items:center;gap:9px;border:1px solid #a2b6a5;border-radius:7px;background:#fffdf7;color:#31594f;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:800}
-.gax-gpx-file-label:focus-within{outline:3px solid #bb8f6d;outline-offset:2px}
-#gax-gpx-upload{font:inherit;color:#42675d;font-size:11px;max-width:240px}
-#gax-gpx-upload:disabled{cursor:not-allowed;opacity:.5}
-#gax-gpx-status{flex:1 1 260px;font-size:11px;color:#436558;margin:0;line-height:1.4}
-#gax-gpx-status[role=alert]{color:#9a4334;font-weight:800}
-.gax-gpx-import .gax-gpx-note{font-size:11px;border-top:1px solid #dce4d9;padding-top:9px;margin:9px 0 0}
-@media(max-width:850px){
- .gax-gpx-intro{display:block}
- .gax-gpx-intro .gax-gpx-official-link{margin:9px 0 0;display:inline-flex}
- .gax-gpx-file-label{flex-wrap:wrap}
-}
-@media(max-width:480px){
- .gax-gpx-import{padding:13px 14px!important}
- .gax-gpx-file-label{width:100%;justify-content:space-between}
- #gax-gpx-upload{max-width:100%;width:100%}
-}
-
+:is(.course-map,.duel-map)>.duel-map-toolbar{position:absolute;z-index:5;right:8px;top:8px;display:flex;gap:4px;padding:4px;border-radius:10px;background:#faf9f5f2;box-shadow:0 2px 12px #0002}
+:is(.course-map,.duel-map)>.duel-map-toolbar button{min-width:36px;min-height:36px;border:1px solid #aebcad;border-radius:7px;background:white;color:#173b2a;font-weight:800;cursor:pointer}
+:is(.course-map,.duel-map)>.duel-map-toolbar button:last-child{padding:0 9px}
+:is(.course-map,.duel-map) :is(.route-base,.route-gold,.simple-route-base,.simple-route-line,.gax-course-layer,.segment-route-overlay){vector-effect:non-scaling-stroke}
 
 /* GAX100 UX review 2026-11-10: more analysis above the fold. */
 .gax-guide-dialog{

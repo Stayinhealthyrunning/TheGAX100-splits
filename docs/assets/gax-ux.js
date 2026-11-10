@@ -7,23 +7,23 @@ const $=(q,root=document)=>root.querySelector(q);
 const $$=(q,root=document)=>Array.from(root.querySelectorAll(q));
 const HELP={
  'race-context':'Välj loppår eller 2021-A/B. Fältet under årsväljaren berättar om innehållet är en fiktiv design-demo eller en källa som har passerat publiceringskontrollerna. Kartor och kontrollpunkter kan skilja sig mellan upplagorna.',
- method:'Metodavsnittet skiljer på officiella årsantal, fiktiva analysvärden och lokalt inlästa GPX-filer. I den här granskningssidan är varje enskild löpares namn, kön, tider och kontrollpassager påhittade.',
+ method:'Metodavsnittet skiljer på officiella årsantal, fiktiva analysvärden och inbyggda banreferenser. I den här granskningssidan är varje enskild löpares namn, kön, tider och kontrollpassager påhittade.',
  overview:'Översikten visar fördelningen av starter, fullföljare och sluttider. Diagram och tabeller följer valda filter. I designversionen är enskilda resultat och kön simulerade; årens antal hämtas från arrangörskällor.',
  dynamics:'Här hittar du placeringar, starka avslutningar och avvikande prestationer. Jämför löpare inom samma upplaga. I designversionen bygger analyserna på fiktiva passertider och placeringar.',
  segments:'Hela loppet visar fördelningar för varje delsträcka. Växla till Min loppplan och ange din önskade sluttid för att få en fördelning av tiden per kontroll. Standardvärdet är fältets median. I demoversionen används simulerade tider; det är ingen prognos.',
- course:'Banpanelen visar en GPX endast när en årsbunden fil har valts lokalt. Bangeometri är inte samma sak som en löpares uppmätta GPS-position. Höjdskillnader inom en segmentanalys kräver verkliga georefererade kontroller.',
+ course:'Banpanelen visar källåret för den inbyggda rutten. När en årsfil saknas väljs närmaste GPX-år. Höjdskillnader inom en segmentanalys kräver verkliga georefererade kontroller.',
  history:'Historik visar resultatantal och status för varje upplaga. 2021-A och 2021-B är separata lopp. Jämförelser av fysisk prestation mellan år kräver dokumenterat jämförbar bansträckning.',
  results:'Sök, sortera och öppna en löparprofil. Förhandsversionen innehåller enbart påhittade svenska namn, klubbar, tider och kön. Årens officiella antal ligger kvar som referens.',
- 'map-duel-builder':'Välj två till fem löpare och jämför deras passertider. För Kartduell måste du öppna en egen GPX-fil för vald upplaga. Kartmarkörerna rör sig genom interpolation mellan modellkontrollerna – de är inte löparnas uppmätta GPS-spår.',
+ 'map-duel-builder':'Välj två till fem löpare och jämför deras passertider. Kartduellen använder den inbyggda banreferensen för varje upplaga. Kartmarkörerna rör sig genom interpolation mellan modellkontrollerna – de är inte löparnas uppmätta GPS-spår.',
  'runner-tools':'Sök efter en löpare i vald upplaga. Tryck på namnet för att se profil, segment och jämförelse. Alla individer är fiktiva i den publika designversionen.',
  'gax-guide-dialog':'Loppets fyra naturavsnitt och arrangörens vätskestationer visas som en översikt. Reptiderna gäller den aktuella publicerade tävlingsinformationen och ska inte tolkas som exakt samma historiska bana för varje upplaga.'
 };
 const CARD_HELP={
  'Start till mål':'Andelen som fullföljt visas separat för kvinnor och män. Under staplarna finns en komprimerad klassfördelning inom aktuellt urval. DNS räknas inte som startande.',
  'Prestationer som sticker ut':'Fem olika sätt att hitta uppseendeväckande lopp. Starkaste avslutningen jämför tempot före och efter ungefär två tredjedelar av banan, normaliserat mot andra löpare av samma kön. I demon är tiderna simulerade.',
- 'Banans dimensioner':'Arrangörens tävlingsdistans, antalet modellkontroller, sluttidsmedian och DNF-andel. En verklig GPX-distans anges separat enbart om användaren har läst in en årsrutt. Ingen tom dubblettdistans visas.',
+ 'Banans dimensioner':'Arrangörens tävlingsdistans, antalet modellkontroller, sluttidsmedian och DNF-andel. Banreferensens längd visas separat med GPX-år.',
  'Andel kvinnor och män över tid':'Andelen kvinnor och män per upplaga. I designversionen kommer detta från syntetiskt kön per demolöpare; endast 2026 års fördelning har kalibrerats mot publicerade totalsiffror. Kurvorna visar inte verklig historisk demografi.',
- 'Vad går att jämföra?':'Tabellen redovisar tidigare kartinventering separat från de offentliga resultatfilerna. En identifierad kandidatrutt är inte automatiskt en officiell bana; ingen GPX återpubliceras utan tillstånd.',
+ 'Vad går att jämföra?':'Tabellen redovisar tidigare kartinventering separat från de offentliga resultatfilerna. Tabellen anger vilken källa som visas som historisk banreferens.',
  'Fördela din måltid över delsträckorna':'Skriv en önskad sluttid. Modellen fördelar den utifrån medianandel av sluttiden på respektive delsträcka. Hela loppets median visas som startvärde. Alla demoresultat är simulerade.',
  'Fältets segmenttider, segment för segment':'Varje segment kräver giltiga, stigande tidsankare. Median och spridning gäller aktuellt köns- och statusurval; tomma eller brutna passager blir inte noll.',
  'Spurten mot mål':'Jämför en löpares sista registrerade segment med andra fullföljare. I demoversionen är både loppet och kontrolltiderna påhittade.',

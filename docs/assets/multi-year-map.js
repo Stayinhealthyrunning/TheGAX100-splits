@@ -42,7 +42,7 @@ function mount(root,rawItems,options={}){
  });
  const mapped=items.filter(item=>item.points.length>=2);
  if(!mapped.length){
-  root.innerHTML='<div class="multi-year-warning"><strong>Ingen rutt att rita för dessa upplagor.</strong><p>Resultatjämförelsen fungerar ändå. Kartan får inte låna en annan upplagas GPX.</p></div>';
+  root.innerHTML='<div class="multi-year-warning"><strong>Ingen rutt att rita för dessa upplagor.</strong><p>Resultatjämförelsen fungerar ändå. Banunderlaget är inte tillgängligt just nu.</p></div>';
   return{destroy(){}};
  }
  const reduced=Boolean(global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
@@ -70,7 +70,7 @@ function mount(root,rawItems,options={}){
  let renderZoom=Math.round(fullZoom),cameraZoom=fullZoom,cameraGeo=[...fullCenter];
  let origin=[0,0],scene=null,tileLayer=null,markerLayer=null,markerNodes=[],tileKey='';
  const tileCache=new Map();let neededTiles=new Set();
- const title='<div class="multi-year-map-head"><div><p class="eyebrow">KARTJÄMFÖRELSE MELLAN ÅR</p><h3>Banvarianter och beräknad position</h3><p>Olika färger visar varje upplagas egen dokumenterade rutt. Markörernas lägen beräknas mellan verkliga tidspassager, inte från deltagarens GPS.</p></div></div>';
+ const title='<div class="multi-year-map-head"><div><p class="eyebrow">KARTJÄMFÖRELSE MELLAN ÅR</p><h3>Banvarianter och beräknad position</h3><p>Varje löpare visas på upplagans banreferens. Markörerna följer fiktiva passertider och beräknade positioner.</p></div></div>';
  const legend=items.map(item=>'<label class="multi-year-route-option"><input type="checkbox" data-route-visible="'+item.index+'" '+(item.points.length>=2?'checked':'disabled')+'><i style="background:'+item.color+'"></i><span><strong>'+esc(item.year+' · '+item.name)+'</strong><small>'+esc(item.provenance||'Rutt saknas')+(item.points.length>=2?' · '+item.points.at(-1)[2].toFixed(1).replace('.',',')+' km':'')+'</small></span></label>').join('');
  const musicControls=options.musicSrc?'<button type="button" data-map-music aria-pressed="true" aria-label="Slå av eller på musik">♫ Musik</button><label>Volym <input data-map-volume type="range" min="0" max="1" step=".05" value=".3" aria-label="Musikvolym"></label><span data-map-audio-note role="status" class="muted small" hidden></span>':'';
  root.innerHTML=title+'<div class="multi-year-route-legend">'+legend+'</div><div class="multi-year-map-surface"><svg id="multi-year-route-svg" viewBox="0 0 900 470" role="img" aria-label="Jämförelsekarta med separata bansträckningar"></svg><div class="multi-year-map-zoom"><button type="button" data-map-zoom="1" aria-label="Zooma in på banorna">+</button><button type="button" data-map-zoom="-1" aria-label="Zooma ut">−</button><button type="button" data-map-fit>Visa hela banorna</button></div></div><p class="multi-year-map-credit">Kartunderlag © OpenStreetMap contributors. GPX-geometri är banreferens, inte löparens uppmätta GPS-position.</p><div class="multi-year-map-controls"><button type="button" data-map-play '+(maxClock===0?'disabled':'')+'>Spela</button><button type="button" data-map-reset>Starta om</button><label>Uppspelningstid <select data-map-duration><option value="30">30 sek</option><option value="60">60 sek</option><option value="120" selected>120 sek</option><option value="180">180 sek</option></select></label><label>Kamera <select data-map-camera aria-label="Kameraläge"><option value="full">Hela banorna</option><option value="both" selected>'+(items.length<=2?'Följ båda':'Följ alla')+'</option><option value="leader">Följ längst kommen</option></select></label>'+musicControls+'<span data-map-time>'+fmt(0)+'</span></div><input class="multi-year-map-range" data-map-range type="range" min="0" max="'+Math.ceil(maxClock)+'" value="0" step="1" aria-label="Gemensam tävlingsklocka"><p class="multi-year-map-note" role="status" data-map-note>Följ längst kommen utgår från beräknad andel av den egna banan, inte från officiell placering mellan olika år. Musik startar bara vid ett aktivt klick på Spela.</p>';
@@ -196,7 +196,7 @@ function mount(root,rawItems,options={}){
   if(terminated)return;
   origin=allGeo[0].map(v=>v*2**renderZoom);
   const paths=mapped.map(item=>{
-   const line=item.points.map((p,i)=>{const xy=toWorld(merc(p[0],p[1]));return(i?'L':'M')+xy[0].toFixed(3)+' '+xy[1].toFixed(3)}).join(' ');
+   const line=item.points.map((p,i)=>{const xy=toWorld(merc(p[0],p[1]));return(i&&!p[3]?'L':'M')+xy[0].toFixed(3)+' '+xy[1].toFixed(3)}).join(' ');
    return '<g data-map-path="'+item.index+'"'+(item.visible?'':' style="display:none"')+'><path d="'+line+'" fill="none" stroke="#fff" vector-effect="non-scaling-stroke" stroke-width="7" stroke-linejoin="round" opacity=".85"/><path d="'+line+'" fill="none" stroke="'+item.color+'" vector-effect="non-scaling-stroke" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round"/></g>';
   }).join('');
   const markers=mapped.map(item=>'<g data-map-marker="'+item.index+'"><circle r="9" fill="#fff" stroke="'+item.color+'" stroke-width="3"/><circle r="4" fill="'+item.color+'"/></g>').join('');

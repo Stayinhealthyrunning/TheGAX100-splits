@@ -22,7 +22,7 @@ När en årsfil saknas väljs närmaste år, med äldre år vid lika avstånd. A
 
 2026-exporten har 2 916 punkter i ett sammanhängande GPX-segment. Längsta steget mellan två källpunkter är 1,878 km. Kartan återger arrangörens punktföljd och geometriskt avstånd, med samma förenkling mellan källpunkterna som en vanlig GPX-visare. Referensgeometrin ger inga verifierade historiska stationer eller passager.
 
-Kartduellen knyter manuellt importerad GPX till det valda tävlingsåret och håller den i webbläsarens arbetsminne. De fiktiva löparnas positioner beräknas från simulerade tider.
+Individuell Replay och Kartduell använder den inbyggda banreferensen för varje upplaga. Avbrott i historisk geometri ritas separat, även i uppspelningen. De fiktiva löparnas positioner beräknas från simulerade tider.
 
 Verifiering: `tests/test_gax_full_ux_review.py`, `tests/test_gax_gpx_local.py`, `tests/test_synthetic_data.py` och `tests/test_blueprint_contract.py`.
 

@@ -52,6 +52,7 @@ function render(model){
 function create(){
   const root=$('#multi-year-comparison'),year=$('#multi-year-year'),search=$('#multi-year-search'),suggestions=$('#multi-year-suggestions'),chips=$('#multi-year-selected'),button=$('#open-multi-year-comparison'),feedback=$('#multi-year-feedback'),dialog=$('#multi-year-dialog'),body=$('#multi-year-dialog-body');
   if(!root||!year||!search||!suggestions||!chips||!button||!dialog||!body)return null;
+  let getRoute=null;
   let boot=null,family=null,currentYear=null,selected=[],suggestionMap=new Map(),cache=new Map(),searchVersion=0,restoredFamily=null,mapController=null,crossYearSelectionActive=false,getCurrentSelection=null;
   const editions=()=>boot?.editions?.filter(ed=>ed.family===family).slice().sort((a,b)=>b.year-a.year)||[];
   async function loadEdition(ed){
@@ -97,15 +98,16 @@ function create(){
     if(!dialog.open)dialog.showModal();
     const token=selected.map(x=>x.token).join('|');
     const items=await Promise.all(selected.map(async item=>{
-      const file=item.edition.route_file;
-      if(!file)return{year:item.edition.year,name:item.record.name,provenance:'Rutt saknas för upplagan',points:[],anchors:[]};
+      const identity={year:item.edition.edition_label||item.edition.year,name:item.record.name};
+      const unavailable={...identity,provenance:'Banunderlaget är inte tillgängligt',points:[],anchors:[]};
       try{
-        const response=await fetch('data/'+file);if(!response.ok)throw Error('route missing');const route=await response.json();
-        const reference=route.type==='OFFICIAL_ORGANIZER'?'Arrangörs-GPX · återanvändning 2025/2026 enligt dokumenterat antagande':route.type==='VERIFIED_PARTICIPANT'?'Deltagarbaserad GPX · endast visningsgeometri':String(route.type||'Banreferens');
-        return {year:item.edition.year,name:item.record.name,provenance:reference,
-          points:(route.points||[]).map(point=>[point[1],point[2],point[0]]),
+        const file=item.edition.route_file;
+        const route=getRoute?.(item.edition,item.race)||(file?await fetch('data/'+file).then(r=>r.ok?r.json():null):null);
+        if(!route)return unavailable;
+        return {...identity,provenance:route.evidence_note||'Årsbunden banreferens',
+          points:route.points.map(point=>[point[1],point[2],point[0],point[4]?1:0]),
           anchors:observedAnchors(item,route)};
-      }catch{return{year:item.edition.year,name:item.record.name,provenance:'Publicerbar rutt saknas',points:[],anchors:[]};}
+      }catch{return unavailable;}
     }));
     if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
     mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc:null,storagePrefix:'gax100-no-music'});
@@ -147,7 +149,7 @@ function create(){
   document.addEventListener('pointerdown',event=>{if(!event.target.closest('#multi-year-comparison'))hide()});
   renderSelected();
   return{
-    init(payload){boot=payload.boot;getCurrentSelection=payload.getCurrentSelection||null;},
+    init(payload){boot=payload.boot;getRoute=payload.getRoute;getCurrentSelection=payload.getCurrentSelection||null;},
     captureCurrentSelection,
     setContext(nextFamily,nextYear){const changed=family!==nextFamily,previousActiveYear=currentYear;family=nextFamily;currentYear=Number(nextYear)||null;if(changed){selected=[];restoredFamily=null;crossYearSelectionActive=false}const currentEdition=getCurrentSelection?.()?.edition?.race_key;
       const latest=editions()[0]?.race_key;
