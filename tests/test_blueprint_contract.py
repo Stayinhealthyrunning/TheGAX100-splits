@@ -21,6 +21,22 @@ class BlueprintContract(unittest.TestCase):
         self.assertNotIn("EQ Timing",html)
         self.assertEqual(len(re.findall(r'data-family="gax100"',html)),1)
 
+    def test_osterlen_summer_design_and_nonfiction_sources(self):
+        html=(DOCS/"index.html").read_text(encoding="utf-8")
+        for anchor in ("landscape","stations-guide","gax-title","race-context"):
+            self.assertIn('id="'+anchor+'"',html)
+        self.assertEqual(html.count('class="gax-stage '),4)
+        self.assertEqual(html.count('class="gax-station-point"'),5)
+        self.assertIn("Brösarps backar",html)
+        self.assertIn("Sandhammaren",html)
+        self.assertIn("2027",html)
+        css=(DOCS/"assets/gax.css").read_text(encoding="utf-8")
+        self.assertIn(".gax-hero{",css)
+        self.assertIn("min-height:0!important",css)
+        self.assertIn(".gax-summer-scene",css)
+        self.assertIn("@media(max-width:470px)",css)
+        self.assertNotIn("url(https://",css)
+
     def test_only_aggregate_public_data(self):
         data=DOCS/"data"
         boot=json.loads((data/"bootstrap.json").read_text(encoding="utf-8"))
