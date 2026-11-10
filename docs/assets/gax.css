@@ -335,3 +335,8 @@ a{transition:color .16s}
 .gax-group-details[open] summary{border-bottom:1px solid #e6e7dd;background:#f4f5ec}
 .gax-group-details #group-table{padding:12px}
 .gax-group-details #group-table table{font-size:11px}
+
+#race-context .context-main>.gax-added-info{flex:0 0 27px;width:27px;height:27px;padding:0;margin:0 0 0 5px}
+#method{position:relative}
+#method>.gax-added-info{position:absolute;right:30px;top:25px}
+@media(max-width:600px){#method>.gax-added-info{right:12px;top:15px}}
