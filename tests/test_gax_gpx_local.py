@@ -38,10 +38,34 @@ def check(file:Path):
         page.on("pageerror",lambda e:errors.append(type(e).__name__))
         page.on("request",lambda req:writes.append(req.method)
                 if req.method not in ("GET","HEAD") else None)
+        embed_url="https://connect.garmin.com/embed/course/484861455"
+        page.route(embed_url,lambda route:route.fulfill(body="Garmin course embed"))
         page.goto(file.resolve().as_uri(),wait_until="domcontentloaded")
         page.wait_for_selector("#year-select option",state="attached",timeout=20000)
         page.wait_for_function("()=>document.querySelector('#source-indicator')?.textContent.includes('DESIGNDEMO')")
         assert page.locator("#year-select").input_value()=="2026-gax100"
+        frame=page.locator("#course-map iframe")
+        frame.wait_for(state="visible")
+        assert frame.get_attribute("src")==embed_url
+        assert page.locator("#course-source").inner_text().startswith("Visad bana · 2026.")
+        assert page.locator("#course-map-controls").is_hidden()
+        assert page.locator("#course-map a").get_attribute("href").endswith("/app/course/484861455")
+        editions=page.locator("#year-select option").evaluate_all(
+            "(options)=>options.map(o=>[o.value,o.textContent.split(' · ')[0]])"
+        )
+        assert len(editions)==14
+        for key,label in editions:
+            if key=="2026-gax100":
+                continue
+            page.select_option("#year-select",key)
+            page.wait_for_function(
+                "(label)=>document.querySelector('#course-source').textContent.includes('Vald upplaga · '+label+'.')",
+                arg=label,
+            )
+            assert "2026 års arrangörsbana som referens" in page.locator("#course-source").inner_text()
+            assert frame.is_visible() and frame.get_attribute("src")==embed_url
+        page.select_option("#year-select","2026-gax100")
+        page.wait_for_function("()=>document.querySelector('#course-source').textContent.startsWith('Visad bana · 2026.')")
         assert not page.locator("#gax-local-gpx-card").is_hidden()
         assert page.locator("#open-map-duel").is_disabled()
         assert page.locator(".gax-gpx-official-link").get_attribute("href")=="https://connect.garmin.com/app/course/484861455"
@@ -52,6 +76,8 @@ def check(file:Path):
         })
         page.wait_for_function("()=>document.querySelector('#gax-gpx-status')?.textContent.includes('inläst')")
         assert "km" in page.locator("#gax-gpx-status").inner_text()
+        assert frame.count()==0, "A selected GPX replaces the reference map"
+        assert page.locator("#course-map-controls").is_visible()
         assert page.locator("#course-map svg").count()>0, "Imported GPX must draw a real local route map"
         names=page.evaluate("""async()=> (await (await fetch('data/races/2026-gax100.json')).json()).results.filter(r=>r.status==='FINISHED').slice(0,2).map(r=>r.name)""")
         assert len(names)==2 and names[0]!=names[1]
@@ -78,6 +104,7 @@ def check(file:Path):
           && document.querySelector('#gax-gpx-status')?.textContent.includes('2023')""",timeout=15000)
         assert page.locator("#gax-local-gpx-card").is_visible(), "2023 has a source-linked external route candidate"
         assert "2332034" in page.locator("#gax-gpx-source-link").get_attribute("href"), "2023 candidate source missing"
+        assert frame.get_attribute("src")==embed_url
         assert page.locator("#open-map-duel").is_disabled(), "No historical GPX should leak from 2026 demo"
         page.select_option("#year-select","2026-gax100")
         page.wait_for_function("""() => document.querySelector('#race-title')?.textContent.includes('2026')

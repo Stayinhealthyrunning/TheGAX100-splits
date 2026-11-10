@@ -16,7 +16,7 @@ Första aktivering av Pages måste ske av repoägaren via `Settings → Pages �
 
 Efter genomgången den 10 november har sidan ett kortare analysflöde: fyra naturskildringar samt stationer öppnas i pop-up, alla större sektioner har metodinformation, klassfördelningen ligger under Start till mål, och Delsträckor + Personlig loppplan delar en sektion med två lägen. Starkaste avslutningen accepterar GAX-målets namn, och demoversionens könsserie visar uttryckligen **syntetisk**, inte historisk verklig demografi.
 
-Arrangören länkar från https://gax100.se/bana-karta/ till sin 2026-kurs på Garmin. Detta är en officiell **källhänvisning**, inte en licensierad, kopierad GPX-fil i denna repo.
+Arrangören länkar från https://gax100.se/bana-karta/ till sin 2026-kurs på Garmin. Garmins publika kursinbäddning visar 2026 års arrangörsbana för 2026 och en tydligt märkt referensbana för övriga upplagor som saknar egen geometri. Nätanslutning behövs för den inbäddade kartan. Repo och Pages innehåller endast inbäddningsadressen.
 
 Det gamla GAX100-projektet dokumenterade fem tekniskt analyserade men *inte publiceringsklara* GPX-filer i `GPX_COVERAGE.md` och `data/gpx-audit.json`. Ursprungliga binära/XML-filer fanns enbart i ett ignorerat lokalt råarkiv. De har **inte** flyttats till detta repo och finns inte heller i det anslutna privata `loppanalys-private-data`. Vi har enbart portat historisk **metadata och källänkar** till `docs/data/route-candidates.json`, inklusive kontinuitetsavbrott och skillnaden mellan officiell 2026-kurs och icke-officiella kandidatspår.
 

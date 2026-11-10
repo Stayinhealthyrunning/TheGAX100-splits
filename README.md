@@ -44,7 +44,7 @@ Kontrollerna ligger i `tests/test_synthetic_data.py`, `tests/test_offline_previe
 
 ## Kartduell och historiska GPX-källor – utan publicering av andras spår
 
-Arrangörens aktuella GPX-kurs för **2026** finns på https://gax100.se/bana-karta/ och https://connect.garmin.com/app/course/484861455.
+Under **Bana & kartor** visas arrangörens [2026-bana](https://gax100.se/bana-karta/) via Garmins [inbäddade karta](https://connect.garmin.com/embed/course/484861455). Den visas direkt för 2026 och märks som referens för övriga upplagor utan egen visningsrutt. Kartan behöver nätanslutning och har en direktlänk till Garmin Connect.
 
 Den tidigare GAX-utredningen analyserade fem lokala GPX-filer, inklusive **2022-kandidaten (161,74 km, sammanhängande)**, **2018-kandidaten (två stora avbrott)** och två **2021-kandidater** med ett respektive 58 avbrott. Originalfilerna låg i ett ignorerat lokalt arbetsarkiv och är **inte tillgängliga i detta GitHub-repo**. 2021-kandidaterna kan inte med säkerhet knytas till upplaga A respektive B. Källmetadata, SHA-256 för tidigare analyserade filer, länkar och kontinuitetsstatus finns nu i `docs/data/route-candidates.json`. Där finns även externa kandidatbanor för 2016, 2020, 2023 och 2024.
 
