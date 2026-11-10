@@ -16,15 +16,15 @@ Första aktivering av Pages måste ske av repoägaren via `Settings → Pages �
 
 Efter genomgången den 10 november har sidan ett kortare analysflöde: fyra naturskildringar samt stationer öppnas i pop-up, alla större sektioner har metodinformation, klassfördelningen ligger under Start till mål, och Delsträckor + Personlig loppplan delar en sektion med två lägen. Starkaste avslutningen accepterar GAX-målets namn, och demoversionens könsserie visar uttryckligen **syntetisk**, inte historisk verklig demografi.
 
-Arrangören länkar från https://gax100.se/bana-karta/ till sin 2026-kurs på Garmin. Garmins publika kursinbäddning visar 2026 års arrangörsbana för 2026 och en tydligt märkt referensbana för övriga upplagor som saknar egen geometri. Nätanslutning behövs för den inbäddade kartan. Repo och Pages innehåller endast inbäddningsadressen.
+Bankartan använder Sätilas OpenStreetMap-rendering. `docs/data/course-display.json` innehåller visningsgeometri från användarens Garmin-export för 2026 och tre återfunna historiska GPX-filer. Kontrollsummor och källor följer med. Exporten innehåller koordinater, höjd och geometriskt beräknad längd. Råa GPX-filer, tidsstämplar, GPX-waypointmetadata och deltagardata ingår inte i den publika byggnaden.
 
-Det gamla GAX100-projektet dokumenterade fem tekniskt analyserade men *inte publiceringsklara* GPX-filer i `GPX_COVERAGE.md` och `data/gpx-audit.json`. Ursprungliga binära/XML-filer fanns enbart i ett ignorerat lokalt råarkiv. De har **inte** flyttats till detta repo och finns inte heller i det anslutna privata `loppanalys-private-data`. Vi har enbart portat historisk **metadata och källänkar** till `docs/data/route-candidates.json`, inklusive kontinuitetsavbrott och skillnaden mellan officiell 2026-kurs och icke-officiella kandidatspår.
+När en årsfil saknas väljs närmaste år, med äldre år vid lika avstånd. AllTrails-spåret har obekräftat år och visas endast i lagerjämförelsen. Plotaroute-spåret från 2021 visas som kandidat för båda 2021-upplagorna, med dokumenterade avbrott som separata delar. 2018-filen och den andra 2021-filen saknas fortfarande bland återfunna original. Identifierade historiska kandidater och årsstatus finns i `docs/data/route-candidates.json`.
 
-2021-A/B kan ännu inte knytas var för sig till rätt kandidat. 2018 och vissa 2021-filer innehåller stora spårglapp, och den publika GPX-inläsningen avvisar större glapp i stället för att uppfinna geometri.
+2026-exporten har 2 916 punkter i ett sammanhängande GPX-segment. Längsta steget mellan två källpunkter är 1,878 km. Kartan återger arrangörens punktföljd och geometriskt avstånd, med samma förenkling mellan källpunkterna som en vanlig GPX-visare. Referensgeometrin ger inga verifierade historiska stationer eller passager.
 
-Kartduellen tillåter tillfällig GPX-inläsning **enbart lokalt** och knyter filen till valt tävlingsår. Inga ruttkoordinater uppladdas, lagras i Pages eller är tillgängliga efter sidomladdning. Kartduellens fiktiva löpare interpoleras längs vald bangeometri, inte utifrån verkliga GPS-loggar.
+Kartduellen knyter manuellt importerad GPX till det valda tävlingsåret och håller den i webbläsarens arbetsminne. De fiktiva löparnas positioner beräknas från simulerade tider.
 
-Verifiering: `tests/test_gax_full_ux_review.py`, `tests/test_gax_gpx_local.py`, `tests/test_synthetic_data.py`, `tests/test_blueprint_contract.py`. Inga skyddade resultat eller tredjeparts-GPX ingår i körningarna.
+Verifiering: `tests/test_gax_full_ux_review.py`, `tests/test_gax_gpx_local.py`, `tests/test_synthetic_data.py` och `tests/test_blueprint_contract.py`.
 
 ## Verkliga resultat och publiceringsbeslut
 

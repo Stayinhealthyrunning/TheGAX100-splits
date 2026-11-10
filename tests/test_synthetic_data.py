@@ -124,6 +124,18 @@ class FictionalRaceDataTests(unittest.TestCase):
         self.assertFalse(any("points" in row or "coordinates" in row
                              for row in manifest["editions"]))
 
+    def test_course_display_is_route_geometry_only(self):
+        routes=self.files["data/course-display.json"]
+        self.assertEqual([r["year"] for r in routes],[2026,2022,2021,None])
+        for route in routes:
+            self.assertEqual(set(route),{"year","label","source_url","source_sha256","max_source_leg_km","runs"})
+            self.assertTrue(all(run for run in route["runs"]))
+            points=[point for run in route["runs"] for point in run]
+            self.assertTrue(all(len(p)==4 and 55.1<=p[1]<=56.2 and 13.2<=p[2]<=14.8 for p in points))
+            self.assertEqual([p[0] for p in points],sorted(p[0] for p in points))
+        self.assertEqual(len(routes[2]["runs"]),59)
+        self.assertAlmostEqual(routes[0]["runs"][0][-1][0],161.08,places=2)
+
     def test_reproducible_demo_build(self):
         other=prepare_payload(ROOT/"docs")
         for ed in self.boot["editions"]:
