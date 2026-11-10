@@ -1,0 +1,63 @@
+name: GAX100 safe Pages preview
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: gax100-new-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify no real individual-data files have been copied
+        run: python3 -B tests/test_blueprint_contract.py
+      - name: Generate entire HTML from fictional test runners
+        run: python3 -B scripts/build_offline_preview.py --docs docs --out public-preview/index.html
+      - name: Fail closed before ANY Pages upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('public-preview')
+          found=list(root.rglob('*'))
+          assert len(found)==1 and found[0].name=='index.html', 'Unexpected site export'
+          page=found[0].read_text(encoding='utf-8')
+          assert page.count('Demolöpare ') >= 945
+          assert 'FÖRHANDSGRANSKNING' in page
+          assert 'ALL NAMES AND TIMES ARE FABRICATED' in page
+          assert '<meta name="robots" content="noindex, nofollow">' in page
+          assert 'gax100.sqlite' not in page
+          assert 'https://www.loppanalys.se/gax100-analys/' not in page
+          print('GAX100_PUBLIC_PAGES_SAFE: only fictional identity data')
+          PY
+          printf 'User-agent: *\nDisallow: /\n' > public-preview/robots.txt
+          touch public-preview/.nojekyll
+      - name: Configure Pages (requires initial repository Pages setup by owner)
+        uses: actions/configure-pages@v5
+      - name: Upload synthetic-only Pages site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: public-preview/
+          name: gax100-synthetic-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Deploy public design review
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: gax100-synthetic-${{ github.run_id }}-${{ github.run_attempt }}
+# No access to private Loppanalys data; no participant JSON or CNAME published.
