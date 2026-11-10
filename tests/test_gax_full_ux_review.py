@@ -106,8 +106,8 @@ def run(path: Path):
         assert "kandidat" in page.locator("#course-provenance").inner_text().lower()
         page.select_option("#year-select","2022-gax100")
         page.wait_for_function("() => document.querySelector('#race-title')?.textContent.includes('2022')")
-        assert page.locator("#gax-local-gpx-card").is_visible()
-        assert "2310208" in page.locator("#gax-gpx-source-link").get_attribute("href")
+        assert page.locator('input[type="file"]').count()==0
+        assert "2310208" in page.locator("#course-source a").get_attribute("href")
         assert page.locator("#open-map-duel").is_disabled()
         assert not errors,f"Unexpected GAX browser JS errors: {errors}"
         browser.close()

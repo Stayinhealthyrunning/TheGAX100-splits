@@ -130,9 +130,16 @@ function parseQuery(){const requested=requestedEdition(),family=requested.family
 async function init(){try{[S.boot,S.courseDisplay]=await Promise.all([
   fetch('data/bootstrap.json').then(r=>{if(!r.ok)throw Error('Katalogen kunde inte läsas ('+r.status+')');return r.json()}),
   fetch('data/course-display.json').then(r=>r.ok?r.json():[]).catch(()=>[])
-]);window.SatilaMultiYearComparison?.init?.({boot:S.boot,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
+]);window.SatilaMultiYearComparison?.init?.({boot:S.boot,getRoute:gaxReplayRoute,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
 async function loadRace(historyMode='replace'){window.SatilaMultiYearComparison?.captureCurrentSelection?.();let id=++S.loading;let ed=S.boot.editions.find(e=>e.race_key===S.editionKey)||S.boot.editions.find(e=>e.family===S.family&&e.year===S.year);if(!ed)return;S.editionKey=ed.race_key;S.year=ed.year;$('#race-title').textContent=`${famLabel(S.family)} · ${ed.edition_label||S.year}`;$('#race-subtitle').textContent=ed.date?ed.label+' · '+ed.date:ed.label;$('#source-indicator').textContent='Hämtar publicerade resultatdata…';let race;try{let req=await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`);if(!req.ok)throw Error('Detta lopp saknar datafil ('+req.status+')');race=await req.json();}catch(err){if(id!==S.loading)return;S.race=null;S.route=null;$('#source-indicator').textContent='Kunde inte hämta tävlingsdata: '+err.message;$('#source-indicator').setAttribute('role','alert');$('#race-subtitle').textContent='Upplagan kan inte visas just nu. Välj ett annat år eller försök igen.';$('#segment-table tbody').innerHTML='';$('#results-table tbody').innerHTML='';return;}if(id!==S.loading)return;$('#source-indicator').removeAttribute('role');S.race=race;S._splits=null;S._distanceCapability=null;buildSplitIndex();S.page=0;S.selectedSegment=0;S.podiumStart=0;S.podiumEnd=1;S.placementZoom=0;S.placementWindow=null;S.segmentSeriesMode='all';S.courseD=null;S.courseFromSegment=false;S.sex='all';S.status='all';S.className='all';S.club='';S.clubExact=false;S.compare=[];S.mapDuel=[];S.duelClock=0;S.compareSegment=null;S.duelCamera='both';S.duelManualZoom=false;S.selectedClubs=null;S.extraClassSelection=null;document.querySelectorAll('[data-family]').forEach(b=>{b.classList.toggle('selected',b.dataset.family===S.family);b.setAttribute('aria-pressed',String(b.dataset.family===S.family))});$('#year-select').innerHTML=S.boot.editions.filter(e=>e.family===S.family).map(e=>`<option value="${html(e.race_key)}" ${e.race_key===S.editionKey?'selected':''}>${html(e.edition_label||e.year)} · 100 miles</option>`).join('');const releaseLocked=race.release_state==='PRIVATE_DATA_WITHHELD',demo=Boolean(race.demo_only);$('#source-indicator').textContent=releaseLocked?'Källor verifierade · deltagaruppgifter ej publicerade':demo?'DESIGNDEMO · fiktiva resultat och kontrolltider':'Officiella GAX100-källor · '+race.stations.length+' kontroller';$('#official-source').href=ed.source_url;$('#official-source').textContent=demo?'Officiella årssummor ↗':'Originalresultat ↗';$('#scope-status').textContent=releaseLocked?`${format(ed.results)} resultat i privat databas · individuell visning spärrad`:demo?`${format(race.results.length)} fiktiva löpare · ${format(race.results.filter(r=>r.status==='FINISHED').length)} simulerade målgångar · ${format(race.splits.length)} simulerade passager`:`${format(ed.results)} resultat · ${format(ed.finishers)} målgångar · ${format(ed.split_observations)} tidspassager`;
-$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');S.route=null;const source=ed.route_file;if(source){try{S.route=await fetch('data/'+source,source==='routes/ultra85-2026.json'?{cache:'no-store'}:undefined).then(r=>r.ok?r.json():null)}catch{S.route=null}}if(id!==S.loading)return;if(race.demo_only&&S._localGpxRoutes?.[S.editionKey])S.route=S._localGpxRoutes[S.editionKey];const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();refreshGaxLocalRouteControls();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
+$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');let route=gaxReplayRoute(ed,race);
+if(!route&&ed.route_file){
+  route=await fetch('data/'+ed.route_file).then(r=>r.ok?r.json():null).catch(()=>null);
+}
+if(id!==S.loading)return;
+S.route=route;
+$('#course-map').mapZoom=null;
+const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
 function renderAll(){window.GaxCheckpointView?.render?.(S.race);subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderCourse();renderHistory();renderResults();renderFavorites();renderCompareChips();renderMapDuelChips();renderSearchSuggestions();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderAll?.()}catch(err){console.error('GAX100 analytics extension:',err)}},100);}
 function rerenderFilter(){S.page=0;subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderResults();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderFiltered?.()}catch(err){console.error('GAX100 analytics filter:',err)}},50);}
 function setFamily(v){if(v===S.family)return;S.family=v;S.year=Math.max(...S.boot.editions.filter(e=>e.family===v).map(e=>e.year));S.editionKey=null;loadRace('push').catch(console.error)}
@@ -465,13 +472,85 @@ function mapViewport(host,H){
  const bounds=host.getBoundingClientRect(),w=bounds.width||host.clientWidth||760,h=bounds.height||host.clientHeight||H;
  return {W:Math.max(160,Math.round(H*w/Math.max(1,h))),H};
 }
+function applyMapZoom(host,svg,W,H,base=1,focus=null){
+  host.mapView={svg,W,H,base,focus};
+  const state=host.mapZoom;
+  const zoom=Math.max(1,Math.min(8,base*(state?.factor||1)));
+  const [cx,cy]=state?.center||(base>1&&focus)||[W/2,H/2];
+  const width=W/zoom,height=H/zoom;
+  const x=Math.max(0,Math.min(W-width,cx-width/2)),y=Math.max(0,Math.min(H-height,cy-height/2));
+  svg.setAttribute('viewBox',`${x} ${y} ${width} ${height}`);
+}
+
+function setupMapZoom(host,points,pad){
+  host.mapTiles={points,pad};
+  const svg=host.querySelector('svg'),box=svg.viewBox.baseVal;
+  applyMapZoom(host,svg,box.width,box.height);
+  if(host.querySelector('[data-gax-map-zoom]'))return;
+  host.insertAdjacentHTML('beforeend','<div class="duel-map-toolbar" role="group" aria-label="Kartzoom"><button type="button" data-gax-map-zoom="in" aria-label="Zooma in">+</button><button type="button" data-gax-map-zoom="out" aria-label="Zooma ut">−</button><button type="button" data-gax-map-zoom="fit">Hela banan</button></div>');
+  if(host.mapZoomBound)return;
+  host.mapZoomBound=true;
+  const refresh=()=>{
+    const v=host.mapView;
+    applyMapZoom(host,v.svg,v.W,v.H,v.base,v.focus);
+  };
+  const detailTiles=()=>{
+    const {svg,W,H}=host.mapView,{points,pad}=host.mapTiles,box=svg.viewBox.baseVal;
+    svg.querySelector('.osm-zoom-detail')?.remove();
+    if(box.width<W&&points?.length){
+      const base=svg.querySelector('.osm-tile-layer');
+      base.insertAdjacentHTML('afterend',osmTiles(points,W,H,pad,box));
+    }
+  };
+  const zoom=(factor,center)=>{
+    const v=host.mapView,current=host.mapZoom;
+    host.mapZoom={factor:Math.max(1/v.base,Math.min(8/v.base,(current?.factor||1)*factor)),center:center||current?.center};
+    refresh();detailTiles();
+  };
+  const atPointer=event=>{
+    const svg=host.mapView.svg,r=svg.getBoundingClientRect(),box=svg.viewBox.baseVal;
+    return [box.x+(event.clientX-r.left)/r.width*box.width,box.y+(event.clientY-r.top)/r.height*box.height];
+  };
+  host.addEventListener('click',event=>{
+    const action=event.target.closest('[data-gax-map-zoom]')?.dataset.gaxMapZoom;
+    if(!action)return;
+    if(action==='fit'){
+      host.mapZoom=null;
+      if(host.mapFit)host.mapFit();else refresh();
+      detailTiles();
+    }else zoom(action==='in'?1.5:1/1.5);
+  });
+  host.addEventListener('dblclick',event=>{if(event.target.closest('svg'))zoom(1.5,atPointer(event));});
+  let drag=null;
+  host.addEventListener('pointerdown',event=>{
+    if(event.button!==0||!event.target.closest('svg'))return;
+    const {svg,W}=host.mapView,box=svg.viewBox.baseVal;
+    const scrub=event.target.matches('[data-map-hit],[data-local-hit]');
+    if(box.width>=W||(scrub&&!event.shiftKey))return;
+    event.stopPropagation();
+    host.setPointerCapture(event.pointerId);
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,cx:box.x+box.width/2,cy:box.y+box.height/2};
+  },true);
+  host.addEventListener('pointermove',event=>{
+    if(drag?.id!==event.pointerId)return;
+    const {svg,W,H,base}=host.mapView,box=svg.viewBox.baseVal,r=svg.getBoundingClientRect();
+    const width=box.width,height=box.height;
+    drag.cx=Math.max(width/2,Math.min(W-width/2,drag.cx-(event.clientX-drag.x)*width/r.width));
+    drag.cy=Math.max(height/2,Math.min(H-height/2,drag.cy-(event.clientY-drag.y)*height/r.height));
+    drag.x=event.clientX;drag.y=event.clientY;
+    host.mapZoom={factor:W/width/base,center:[drag.cx,drag.cy]};
+    refresh();
+  });
+  host.addEventListener('lostpointercapture',()=>{if(drag)detailTiles();drag=null});
+}
+
 function project(points,W,H,pad=17){const projection=mapProjection(points,W,H,pad);return points.map(projection.project)}
-function osmTiles(points,W,H,pad=17){
+function osmTiles(points,W,H,pad=17,view=null){
  if(!points.length)return'';
  const projection=mapProjection(points,W,H,pad);
  // Cover the ENTIRE SVG viewBox, including map letterboxing around long, thin
  // trails: route-bounds-only tiles left 125–210 px grey side strips at 800 px.
- const [north,west]=projection.inverseCoord(0,0),[south,east]=projection.inverseCoord(W,H);
+ const [north,west]=projection.inverseCoord(view?.x||0,view?.y||0),[south,east]=projection.inverseCoord(view?view.x+view.width:W,view?view.y+view.height:H);
  const tileRange=zoom=>{
   const n=2**zoom,lonToX=lon=>(Number(lon)+180)/360*n,latToY=lat=>{const r=Number(lat)*Math.PI/180;return (1-Math.asinh(Math.tan(r))/Math.PI)/2*n};
   const minX=Math.max(0,Math.min(n-1,Math.floor(lonToX(west)))),maxX=Math.max(0,Math.min(n-1,Math.floor(lonToX(east)))),minY=Math.max(0,Math.min(n-1,Math.floor(latToY(north)))),maxY=Math.max(0,Math.min(n-1,Math.floor(latToY(south))));
@@ -491,13 +570,13 @@ function osmTiles(points,W,H,pad=17){
   const [left,top]=projection.projectCoord(tileLat(y),tileLon(x)),[right,bottom]=projection.projectCoord(tileLat(y+1),tileLon(x+1));
   images+=`<image href="https://tile.openstreetmap.org/${zoom}/${x}/${y}.png" x="${left.toFixed(2)}" y="${top.toFixed(2)}" width="${(right-left).toFixed(2)}" height="${(bottom-top).toFixed(2)}" preserveAspectRatio="none"/>`
  }
- return `<rect class="osm-map-fallback" width="${W}" height="${H}"/><g class="osm-tile-layer" data-zoom="${zoom}" aria-hidden="true">${images}</g>`
+ return (view?'':`<rect class="osm-map-fallback" width="${W}" height="${H}"/>`)+`<g class="osm-tile-layer${view?' osm-zoom-detail':''}" data-zoom="${zoom}" aria-hidden="true">${images}</g>`
 }
 const osmAttribution=()=>'<a class="osm-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>';
 function pointAtDistance(pts,d){if(!pts.length)return null;d=Math.max(pts[0][0],Math.min(pts.at(-1)[0],d));let i=1;while(i<pts.length-1&&pts[i][0]<d)i++;let a=pts[i-1],b=pts[i],f=(d-a[0])/Math.max(.00001,b[0]-a[0]);return [d,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f,num(a[3])&&num(b[3])?a[3]+(b[3]-a[3])*f:null]}
-function nearestSegmentPath(path,p){let best={index:0,fraction:0,dist:Infinity};for(let i=1;i<path.length;i++){let [ax,ay]=path[i-1],[bx,by]=path[i],vx=bx-ax,vy=by-ay,len=vx*vx+vy*vy,f=len?Math.max(0,Math.min(1,((p[0]-ax)*vx+(p[1]-ay)*vy)/len)):0,d=(p[0]-ax-vx*f)**2+(p[1]-ay-vy*f)**2;if(d<best.dist)best={index:i,fraction:f,dist:d}}return best}
-function pathFor(path){return path.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ')}
-function elevationSvg(pts,d,interactive=true){const isDsm=S.route?.elevation_provenance?.type==='DSM_RECONSTRUCTED_SURFACE',isTransferred=S.route?.elevation_provenance?.type==='SPATIALLY_TRANSFERRED_PARTICIPANT_GPX';if(!pts.length)return empty();if(!pts.some(p=>Number.isFinite(p[3])))return '<p class="muted small">Höjddata saknas i detta historiska deltagarspår. Kartan och distanspositioneringen fungerar ändå.</p>';let W=780,H=135,P=17,min=Math.min(...pts.map(p=>num(p[3])?p[3]:0)),max=Math.max(...pts.map(p=>num(p[3])?p[3]:0)),md=pts.at(-1)[0],x=p=>P+p[0]/md*(W-2*P),y=p=>H-P-(num(p[3])?(p[3]-min)/Math.max(1,max-min)*(H-2*P):0),line=pts.map((p,i)=>(i?'L':'M')+x(p).toFixed(1)+' '+y(p).toFixed(1)).join(' '),dot=pointAtDistance(pts,d??0),xx=dot?x(dot):P,yy=dot?y(dot):H-P,ranges=elevationSegmentRanges(pts);const aids=ultraAidStations();
+function nearestSegmentPath(path,p,pts){let best={index:1,fraction:0,dist:Infinity};for(let i=1;i<path.length;i++){if(pts?.[i]?.[4])continue;let [ax,ay]=path[i-1],[bx,by]=path[i],vx=bx-ax,vy=by-ay,len=vx*vx+vy*vy,f=len?Math.max(0,Math.min(1,((p[0]-ax)*vx+(p[1]-ay)*vy)/len)):0,d=(p[0]-ax-vx*f)**2+(p[1]-ay-vy*f)**2;if(d<best.dist)best={index:i,fraction:f,dist:d}}return best}
+function pathFor(path,pts){return path.map((p,i)=>(i&&!pts?.[i]?.[4]?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ')}
+function elevationSvg(pts,d,interactive=true){const isDsm=S.route?.elevation_provenance?.type==='DSM_RECONSTRUCTED_SURFACE',isTransferred=S.route?.elevation_provenance?.type==='SPATIALLY_TRANSFERRED_PARTICIPANT_GPX';if(!pts.length)return empty();if(!pts.some(p=>Number.isFinite(p[3])))return '<p class="muted small">Höjddata saknas i detta historiska deltagarspår. Kartan och distanspositioneringen fungerar ändå.</p>';let W=780,H=135,P=17,min=Math.min(...pts.map(p=>num(p[3])?p[3]:0)),max=Math.max(...pts.map(p=>num(p[3])?p[3]:0)),md=pts.at(-1)[0],x=p=>P+p[0]/md*(W-2*P),y=p=>H-P-(num(p[3])?(p[3]-min)/Math.max(1,max-min)*(H-2*P):0),line=pts.map((p,i)=>(i&&!p[4]?'L':'M')+x(p).toFixed(1)+' '+y(p).toFixed(1)).join(' '),dot=pointAtDistance(pts,d??0),xx=dot?x(dot):P,yy=dot?y(dot):H-P,ranges=elevationSegmentRanges(pts);const aids=ultraAidStations();
 const bands=interactive?ranges.map(s=>{
   const left=x([s.start]),right=x([s.end]),mid=(left+right)/2;
   return `<rect data-elev-segment="${s.index}" class="elevation-segment ${s.index===S.selectedSegment?'selected':''}" x="${left}" y="18" width="${Math.max(1,right-left)}" height="${H-18}" tabindex="0" role="button" aria-pressed="${s.index===S.selectedSegment}" aria-label="Välj GAX100-arrangörens-segment ${html(s.label)} på höjdprofilen" style="pointer-events:none"><title>GAX100-arrangörens: ${html(s.label)} · endast distansprojektion, ingen depåposition</title></rect>${!aids.length&&right-left>46?`<text class="elevation-segment-label" x="${mid}" y="${H-4}" text-anchor="middle">${html(s.to.name.slice(0,10))}</text>`:''}`;
@@ -507,12 +586,10 @@ const aidMarkers=aids.map((a,i)=>{
   const labelY=H-4-(i%2)*11;
   return `<g data-aid-elevation="${html(a.name)}"><line x1="${pos}" x2="${pos}" y1="17" y2="${H-P}" stroke="#8b5327" stroke-width="1" stroke-dasharray="3 3" opacity=".75"/><circle cx="${pos}" cy="${H-P}" r="3" fill="#8b5327"/><text x="${pos}" y="${labelY}" font-size="9" fill="#334d38" text-anchor="middle">${html(title)}</text><title>${html(a.name)} · depå ${fmtKm(a.official_km)} km, GPS-rutt ${fmtKm(a.route_km)} km</title></g>`;
 }).join('');
-return svg(W,H,`<path class="elev-area" d="${line}L${x(pts.at(-1))} ${H-P}L${P} ${H-P}Z" opacity=".18"/><g class="elev-line" aria-label="Färgkodade höjdsegment">${pts.slice(1).map((p,i)=>{const prev=pts[i],delta=num(p[3])&&num(prev[3])?p[3]-prev[3]:0;return `<line x1="${x(prev)}" y1="${y(prev)}" x2="${x(p)}" y2="${y(p)}" stroke="${delta>0.5?'#c08737':delta<-.5?'#337f63':'#8b968a'}" stroke-width="2.4"><title>${delta>0.5?'Uppför':delta<-.5?'Nedför':'Flackt'} · ${fmtKm(p[0])} km</title></line>`}).join('')}</g>${bands}${aidMarkers}${interactive?`<rect data-elev-hit="1" x="${P}" y="0" width="${W-2*P}" height="${H}" fill="transparent" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="${md}" aria-valuenow="${d??0}" aria-label="Välj position längs höjdprofilen"/>`:''}<line class="chart-cursor" x1="${xx}" x2="${xx}" y1="${P}" y2="${H-P}"/><circle class="elev-dot" cx="${xx}" cy="${yy}" r="5"/><text x="${P}" y="12" fill="#526855" font-size="10">${Math.round(min)}–${Math.round(max)} m · ${isDsm?'Copernicus DSM · rekonstruerad ythöjd':S.route?.elevation_provenance?.type==='DEM_RECONSTRUCTED_TERRAIN'?'Rekonstruerad DEM-terränghöjd':isTransferred?'Överförd GPX-höjd (2024)':'GPX-höjd'}</text><text x="${W-P-80}" y="12" fill="#526855" font-size="10">${fmtKm(md)} km</text>`,'Interaktiv höjdprofil')+(isDsm?'<p class="muted small elevation-source-note">Rekonstruerad ythöjd från Copernicus GLO-30 (digital ytmodell, cirka 30 m, EGM2008; skog och byggnader kan påverka). Inte uppmätt löparhöjd eller officiella höjdmeter.</p>':isTransferred?'<p class="muted small elevation-source-note">Illustrativ höjdprofil överförd geografiskt från 2024 års deltagar-GPX. Inte originalhöjd från 2023 och inte officiella höjdmeter.</p>':'')}
+return svg(W,H,`${pts.some(p=>p[4])?'':`<path class="elev-area" d="${line}L${x(pts.at(-1))} ${H-P}L${P} ${H-P}Z" opacity=".18"/>`}<g class="elev-line" aria-label="Färgkodade höjdsegment">${pts.slice(1).map((p,i)=>{if(p[4])return '';const prev=pts[i],delta=num(p[3])&&num(prev[3])?p[3]-prev[3]:0;return `<line x1="${x(prev)}" y1="${y(prev)}" x2="${x(p)}" y2="${y(p)}" stroke="${delta>0.5?'#c08737':delta<-.5?'#337f63':'#8b968a'}" stroke-width="2.4"><title>${delta>0.5?'Uppför':delta<-.5?'Nedför':'Flackt'} · ${fmtKm(p[0])} km</title></line>`}).join('')}</g>${bands}${aidMarkers}${interactive?`<rect data-elev-hit="1" x="${P}" y="0" width="${W-2*P}" height="${H}" fill="transparent" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="${md}" aria-valuenow="${d??0}" aria-label="Välj position längs höjdprofilen"/>`:''}<line class="chart-cursor" x1="${xx}" x2="${xx}" y1="${P}" y2="${H-P}"/><circle class="elev-dot" cx="${xx}" cy="${yy}" r="5"/><text x="${P}" y="12" fill="#526855" font-size="10">${Math.round(min)}–${Math.round(max)} m · ${isDsm?'Copernicus DSM · rekonstruerad ythöjd':S.route?.elevation_provenance?.type==='DEM_RECONSTRUCTED_TERRAIN'?'Rekonstruerad DEM-terränghöjd':isTransferred?'Överförd GPX-höjd (2024)':'GPX-höjd'}</text><text x="${W-P-80}" y="12" fill="#526855" font-size="10">${fmtKm(md)} km</text>`,'Interaktiv höjdprofil')+(isDsm?'<p class="muted small elevation-source-note">Rekonstruerad ythöjd från Copernicus GLO-30 (digital ytmodell, cirka 30 m, EGM2008; skog och byggnader kan påverka). Inte uppmätt löparhöjd eller officiella höjdmeter.</p>':isTransferred?'<p class="muted small elevation-source-note">Illustrativ höjdprofil överförd geografiskt från 2024 års deltagar-GPX. Inte originalhöjd från 2023 och inte officiella höjdmeter.</p>':'')}
 // Copernicus WorldDEM-30 attribution is retained in elevationSvg for reconstructed profiles.
 function activateSegment(index){selectAdjacentSegment(index);focusSelectedSegmentOnCourse();renderSegmentTable();renderSegmentPodium();renderSegmentGraph(segmentStats(S.filtered));renderCourse();window.SatilaExtras?.renderSegments?.()}
 function attachElevation(host,pts,callback){if(S.route?.elevation_provenance?.type==='DSM_RECONSTRUCTED_SURFACE'&&!$('.worlddem-attribution',host))host.insertAdjacentHTML('beforeend','<p class="muted small elevation-source-note worlddem-attribution">Copernicus WorldDEM-30 · rekonstruerad ythöjd; inte uppmätt löparhöjd eller officiella höjdmeter.</p>');let el=$('[data-elev-hit]',host);if(!el)return;const svg=el.ownerSVGElement,md=pts.at(-1)[0];function kmAt(e){const box=svg.getBoundingClientRect(),view=svg.viewBox.baseVal,width=view?.width||780,height=view?.height||135,left=view?.x||0,scale=Math.min(box.width/width,box.height/height),insetX=(box.width-width*scale)/2,x=left+(e.clientX-box.left-insetX)/Math.max(.0001,scale),hitLeft=Number(el.getAttribute('x'))||17,hitWidth=Number(el.getAttribute('width'))||(width-34);return Math.max(0,Math.min(md,(x-hitLeft)/hitWidth*md))}function seek(e){callback(kmAt(e))}el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);seek(e)});svg.addEventListener('pointermove',seek);el.addEventListener('click',e=>{if(!e.detail)return;const hit=elevationSegmentRanges(pts).find(s=>kmAt(e)>=s.start&&kmAt(e)<=s.end);if(hit)activateSegment(hit.index)});el.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();let d=Number(el.getAttribute('aria-valuenow'))||0,d2=e.key==='Home'?0:e.key==='End'?md:d+(e.key==='ArrowLeft'?-md/100:md/100);callback(Math.max(0,Math.min(md,d2)))}});$$('[data-elev-segment]',host).forEach(node=>{const go=e=>{e.preventDefault();e.stopPropagation();activateSegment(+node.dataset.elevSegment)};node.addEventListener('pointerdown',go);node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){go(e)}})})}
-const GAX_GARMIN_COURSE_URL='https://connect.garmin.com/app/course/484861455';
-
 function gaxDisplayRoute(year){
   let nearest=null;
   for(const route of S.courseDisplay||[]){
@@ -521,6 +598,21 @@ function gaxDisplayRoute(year){
     if(distance<best||(distance===best&&route.year<nearest.year))nearest=route;
   }
   return nearest;
+}
+
+function gaxReplayRoute(edition,race){
+  const display=race.demo_only?gaxDisplayRoute(edition.year):null;
+  if(!display)return null;
+  // The first point after a gap shares the prior cumulative distance.
+  // Preserve its break marker for rendering and map hit-testing.
+  const points=display.runs.flatMap((run,index)=>index?[[...run[0],true],...run.slice(1)]:run);
+  return {display,points,geometry_length_km:points.at(-1)[0],evidence_note:gaxMapSource(display,edition)};
+}
+
+function replayMapSource(){
+  return S.route?.display?S.route.evidence_note+
+    ' Uppspelningen bygger på fiktiva passertider och beräknade positioner.'+
+    (S.route.display.runs.length>1?' Markören hoppar över luckor i spåret.':''):'';
 }
 
 function gaxMapSource(route,edition){
@@ -552,19 +644,18 @@ function renderGaxCourseLayers(){
   const {W,H}=mapViewport(map,340),pad=20;
   const lines=layers.map(i=>`<path class="gax-course-layer" data-course-layer="${i}" fill="none" stroke="${colors[i]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="${gaxPaths(routes[i].runs,points,W,H,pad)}"/>`).join('');
   map.innerHTML=svg(W,H,osmTiles(points,W,H,pad)+lines,'Överlagrade GAX100-banor över OpenStreetMap')+osmAttribution();
+  setupMapZoom(map,points,pad);
 }
 
 function renderCourseMap(){
   const host=$('#course-map'),height=$('#course-elevation'),source=$('#course-source'),controls=$('#course-map-controls');
   const edition=S.boot.editions.find(e=>e.race_key===S.editionKey);
-  const display=S.route?null:gaxDisplayRoute(S.year);
+  const display=S.route?.display||(!S.route?gaxDisplayRoute(S.year):null);
   const pts=S.route?routePoints():display?.runs.flat()||[];
   const gapped=Boolean(display&&display.runs.length>1);
   controls.hidden=pts.length<2||gapped;
-  if(S.route){
-    source.textContent=S.route.local_only
-      ?'Visad bana · lokalt vald GPX för '+(edition?.edition_label||S.year)+'. Kartduellens löpare och positioner är simulerade.'
-      :'Visad bana · årsbunden GAX100-geometri för '+S.year+'.';
+  if(S.route&&!display){
+    source.textContent='Visad bana · årsbunden GAX100-geometri för '+S.year+'.';
   }else{
     source.textContent=gaxMapSource(display,edition);
     if(display?.source_url){
@@ -581,13 +672,14 @@ function renderCourseMap(){
   if(gapped){
     const line=gaxPaths(display.runs,pts,W,H,20);
     host.innerHTML=svg(W,H,`${osmTiles(pts,W,H,20)}<path class="route-base" d="${line}"/><path class="route-gold" d="${line}"/>`,'GAX100-spår med separata delar över OpenStreetMap')+osmAttribution();
+    setupMapZoom(host,pts,20);
     height.innerHTML='<p class="muted small">Spåret har '+(display.runs.length-1)+' avbrott. Kartan visar delarna var för sig.</p>';
     return;
   }
   const path=project(pts,W,H,20),d=Number.isFinite(S.courseD)?S.courseD:0;
-  const mapLabel=display?'GPX '+display.year:S.route.local_only?'LOKAL GPX':'ÅRSBUNDEN GPX';
+  const mapLabel=display?'GPX '+display.year:'ÅRSBUNDEN GPX';
 let idx=1;while(idx<pts.length-1&&pts[idx][0]<d)idx++;let a=pts[idx-1],b=pts[idx],f=(d-a[0])/Math.max(1e-7,b[0]-a[0]),px=path[idx-1][0]+(path[idx][0]-path[idx-1][0])*f,py=path[idx-1][1]+(path[idx][1]-path[idx-1][1])*f;
-host.innerHTML=svg(W,H,`${osmTiles(pts,W,H,20)}<path class="route-base" d="${pathFor(path)}"/><path class="route-gold" d="${pathFor(path)}"/>${officialAidSvg(pts,path,W,H,20)}<circle class="map-crosshair" cx="${px}" cy="${py}" r="7"/><text class="map-label" x="25" y="27">GAX100 · ${mapLabel}</text><text class="map-label" x="25" y="${H-18}">${fmtKm(d)} / ${fmtKm(pts.at(-1)[0])} km</text><rect data-map-hit="course" x="0" y="0" width="${W}" height="${H}" fill="transparent" role="slider" tabindex="0" aria-label="Välj position på banan" aria-valuemin="0" aria-valuemax="${pts.at(-1)[0]}" aria-valuenow="${d}"/>`,'Interaktiv OpenStreetMap-bakgrund med faktisk GPX-form')+osmAttribution();height.innerHTML=elevationSvg(pts,d);let seek=n=>{
+host.innerHTML=svg(W,H,`${osmTiles(pts,W,H,20)}<path class="route-base" d="${pathFor(path)}"/><path class="route-gold" d="${pathFor(path)}"/>${officialAidSvg(pts,path,W,H,20)}<circle class="map-crosshair" cx="${px}" cy="${py}" r="7"/><text class="map-label" x="25" y="27">GAX100 · ${mapLabel}</text><text class="map-label" x="25" y="${H-18}">${fmtKm(d)} / ${fmtKm(pts.at(-1)[0])} km</text><rect data-map-hit="course" x="0" y="0" width="${W}" height="${H}" fill="transparent" role="slider" tabindex="0" aria-label="Välj position på banan" aria-valuemin="0" aria-valuemax="${pts.at(-1)[0]}" aria-valuenow="${d}"/>`,'Interaktiv OpenStreetMap-bakgrund med faktisk GPX-form')+osmAttribution();setupMapZoom(host,pts,20);height.innerHTML=elevationSvg(pts,d);let seek=n=>{
   // Keep the current SVG and its captured pointer in place while scrubbing.
   // Rebuilding either SVG during pointerdown detaches the hit target and makes
   // a later mouse click or keyboard activation intermittently fail.
@@ -611,7 +703,7 @@ host.innerHTML=svg(W,H,`${osmTiles(pts,W,H,20)}<path class="route-base" d="${pat
     elev.setAttribute('aria-valuenow',S.courseD);
   }
   $('#course-scrub-label').textContent='Illustrativ position '+fmtKm(S.courseD)+' km längs GPX-displayrutt. Klicka i karta eller höjdprofil.';
-};let hit=$('[data-map-hit]',host);function locate(e){let rect=hit.ownerSVGElement.getBoundingClientRect(),xx=(e.clientX-rect.left)/rect.width*W,yy=(e.clientY-rect.top)/rect.height*H,spot=nearestSegmentPath(path,[xx,yy]),i=spot.index;seek(pts[i-1][0]+(pts[i][0]-pts[i-1][0])*spot.fraction)}hit.addEventListener('pointerdown',e=>{hit.setPointerCapture(e.pointerId);locate(e)});hit.addEventListener('pointermove',e=>{if(e.buttons)locate(e)});hit.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();seek(Math.max(0,Math.min(pts.at(-1)[0],(S.courseD??0)+(e.key==='ArrowRight'?1:-1)*pts.at(-1)[0]/80)))}});attachElevation(height,pts,seek);$('#course-scrub-label').textContent=`Illustrativ position ${fmtKm(d)} km längs GPX-displayrutt.${S.courseFromSegment?' Segmentmitt proportionellt uppskattad från timing-km; ej verifierad kontrollposition.':''} Klicka i karta eller höjdprofil.`;}
+};let hit=$('[data-map-hit]',host);function locate(e){let rect=hit.ownerSVGElement.getBoundingClientRect(),box=hit.ownerSVGElement.viewBox.baseVal,xx=box.x+(e.clientX-rect.left)/rect.width*box.width,yy=box.y+(e.clientY-rect.top)/rect.height*box.height,spot=nearestSegmentPath(path,[xx,yy]),i=spot.index;seek(pts[i-1][0]+(pts[i][0]-pts[i-1][0])*spot.fraction)}hit.addEventListener('pointerdown',e=>{hit.setPointerCapture(e.pointerId);locate(e)});hit.addEventListener('pointermove',e=>{if(e.buttons)locate(e)});hit.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();seek(Math.max(0,Math.min(pts.at(-1)[0],(S.courseD??0)+(e.key==='ArrowRight'?1:-1)*pts.at(-1)[0]/80)))}});attachElevation(height,pts,seek);$('#course-scrub-label').textContent=`Illustrativ position ${fmtKm(d)} km längs GPX-displayrutt.${S.courseFromSegment?' Segmentmitt proportionellt uppskattad från timing-km; ej verifierad kontrollposition.':''} Klicka i karta eller höjdprofil.`;}
 function renderHistory(){
   const editions=S.boot.editions.filter(e=>e.family===S.family).sort((a,b)=>a.year-b.year||String(a.race_key).localeCompare(String(b.race_key)));
   const first=editions[0]?.year||2016,last=editions.at(-1)?.year||2025;
@@ -746,116 +838,6 @@ function renderProfileLegacy(r){
 }
 
 
-/* GAX100 2026: user-selected course only. GPX is parsed in RAM;
-   no upload, no localStorage, no public redistribution. A route file is NOT
-   a runner GPS log. The demo positions are interpolated from fabricated TIME. */
-function parseGaxLocalGPX(xmlText){
-  if(typeof xmlText!=='string'||xmlText.length>5_500_000||/<!DOCTYPE|<!ENTITY/i.test(xmlText))
-    throw Error('GPX-filen är för stor eller har en ogiltig XML-deklaration.');
-  const xml=new DOMParser().parseFromString(xmlText,'application/xml');
-  if(xml.getElementsByTagName('parsererror').length||xml.documentElement?.localName!=='gpx')
-    throw Error('Filen är inte en läsbar GPX-bana.');
-  let nodes=Array.from(xml.getElementsByTagNameNS('*','trkpt'));
-  if(nodes.length<100)nodes=Array.from(xml.getElementsByTagNameNS('*','rtept'));
-  if(nodes.length<100||nodes.length>150000)
-    throw Error('GPX-filen måste innehålla minst 100 och högst 150 000 banpunkter.');
-  const earthRadius=6371.0088,toRadians=Math.PI/180;
-  const haversine=(a,b)=>{
-    const dlat=(b[0]-a[0])*toRadians,dlon=(b[1]-a[1])*toRadians;
-    const h=Math.sin(dlat/2)**2+Math.cos(a[0]*toRadians)*Math.cos(b[0]*toRadians)*Math.sin(dlon/2)**2;
-    return 2*earthRadius*Math.asin(Math.min(1,Math.sqrt(h)));
-  };
-  const keepEvery=Math.max(1,Math.floor(nodes.length/1800));
-  const points=[];
-  let total=0,last=null;
-  for(let i=0;i<nodes.length;i++){
-    const node=nodes[i],lat=Number(node.getAttribute('lat')),lon=Number(node.getAttribute('lon'));
-    const eleTag=Array.from(node.children).find(child=>child.localName==='ele');
-    const elevation=eleTag?Number(eleTag.textContent):0;
-    if(!Number.isFinite(lat)||!Number.isFinite(lon)||!Number.isFinite(elevation)||
-       lat<55.1||lat>56.2||lon<13.2||lon>14.8||elevation< -50||elevation>850)
-      throw Error('GPX-punkterna ligger inte inom det rimliga GAX100-området i Skåne.');
-    const current=[lat,lon,elevation];
-    if(last){
-      const leg=haversine(last,current);
-      if(leg>.5)throw Error('GPX-spåret har ett hopp större än 500 meter. Det kräver avbrottssäker segmenthantering och kan inte visas som en enda sammanhängande bana.');
-      total+=leg;
-    }
-    if(i%keepEvery===0||i===nodes.length-1)points.push([total,lat,lon,elevation]);
-    last=current;
-  }
-  if(total<140||total>185)
-    throw Error('GPX-spåret är '+total.toFixed(1).replace('.',',')+' km; Kartduellen kräver en komplett GAX100-bana (140–185 km).');
-  if(points.length<100)throw Error('GPX-spåret innehåller för få användbara punkter.');
-  return {points,source:'selected-local-gpx',status:'local-gpx-2026',course_year:2026,
-    synthetic_projection_only:true,valid_source_geometry_for_publication:false,local_only:true};
-}
-const GAX_LOCAL_COURSE_REFERENCES={
- '2026-gax100':['2026','Officiell arrangörskurs',GAX_GARMIN_COURSE_URL,true],
- '2024-gax100':['2024','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2659350',false],
- '2023-gax100':['2023','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2332034',false],
- '2022-gax100':['2022','Tidigare lokalt analyserad GPX-kandidat','https://www.plotaroute.com/route/2310208',false],
- '2021-a-gax100':['2021-A','2021-kandidat; koppling till A är inte styrkt','https://tracedetrail.fr/en/trace/139697',false],
- '2021-b-gax100':['2021-B','2021-kandidat; koppling till B är inte styrkt','https://tracedetrail.fr/en/trace/139697',false],
- '2020-gax100':['2020','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2337511',false],
- '2018-gax100':['2018','Lokal kandidat med två kända GPX-avbrott','https://tracedetrail.fr/en/trace/48826',false],
- '2016-gax100':['2016','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2343997',false]
-};
-function refreshGaxLocalRouteControls(){
-  const panel=$('#gax-local-gpx-card'),input=$('#gax-gpx-upload'),status=$('#gax-gpx-status');
-  if(!panel||!input)return;
-  const selected=GAX_LOCAL_COURSE_REFERENCES[S.editionKey];
-  const available=Boolean(selected&&S.race?.demo_only);
-  panel.hidden=!available;input.disabled=!available;
-  if(!available)return;
-  const [label,provenance,url,isOfficial]=selected;
-  const source=$('#gax-gpx-source-link');
-  if(source){source.href=url;source.textContent=isOfficial?'Öppna officiell 2026-Garmin-kurs ↗':'Öppna källans GPX-kandidat ↗'}
-  const title=$('#gax-gpx-title');
-  if(title)title.textContent='Öppna '+label+' års GPX lokalt';
-  const caption=$('#gax-gpx-import-provenance');
-  if(caption)caption.textContent=provenance+'. Inga originalkoordinater publiceras av Loppanalys.';
-  const fieldLabel=$('#gax-gpx-file-label-text');
-  if(fieldLabel)fieldLabel.textContent='Välj lokal GPX för '+label;
-  const loaded=S._localGpxRoutes?.[S.editionKey];
-  if(status){
-    status.textContent=loaded
-      ?label+'-rutt inläst lokalt: '+loaded.points.length+' punkter, '+fmtKm(loaded.points.at(-1)[0])+
-        ' km. Kartduellen är redo för 2–5 fiktiva löpare.'
-      :'Ingen GPX inläst för '+label+'. Hämta en fil från källan och välj den här.';
-    status.setAttribute('role','status');
-  }
-}
-async function loadGaxLocalGPX(event){
-  const input=event.currentTarget,status=$('#gax-gpx-status'),file=input.files?.[0];
-  if(!file)return;
-  const selectedKey=S.editionKey;
-  if(!S.race?.demo_only||!GAX_LOCAL_COURSE_REFERENCES[selectedKey]){
-    if(status){status.textContent='Välj en upplaga med GPX-kandidat i design-demon.';status.setAttribute('role','alert')}
-    input.value='';return;
-  }
-  try{
-    if(!/\.gpx$/i.test(file.name)||file.size>5_500_000)
-      throw Error('Välj en GPX-fil (högst 5,5 MB).');
-    const route=parseGaxLocalGPX(await file.text());
-    if(!S.race?.demo_only||S.editionKey!==selectedKey)
-      throw Error('Loppåret ändrades medan GPX-filen lästes.');
-    const keyInfo=GAX_LOCAL_COURSE_REFERENCES[selectedKey];
-    route.course_year=S.year;
-    route.course_edition_key=selectedKey;
-    route.source_ref_url=keyInfo[2];
-    route.official_course_identified=keyInfo[3];
-    route.evidence_note=keyInfo[1]+'. Användaren har valt GPX i webbläsaren; årsanknytningen har inte kontrollerats för kandidatspår.';
-    route.geometry_length_km=route.points.at(-1)[0];
-    S._localGpxRoutes??={};
-    S._localGpxRoutes[selectedKey]=route;S.route=route;S.courseD=null;
-    refreshGaxLocalRouteControls();renderMapDuelChips();renderCourse();renderProfileIfOpen();window.SatilaExtras?.renderProvenance?.();window.SatilaExtras?.renderMapHistory?.();
-  }catch(err){
-    if(status){status.textContent=err.message||'GPX-filen kunde inte läsas.';status.setAttribute('role','alert')}
-    renderMapDuelChips();renderCourse();
-  }finally{input.value=''}
-}
-
 function validRouteComparison(){return !!S.route&&routePoints().length>=2} // Map availability must not depend on checkpoint coverage.
 function updateReplayElevation(host,pts,d,callback){
   if(!host.querySelector('svg')){
@@ -876,22 +858,23 @@ function renderProfileReplay(r){
   replaySoundtrack.close();
   const host=$('#profile-replay-stage')||$('#profile-replay');
   if(!validRouteComparison()){
-    host.innerHTML=`<p class="empty">Ingen Replay för detta resultat: ${S.route?'för få verkliga tidsankare':'denna upplaga saknar separat verifierad publicerbar lokal rutt'}. Profilens publicerade passager påverkas inte.</p>`;
+    host.innerHTML=`<p class="empty">Ingen Replay för detta resultat: ${S.route?'för få verkliga tidsankare':'banunderlaget kunde inte läsas'}. Profilens publicerade passager påverkas inte.</p>`;
     return;
   }
   const pts=routePoints(),anchors=runnerAnchors(r),maxDistance=anchors.at(-1)?.km||0;
   if(anchors.length<2||maxDistance<=0){
     // Source geometry still belongs in the personal popup. Only the runner
     // animation is disabled where the participant has no usable TIME after Start.
-    host.innerHTML='<h3>Bana och höjd · tillgänglig GPX</h3><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><p class="muted small">Banan finns, men denna löpare saknar en senare registrerad TIME-passage. Replay-rörelse kan därför inte beräknas utan att hitta på data.</p>';
-    const map=$('#profile-mini-map'),{W,H}=mapViewport(map,280),path=project(pts,W,H,18);
-    map.innerHTML=svg(W,H,`${osmTiles(pts,W,H,18)}<path class="simple-route-base" d="${pathFor(path)}"/><path class="simple-route-line" d="${pathFor(path)}"/>`,'Statisk verifierad GPX-rutt över OpenStreetMap')+osmAttribution();
+    host.innerHTML='<h3>Bana och höjd</h3><p class="muted small">'+html(replayMapSource())+'</p><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><p class="muted small">Banan finns, men denna löpare saknar en tid efter start att spela upp.</p>';
+    const map=$('#profile-mini-map'),{W,H}=mapViewport(map,280),line=pathFor(project(pts,W,H,18),pts);
+    map.innerHTML=svg(W,H,`${osmTiles(pts,W,H,18)}<path class="simple-route-base" d="${line}"/><path class="simple-route-line" d="${line}"/>`,'Bankarta över OpenStreetMap')+osmAttribution();
+    setupMapZoom(map,pts,18);
     $('#profile-mini-elev').innerHTML=elevationSvg(pts,0,false);
     return;
   }
   let d=0,playing=false,startedAt=0,startedKm=0;
   S.profileFollow=false;
-  host.innerHTML=`<div class="panel-heading"><div><p class="eyebrow">BERÄKNAD POSITION MELLAN KONTROLLER</p><h3>Personlig Replay · bana och höjd</h3></div></div><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><div class="replay-controls"><button type="button" class="btn green" id="profile-replay-play">Spela</button><button type="button" class="btn text-btn" id="profile-replay-reset">Börja om</button><label>Uppspelningstid<select id="profile-replay-duration"><option value="30">30 s</option><option value="60">60 s</option><option value="120" selected>120 s</option><option value="180">180 s</option></select></label><button type="button" class="btn text-btn" id="profile-replay-follow" aria-pressed="false">Följ löpare</button><button type="button" class="btn text-btn" id="profile-replay-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Position längs visningsrutten<input class="duel-scrubber" id="profile-replay-range" type="range" min="0" max="${maxDistance}" step="0.1" value="0" aria-label="Spola genom löparens lopp"/></label><p class="muted small" id="profile-replay-readout"></p>`;
+  host.innerHTML=`<div class="panel-heading"><div><p class="eyebrow">BERÄKNAD POSITION MELLAN KONTROLLER</p><h3>Personlig Replay · bana och höjd</h3><p class="muted small">${html(replayMapSource())}</p></div></div><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><div class="replay-controls"><button type="button" class="btn green" id="profile-replay-play">Spela</button><button type="button" class="btn text-btn" id="profile-replay-reset">Börja om</button><label>Uppspelningstid<select id="profile-replay-duration"><option value="30">30 s</option><option value="60">60 s</option><option value="120" selected>120 s</option><option value="180">180 s</option></select></label><button type="button" class="btn text-btn" id="profile-replay-follow" aria-pressed="false">Följ löpare</button><button type="button" class="btn text-btn" id="profile-replay-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Position längs visningsrutten<input class="duel-scrubber" id="profile-replay-range" type="range" min="0" max="${maxDistance}" step="0.1" value="0" aria-label="Spola genom löparens lopp"/></label><p class="muted small" id="profile-replay-readout"></p>`;
   const map=$('#profile-mini-map'),elev=$('#profile-mini-elev'),range=$('#profile-replay-range'),playButton=$('#profile-replay-play');
   replaySoundtrack.bind(host);
   const stop=(pauseMusic=true)=>{playing=false;cancelAnimationFrame(S._replayFrame);playButton.textContent='Spela';if(pauseMusic)replaySoundtrack.pause()};
@@ -927,9 +910,8 @@ function renderProfileReplay(r){
     event.currentTarget.setAttribute('aria-pressed',String(S.profileFollow));
     draw(d);
   });
-  $('#profile-replay-fit').addEventListener('click',()=>{
-    S.profileFollow=false;$('#profile-replay-follow').setAttribute('aria-pressed','false');draw(d);
-  });
+  map.mapFit=()=>{S.profileFollow=false;map.mapZoom=null;$('#profile-replay-follow').setAttribute('aria-pressed','false');draw(d)};
+  $('#profile-replay-fit').addEventListener('click',map.mapFit);
   $('#profile-dialog').addEventListener('close',()=>{stop();replaySoundtrack.close()},{once:true});
   draw(0);
 }
@@ -1004,7 +986,10 @@ function runnerAnchors(r){
 }
 function estimatedAt(anchors,d){if(!anchors?.length)return null;d=Math.max(0,d);if(d>anchors.at(-1).km+1e-6)return null;for(let i=1;i<anchors.length;i++){let a=anchors[i-1],b=anchors[i];if(d>=a.km&&d<=b.km){let f=(d-a.km)/Math.max(1e-6,b.km-a.km);return a.t+(b.t-a.t)*f}}return d===0?0:null}
 function drawSimpleRoute(host,pts,d,markers=null,cameraDistance=d){
-  const {W,H}=mapViewport(host,280),path=project(pts,W,H,18);
+  const {W,H}=mapViewport(host,280);
+  if(host.mapGeometry?.points!==pts||host.mapGeometry?.width!==W)
+    host.mapGeometry={points:pts,width:W,path:project(pts,W,H,18)};
+  const path=host.mapGeometry.path;
   const xyAt=km=>{
     let i=1;
     while(i<pts.length-1&&pts[i][0]<km)i++;
@@ -1015,12 +1000,13 @@ function drawSimpleRoute(host,pts,d,markers=null,cameraDistance=d){
   if(routeSvg&&Math.abs(Number(routeSvg.dataset.fullMapWidth||W)-W)>2){routeSvg.remove();host.querySelectorAll('.osm-attribution').forEach(node=>node.remove());routeSvg=null;hit=null}
   if(!routeSvg){
     const markerSvg=Array.isArray(markers)?markers.map((marker,i)=>`<circle data-runner-marker="${i}" r="6" fill="${marker.color}" fill-opacity=".72" stroke="#173b2a" stroke-width="1.5" stroke-opacity=".82"><title>${html(marker.label)}</title></circle>`).join(''):'';
-    host.insertAdjacentHTML('beforeend',svg(W,H,`${osmTiles(pts,W,H,18)}<path class="simple-route-base" d="${pathFor(path)}"/><path class="simple-route-line" d="${pathFor(path)}"/>${officialAidSvg(pts,path,W,H,18)}<circle data-route-cursor r="5" fill="#d4a858" stroke="#173b2a" stroke-width="1" opacity=".65"/>${markerSvg}<rect data-local-hit x="0" y="0" width="${W}" height="${H}" fill="transparent" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="${pts.at(-1)[0]}" aria-valuenow="${d}" aria-label="Sök i kartan"/>`,'Interaktiv GPX-rutt över OpenStreetMap')+osmAttribution());
+    host.insertAdjacentHTML('beforeend',svg(W,H,`${osmTiles(pts,W,H,18)}<path class="simple-route-base" d="${pathFor(path,pts)}"/><path class="simple-route-line" d="${pathFor(path,pts)}"/>${officialAidSvg(pts,path,W,H,18)}<circle data-route-cursor r="5" fill="#d4a858" stroke="#173b2a" stroke-width="1" opacity=".65"/>${markerSvg}<rect data-local-hit x="0" y="0" width="${W}" height="${H}" fill="transparent" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="${pts.at(-1)[0]}" aria-valuenow="${d}" aria-label="Sök i kartan"/>`,'Interaktiv GPX-rutt över OpenStreetMap')+osmAttribution());
+    if(host.id!=='duel-map')setupMapZoom(host,pts,18);
     routeSvg=host.querySelector('svg');routeSvg.dataset.fullMapWidth=String(W);hit=host.querySelector('[data-local-hit]');
     const seek=event=>{
       const rect=routeSvg.getBoundingClientRect(),box=routeSvg.viewBox.baseVal;
       const point=[box.x+(event.clientX-rect.left)/rect.width*box.width,box.y+(event.clientY-rect.top)/rect.height*box.height];
-      const spot=nearestSegmentPath(path,point),i=spot.index;
+      const spot=nearestSegmentPath(path,point,pts),i=spot.index;
       const km=pts[i-1][0]+(pts[i][0]-pts[i-1][0])*spot.fraction;
       if(host.closest('#profile-replay')){
         const range=$('#profile-replay-range');range.value=km;range.dispatchEvent(new Event('input'));
@@ -1048,9 +1034,8 @@ function drawSimpleRoute(host,pts,d,markers=null,cameraDistance=d){
     // offset would imply a positional gap; translucent fills show the overlap.
     if(node){node.setAttribute('cx',point[0]);node.setAttribute('cy',point[1])}
   });
-  const zoom=host.id==='duel-map'?(S.duelZoom||1):host.id==='profile-mini-map'&&S.profileFollow?2.2:host.id==='map-duel-map'&&S.mapDuelCamera==='leader'?2.2:1,width=W/zoom,height=H/zoom,[cameraX,cameraY]=xyAt(cameraDistance);
-  const vx=Math.max(0,Math.min(W-width,cameraX-width/2)),vy=Math.max(0,Math.min(H-height,cameraY-height/2));
-  routeSvg.setAttribute('viewBox',`${vx} ${vy} ${width} ${height}`);
+  const zoom=host.id==='duel-map'?(S.duelZoom||1):host.id==='profile-mini-map'&&S.profileFollow?2.2:host.id==='map-duel-map'&&S.mapDuelCamera==='leader'?2.2:1;
+  applyMapZoom(host,routeSvg,W,H,zoom,xyAt(cameraDistance));
   hit.setAttribute('aria-valuenow',d);
 }
 
@@ -1089,7 +1074,7 @@ function renderCompareContent(m){
   const participant=`<section aria-labelledby="comparison-participants"><h3 id="comparison-participants" class="sr-only">Deltagare</h3><div class="compare-profiles"><article><p class="eyebrow">LOPP A</p><span class="avatar" aria-hidden="true">${html(initial(x.name))}</span><h3>${html(x.name)}</h3><p class="muted small">${html(x.class_name)} · #${html(x.bib)}</p><strong>${time(x.finish_seconds)}</strong><p>Placering ${x.place??'—'} · ${html(x.status)}</p></article><div class="versus">VS${finishGap!==null?`<small>${finishGap===0?'Lika':finishGap>0?'A före '+time(finishGap):'B före '+time(-finishGap)}</small>`:''}</div><article><p class="eyebrow">LOPP B</p><span class="avatar" aria-hidden="true">${html(initial(y.name))}</span><h3>${html(y.name)}</h3><p class="muted small">${html(y.class_name)} · #${html(y.bib)}</p><strong>${time(y.finish_seconds)}</strong><p>Placering ${y.place??'—'} · ${html(y.status)}</p></article></div><div class="comparison-actions"><button type="button" class="link-button" id="duel-share">Kopiera delbar länk</button><span id="duel-share-status" class="muted small" role="status"></span></div></section>`;
   const kpis=`<section class="comparison-section" aria-labelledby="comparison-kpis"><div class="comparison-heading"><div><p class="eyebrow">DUELLENS NYCKELTAL</p><h3 id="comparison-kpis">Vad avgjorde?</h3></div><button class="info" type="button" id="compare-info" aria-label="Metod för jämförelsen">i</button></div><div class="comparison-kpis">${comparisonKpis(m).map(k=>`<article><span>${html(k.label)}</span><strong>${html(k.value)}</strong></article>`).join('')}</div></section>`;
   const segmentRows=displaySegments.map(s=>`<tr data-comparison-segment-row="${s.index}" class="${selected===s.index?'selected':''}"><td>${html(s.from.name)} → ${html(s.to.name)}</td><td>${time(s.a?.seconds)}</td><td>${time(s.b?.seconds)}</td><td>${!num(s.delta)?'—':s.delta===0?'Lika':`${s.delta>0?'A':'B'} vann ${time(Math.abs(s.delta))}`}</td><td>${!num(s.gapAtEnd)?'—':s.gapAtEnd===0?'Lika':`${s.gapAtEnd>0?'A':'B'} före ${time(Math.abs(s.gapAtEnd))}`}</td><td>${s.physical?`${pace(s.a?.seconds,s.a?.km)} / ${pace(s.b?.seconds,s.b?.km)}`:'Dold · fysisk distans ej verifierad'}</td><td><button type="button" data-duel-segment="${s.index}" data-duel-ck="${s.to.uid}" aria-pressed="${selected===s.index}">Visa ↗</button></td></tr>`).join('');
-  const course=routeReady?`<section class="comparison-section" aria-labelledby="comparison-course"><p class="eyebrow">INTERAKTIV BANA</p><h3 id="comparison-course">Karta, höjd och gemensam tävlingsklocka</h3><div id="duel-progress-chart" class="chart-host">${progressSvg(x,y)}</div><p class="muted small">Grön = A, guld = B. Distanslinjerna och kartpositionerna mellan verkliga GAX100-arrangörens-passager är rekonstruktion, inte uppmätta passager.</p><div class="compare-dashboard"><div class="duel-map" id="duel-map"><div class="duel-map-toolbar" role="group" aria-label="Kartzoom"><button type="button" id="duel-zoom-in" aria-label="Zooma in">+</button><button type="button" id="duel-zoom-out" aria-label="Zooma ut">−</button><button type="button" id="duel-fit">Hela banan</button></div></div><div class="duel-elevation" id="duel-elevation"></div></div><div class="comparison-playback"><button type="button" class="btn green" id="duel-play">Spela</button><button type="button" class="btn text-btn" id="duel-reset">Börja om</button><label>Uppspelningstid<select id="duel-duration"><option value="30">30 sekunder</option><option value="60">1 minut</option><option value="120" selected>2 minuter</option><option value="180">3 minuter</option></select></label><label>Kamera<select id="duel-camera"><option value="full">Hela banan</option><option value="both" selected>Följ båda</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Gemensam tävlingsklocka <input type="range" id="duel-clock" min="0" max="${compareMaxClock}" step="1" value="${Math.min(S.duelClock||0,compareMaxClock)}" aria-label="Gemensam tävlingsklocka för båda löparna"/></label><div class="duel-clock-row"><strong id="duel-clock-label">${time(S.duelClock||0)}</strong></div><div class="duel-controls"><label>Sök A:s passage längs banan<input type="range" class="duel-scrubber" id="duel-range" min="0" max="${routePoints().at(-1)[0]}" value="0" step="0.1"/></label></div><div class="duel-readout" id="duel-readout"></div></section>`:empty('Direktjämförelsens tabeller är tillgängliga, men karta/höjd kräver en godkänd lokal bana för denna upplaga.');
+  const course=routeReady?`<section class="comparison-section" aria-labelledby="comparison-course"><p class="eyebrow">INTERAKTIV BANA</p><h3 id="comparison-course">Karta, höjd och gemensam tävlingsklocka</h3><div id="duel-progress-chart" class="chart-host">${progressSvg(x,y)}</div><p class="muted small">Grön = A, guld = B. ${html(replayMapSource())}</p><div class="compare-dashboard"><div class="duel-map" id="duel-map"><div class="duel-map-toolbar" role="group" aria-label="Kartzoom"><button type="button" id="duel-zoom-in" aria-label="Zooma in">+</button><button type="button" id="duel-zoom-out" aria-label="Zooma ut">−</button><button type="button" id="duel-fit">Hela banan</button></div></div><div class="duel-elevation" id="duel-elevation"></div></div><div class="comparison-playback"><button type="button" class="btn green" id="duel-play">Spela</button><button type="button" class="btn text-btn" id="duel-reset">Börja om</button><label>Uppspelningstid<select id="duel-duration"><option value="30">30 sekunder</option><option value="60">1 minut</option><option value="120" selected>2 minuter</option><option value="180">3 minuter</option></select></label><label>Kamera<select id="duel-camera"><option value="full">Hela banan</option><option value="both" selected>Följ båda</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Gemensam tävlingsklocka <input type="range" id="duel-clock" min="0" max="${compareMaxClock}" step="1" value="${Math.min(S.duelClock||0,compareMaxClock)}" aria-label="Gemensam tävlingsklocka för båda löparna"/></label><div class="duel-clock-row"><strong id="duel-clock-label">${time(S.duelClock||0)}</strong></div><div class="duel-controls"><label>Sök A:s passage längs banan<input type="range" class="duel-scrubber" id="duel-range" min="0" max="${routePoints().at(-1)[0]}" value="0" step="0.1"/></label></div><div class="duel-readout" id="duel-readout"></div></section>`:empty('Banunderlaget för den här upplagan är inte tillgängligt just nu.');
   return `${participant}${sparse}${kpis}<section class="comparison-section" aria-labelledby="comparison-gap"><p class="eyebrow">TIDSLUCKA GENOM LOPPET</p><h3 id="comparison-gap">Observerad lucka · positiv = A före</h3><div id="duel-gap-chart" class="chart-host">${gapSvg(m.shared)}</div><p class="muted small">Punkterna är verkliga gemensamma passager. Linjen visar endast sambandet mellan observationerna och är inte en uppmätt kontinuerlig lucka.</p></section>${m.capabilities.placement_journey?`<section class="comparison-section" aria-labelledby="comparison-placement"><p class="eyebrow">OFFICIELL PLACERINGSRESA</p><h3 id="comparison-placement">Publicerad placering vid kontroll</h3><div id="duel-placement-chart" class="chart-host">${placementSvg(rows,x,y)}</div><p class="muted small">Plats 1 visas högst. Saknad publicerad placering bryter serien; ingen placering interpoleras.</p></section>`:''}<section class="comparison-section" aria-labelledby="comparison-segments"><p class="eyebrow">SEGMENTDUELL</p><h3 id="comparison-segments">Verkliga delsträckor</h3><div class="table-scroll"><table class="comparison-segment-table"><thead><tr><th>Segment</th><th>A segmenttid</th><th>B segmenttid</th><th>Vann tid</th><th>Ack. läge</th><th>Tempo A / B</th><th>Synka</th></tr></thead><tbody>${segmentRows}</tbody></table></div><p class="muted small">Exakt segmenttid kräver två verkliga, positiva observationer. Ackumulerat läge kräver en gemensam exakt passage. Tempo visas bara där GAX100s distance-evidence-gate godkänner fysisk timingdistans.</p></section>${m.capabilities.edition_field_normalization?`<section class="comparison-section" aria-labelledby="comparison-field"><p class="eyebrow">RELATIV PRESTATION MOT FÄLTET</p><h3 id="comparison-field">Mot upplagans segmentmedian</h3><div id="duel-field-chart" class="chart-host">${fieldComparisonSvg(segments,x,y)}</div><p class="muted small">Positivt = snabbare än medianen bland fullföljare med exakta segmentpassager, minst n=5. Där fysisk distans är spärrad gäller måttet exakt segmenttid, inte min/km.</p></section>`:''}${course}<section class="comparison-section comparison-method" aria-labelledby="comparison-method"><p class="eyebrow">METOD OCH DATAKVALITET</p><h3 id="comparison-method">Vad är observerat och vad är rekonstruerat?</h3><p>Sluttid, kontrolltid, kontrollplats och segmenttid kommer från publicerade GAX100-arrangörens-observationer. Lucka = B:s ackumulerade tid minus A:s; positivt betyder att A ligger före. Kartposition mellan tidtagningsankare är endast en illustrativ rekonstruktion och skapar aldrig en officiell passage.</p><p class="muted small">Aktiva capabilities: ${Object.entries(m.capabilities).filter(([,v])=>v===true).map(([k])=>k).join(', ')}. Medvetet av: cross_edition_comparison och team_entity.</p></section>`;
 }
 
@@ -1280,7 +1265,6 @@ function restoreMapDuelFromUrl(params=comparisonParams()){
 }
 function ensureMapDuelControls(){
   if(!$('#map-duel-builder'))return;
-  $('#gax-gpx-upload')?.addEventListener('change',loadGaxLocalGPX);
   $('#open-map-duel').addEventListener('click',openMapDuel);
   $('#share-map-duel-selection')?.addEventListener('click',()=>shareMapDuel(0,'#map-duel-share-status'));
   $('#map-duel-share')?.addEventListener('click',()=>shareMapDuel(Number($('#map-duel-clock')?.value)||0,'#map-duel-modal-share-status'));
@@ -1330,7 +1314,7 @@ function openMapDuel(){
   cancelAnimationFrame(S._mapDuelFrame);
   $('#map-duel-modal-share-status').textContent='';
   if(!validRouteComparison()){
-    host.innerHTML=empty(S.race?.demo_only?'Kartduellen behöver en lokal GPX-fil för vald upplaga. Öppna länken i kartpanelen och välj sedan filen på din dator.':'Kartduell kräver en godkänd lokal rutt för exakt denna tävlingsupplaga. Resultaten kan fortfarande jämföras två och två utan karta.');
+    host.innerHTML=empty('Banunderlaget för upplagan är inte tillgängligt just nu.');
     dialog.showModal();return;
   }
   const data=runners.map((runner,i)=>({runner,anchors:runnerAnchors(runner),color:['#d8ad62','#69a07b','#8e9dc4','#d28975','#b58ec4'][i]}));
@@ -1339,7 +1323,7 @@ function openMapDuel(){
   const pts=routePoints(),maxClock=Math.ceil(Math.max(0,...data.map(item=>item.anchors.at(-1).t)));
   let clock=0,playing=false,startedAt=0,startedClock=0;
   S.mapDuelCamera='full';
-  host.innerHTML=`<p class="muted small">${S.race?.demo_only?'DESIGNDEMO: Banan visas från din lokalt valda GPX. Alla löpare och tidsankare är fiktiva. Markörernas positioner mellan de påhittade kontrollerna är interpolerade och får inte tolkas som verkliga GPS-positioner eller officiell placeringsordning.':'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
+  host.innerHTML=`<p class="muted small">${S.race?.demo_only?html(replayMapSource()):'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
   dialog.showModal();
   const map=$('#map-duel-map'),elev=$('#map-duel-elevation'),play=$('#map-duel-play'),range=$('#map-duel-clock');
   replaySoundtrack.bind(host);
@@ -1373,7 +1357,8 @@ function openMapDuel(){
   range.addEventListener('input',()=>{stop();draw(+range.value)});
   $('#map-duel-speed').addEventListener('change',()=>{if(playing){startedClock=clock;startedAt=performance.now()}});
   $('#map-duel-camera').addEventListener('change',event=>{S.mapDuelCamera=event.target.value;draw(clock)});
-  $('#map-duel-fit').addEventListener('click',()=>{S.mapDuelCamera='full';$('#map-duel-camera').value='full';draw(clock)});
+  map.mapFit=()=>{S.mapDuelCamera='full';map.mapZoom=null;$('#map-duel-camera').value='full';draw(clock)};
+  $('#map-duel-fit').addEventListener('click',map.mapFit);
   dialog.addEventListener('close',()=>{stop();replaySoundtrack.close()},{once:true});
   draw(0);
 }
@@ -1497,18 +1482,18 @@ window.SatilaExtras=(()=>{
     const make=(source)=>cps.map((st,i)=>{const d=distribution(source.map(r=>observed(r,st)?.elapsed_seconds).filter(num));return {...d,index:Math.max(0,i-1),label:st.name,title:st.name}});
     bandChart(h,make(rows),{domainPoints:make(allRows),labelClass:'checkpoint-axis-label',note:'Varje kontroll använder sitt eget observerade n; samma personer behöver inte ingå i alla punkter.'})
   }
-  function syncSegmentOverlay(){const host=$('#course-map');if(!S.route||!$('svg',host))return;const seg=currentSeg();if(!seg)return;const pts=routePoints(),start=timingToRouteKm(seg.from.km,pts),end=timingToRouteKm(seg.to.km,pts),viewport=mapViewport(host,340),proj=project(pts,viewport.W,viewport.H,20),picked=proj.filter((p,i)=>pts[i][0]>=start&&pts[i][0]<=end);if(picked.length<2)return;const old=$('.segment-route-overlay',host);old?.remove();const ns='http://www.w3.org/2000/svg',path=document.createElementNS(ns,'path');path.setAttribute('d',pathFor(picked));path.setAttribute('class','segment-route-overlay');path.setAttribute('aria-label',`Illustrativ proportionell segmentmarkering ${seg.from.name} till ${seg.to.name}, ingen verifierad kontrollprojektion`);$('svg',host).appendChild(path)}
+  function syncSegmentOverlay(){const host=$('#course-map');if(!S.route||S.route.display?.runs.length>1||!$('svg',host))return;const seg=currentSeg();if(!seg)return;const pts=routePoints(),start=timingToRouteKm(seg.from.km,pts),end=timingToRouteKm(seg.to.km,pts),viewport=mapViewport(host,340),proj=project(pts,viewport.W,viewport.H,20),picked=proj.filter((p,i)=>pts[i][0]>=start&&pts[i][0]<=end);if(picked.length<2)return;const old=$('.segment-route-overlay',host);old?.remove();const ns='http://www.w3.org/2000/svg',path=document.createElementNS(ns,'path');path.setAttribute('d',pathFor(picked));path.setAttribute('class','segment-route-overlay');path.setAttribute('aria-label',`Illustrativ proportionell segmentmarkering ${seg.from.name} till ${seg.to.name}, ingen verifierad kontrollprojektion`);$('svg',host).appendChild(path)}
   function renderCourseIntel(){
     const h=$('#course-intelligence');if(!h)return;
     const fs=S.filtered.filter(finish),dnfs=S.filtered.filter(r=>r.status==='DNF');
     const started=fs.length+dnfs.length+S.filtered.filter(r=>r.status==='DSQ').length;
-    const display=S.route?null:gaxDisplayRoute(S.year);
+    const display=S.route?.display||(!S.route?gaxDisplayRoute(S.year):null);
     const dims=[
       ['Tävlingsdistans',fmtKm(S.race.nominal_km)+' km','Arrangörens annonserade 100 miles · historiska spårlängder kan skilja sig'],
       [S.race.demo_only?'Modellkontroller':'Publicerade kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,S.race.demo_only?'Fiktiva passager enligt demomodell':'Stationsmetadata, även utan TIME'],
       ['Median sluttid',fs.length>=5?time(median(fs.map(r=>r.finish_seconds))):'—','n='+fs.length],
       ['DNF-andel',started?(100*dnfs.length/started).toFixed(1).replace('.',',')+' %':'—','FINISHED + DNF + DSQ som startnämnare'],
-      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])+' km':display?fmtKm(display.runs.at(-1).at(-1)[0])+' km':'—',S.route?'Lokalt kartunderlag':display?'GPX '+display.year+(display.runs.length>1?' · sammanlagd längd utan glapp':' · visningsrutt'):'Saknas för upplagan'],
+      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])+' km':display?fmtKm(display.runs.at(-1).at(-1)[0])+' km':'—',display?'GPX '+display.year+(display.runs.length>1?' · sammanlagd längd utan glapp':' · visningsrutt'):'Saknas för upplagan'],
       ['Rå GPX D+',S.route&&num(S.route.raw_positive_gain_m_not_official)?Math.round(S.route.raw_positive_gain_m_not_official)+' m':'—',S.route&&!num(S.route.raw_positive_gain_m_not_official)?'Höjddata saknas i källspåret':'Ej officiell höjdmetrik']
     ];
     const seg=currentSeg();
@@ -1536,7 +1521,7 @@ window.SatilaExtras=(()=>{
     }
     h.innerHTML=`<article class="panel course-intel-card"><div class="panel-heading"><div><p class="eyebrow">COURSE INTELLIGENCE</p><h3>Banans dimensioner</h3></div><button class="info" data-help-extra="courseintel">i</button></div><div class="dimension-grid">${dims.map(d=>`<article><span>${esc(d[0])}</span><strong>${esc(d[1])}</strong><small>${esc(d[2])}</small></article>`).join('')}</div><p class="small muted">Dimensionerna redovisas separat och vägs inte ihop till något svårighetsbetyg.</p></article><article class="panel course-intel-card"><div class="panel-heading"><div><p class="eyebrow">DELSTRÄCKA</p><h3>${segmentTitle}</h3></div><button class="info" data-help-extra="courseintel">i</button></div>${segmentBody}<p class="small muted">Inga avbrottsplatser eller höjdmeter per segment uppskattas utan källa.</p></article>`;
   }
-  function renderMapHistory(){const h=$('#map-history');if(!h)return;if(S.route){h.innerHTML=`<div class="route-version-card"><strong>${esc(S.editionKey)}</strong><span>${S.route.local_only?'Lokal kandidat / GPS-kurs':'Publicerad kurs'}</span><b>${fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])} km</b><small>${esc(S.route.evidence_note||'Årsbunden bangeometri för lokal visning')}</small></div><p class="small muted">Den inlästa rutten gäller endast vald upplaga och är inte automatiskt en verifierad jämförbar års-GPX eller en löpares uppmätta position.</p>`}else h.innerHTML='<p class="small muted"><a href="#course">Visa banan och jämför GPX-spår i Bana &amp; kartor ↗</a>. Historiska kartkällor finns under ”Vad går att jämföra?”.</p>'}
+  function renderMapHistory(){const h=$('#map-history');if(h)h.innerHTML='<p class="small muted"><a href="#course">Visa banan och jämför GPX-spår i Bana &amp; kartor ↗</a>. Historiska kartkällor finns under ”Vad går att jämföra?”.</p>';}
   function historyEditions(){return S.boot.editions.filter(e=>e.family===S.family).sort((a,b)=>a.year-b.year)}
   function renderHistoryPerformance(){const h=$('#history-performance');if(!h)return;const ed=historyEditions().filter(e=>num(e.median_seconds));if(!ed.length){h.innerHTML=empty();return}const min=Math.min(...ed.map(e=>e.median_seconds)),max=Math.max(...ed.map(e=>e.median_seconds)),span=Math.max(1,max-min);h.innerHTML=`<div class="edition-dotplot">${ed.map(e=>`<button type="button" data-year-extra="${e.year}" style="--pos:${100*(e.median_seconds-min)/span}%"><span>${e.year}</span><i></i><strong>${time(e.median_seconds)}</strong></button>`).join('')}</div><p class="small muted">Punkterna är separata upplagemedianer. Ingen linje dras mellan år utan verifierad whole-course-grupp.</p>`;$$('[data-year-extra]',h).forEach(b=>b.addEventListener('click',()=>{S.year=+b.dataset.yearExtra;loadRace().then(()=>$('#race-context').scrollIntoView())}))}
   async function loadRaceMini(ed){try{return await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`).then(r=>r.ok?r.json():null)}catch{return null}}
@@ -1582,7 +1567,7 @@ window.SatilaExtras=(()=>{
     const byKey=new Map((manifest?.editions||[]).map(e=>[e.race_key,e]));
     const rows=coverage.filter(e=>e.family===family).sort((a,b)=>b.year-a.year||(b.edition_label||'').localeCompare(a.edition_label||''));
     const render=e=>{
-      const route=byKey.get(e.race_key),local=S._localGpxRoutes?.[e.race_key],display=gaxDisplayRoute(e.year);
+      const route=byKey.get(e.race_key),display=gaxDisplayRoute(e.year);
       const link=route?.source_url
         ?'<a href="'+esc(route.source_url)+'" target="_blank" rel="noopener noreferrer">'+esc(route.source_label)+' ↗</a>'
         :'<span class="muted">Ej identifierad</span>';
@@ -1590,8 +1575,7 @@ window.SatilaExtras=(()=>{
         ?route.discontinuities===0?'Sammanhängande vid tidigare granskning'
          :route.discontinuities+' kända stora avbrott'
         :'Inte undersökt i tillgänglig fil';
-      const status=local?'Lokal GPX vald · illustrativ kartduell'
-       :e.route_file?'Årsbunden bana'
+      const status=e.route_file?'Årsbunden bana'
        :display?'Visar GPX '+display.year+(e.year===display.year&&display.year===2026?' · arrangörens bana':' · referens'):'Banunderlag saknas';
       const statedKm=Number.isFinite(route?.gpx_km)
         ?fmtKm(route.gpx_km)+' km · käll-/auditvärde':'—';
@@ -1600,7 +1584,7 @@ window.SatilaExtras=(()=>{
        +'<td>'+link+'</td><td>'+statedKm+'</td><td>'+esc(gap)+'</td>'
        +'<td>'+esc(status)+'</td><td>'+esc(route?.status_label||'Inga verifierade bangeometridata')+'</td></tr>';
     };
-    host.innerHTML='<p class="small muted">Källinventering från tidigare GAX-arbete. Originalfilerna låg på en lokal arbetsdisk och är inte med i detta repo. Källlänkar gör det möjligt att välja en GPX <strong>lokalt</strong>, utan att kopiera originalfiler till GitHub.</p>'
+    host.innerHTML='<p class="small muted">Källinventeringen skiljer på identifierade GPX-källor och det GPX-år som kartan faktiskt använder.</p>'
       +'<div class="table-scroll gax-route-source-scroll"><table class="gax-route-table">'
       +'<thead><tr><th>Upplaga</th><th>100 miles</th><th>Timingaxel*</th><th>Identifierad källa</th><th>Uppgiven GPX-längd</th><th>Spårkontinuitet</th><th>Kartstatus</th><th>Källbedömning</th></tr></thead><tbody>'
       +rows.map(render).join('')+'</tbody></table></div>'

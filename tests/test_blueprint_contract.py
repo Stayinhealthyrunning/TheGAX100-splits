@@ -37,17 +37,13 @@ class BlueprintContract(unittest.TestCase):
         self.assertIn("@media(max-width:470px)",css)
         self.assertNotIn("url(https://",css)
 
-    def test_local_2026_gpx_duel_is_visible_but_not_published(self):
+    def test_duel_uses_built_in_geometry_without_file_input(self):
         html=(DOCS/"index.html").read_text(encoding="utf-8")
-        self.assertIn('id="gax-gpx-upload"',html)
-        self.assertIn('id="open-map-duel"',html)
-        self.assertIn('https://connect.garmin.com/app/course/484861455',html)
         js=(DOCS/"assets/app.js").read_text(encoding="utf-8")
-        self.assertIn('parseGaxLocalGPX',js)
-        self.assertIn('loadGaxLocalGPX',js)
-        self.assertIn('S._localGpxRoute',js)
-        self.assertIn("2026-gax100",js)
-        self.assertIn("local_only:true",js)
+        self.assertIn('id="open-map-duel"',html)
+        self.assertNotIn('type="file"',html)
+        self.assertNotIn("loadGaxLocalGPX",js)
+        self.assertIn("gaxReplayRoute",js)
         self.assertFalse(any(DOCS.rglob("*.gpx")))
 
     def test_only_aggregate_public_data(self):
