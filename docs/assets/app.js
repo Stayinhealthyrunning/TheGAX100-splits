@@ -27,7 +27,7 @@ function showHelp(title,body){$('#help-title').textContent=title||'Metod';$('#he
 const famLabel=id=>({gax100:'100 miles'}[id]||id);
 const eqTimingKm=r=>num(r?.eq_timing_leg_km)?r.eq_timing_leg_km:r?.nominal_km;
 const advertisedKm=r=>num(r?.organizer_advertised_km)?r.organizer_advertised_km:eqTimingKm(r);
-const wholeCoursePaceKm=r=>r?.family==='gax100'&&!r?.distance_verified?null:r?.distance_semantics_status==='organizer_eq_discrepancy'?(num(r?.measured_route_geometry_km)?r.measured_route_geometry_km:null):eqTimingKm(r);
+const wholeCoursePaceKm=r=>r?.family==='gax100'&&!r?.distance_verified&&!r?.demo_only?null:r?.distance_semantics_status==='organizer_eq_discrepancy'?(num(r?.measured_route_geometry_km)?r.measured_route_geometry_km:null):eqTimingKm(r);
 const editionDistanceLabel=r=>num(r?.organizer_advertised_km)&&r.organizer_advertised_km!==eqTimingKm(r)?`${fmtKm(r.organizer_advertised_km)} km annonserat · GAX100-arrangörens ${fmtKm(eqTimingKm(r))} km`:`${fmtKm(eqTimingKm(r))} km`;
 const finish=r=>r.status==='FINISHED'&&num(r.finish_seconds)&&r.finish_seconds>0;
 const explicitClassSex=r=>{const value=String(r?.class_name||'').trim().toLocaleLowerCase('sv');return /^(kvinna|kvinnor|dam)(\b|\s|$)/.test(value)?'F':/^(man|män|herr)(\b|\s|$)/.test(value)?'M':null};
@@ -44,14 +44,16 @@ function segmentStats(rows){let cp=boundaries(),segs=[];for(let i=1;i<cp.length;
 /* A valid TIME pair does not certify that its public timing-km metadata is
    physical course distance. Assess pace against the UNFILTERED source field,
    never a narrow cohort whose slower median could conceal an axis mismatch. */
+/* A fictional model may display model-derived pace for UX acceptance only.
+   Public real GAX data remains distance-gated until verified historical GPX. */
 function paceDistanceSupported(s){
- if(S.race?.family==='gax100'&&!S.race?.distance_verified)return false;
+ if(S.race?.family==='gax100'&&!S.race?.distance_verified&&!S.race?.demo_only)return false;
  if(!num(s.km)||s.km<=0)return false;
  if(!S._distanceCapability){
   S._distanceCapability=new Map();
   segmentStats(records()).forEach(x=>{
    const implied=x.n>=5&&num(x.median)&&x.median>0?x.km/(x.median/3600):null;
-   const knownUnverified=!S.race?.distance_verified;
+   const knownUnverified=!S.race?.distance_verified&&!S.race?.demo_only;
    S._distanceCapability.set(String(x.from.uid)+':'+String(x.to.uid),
       !(knownUnverified||(x.km>=3&&num(implied)&&implied>20)));
   });
