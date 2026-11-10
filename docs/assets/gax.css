@@ -1,0 +1,9 @@
+/* GAX100 event-only skin on the unchanged Sätila 1.0 component blueprint. */
+:root{--forest:#102f38;--deep:#071d25;--moss:#275b61;--pine:#367b80;--mist:#c5d9d9;--sand:#f2f3ef;--gold:#d5b06b;--border:#d8e3e0;--ink:#1c3336;--muted:#5d6e70}
+#header{background:rgba(7,29,37,.97)}
+.hero{background:linear-gradient(125deg,rgba(5,28,37,.79),rgba(12,61,69,.36)),linear-gradient(165deg,#123d48 0%,#316575 44%,#87a9a8 68%,#dbc09a 100%);background-position:center!important;background-size:cover!important;min-height:530px}
+.hero::after{content:"";position:absolute;inset:auto 0 0;height:42%;pointer-events:none;background:linear-gradient(0deg,rgba(4,29,36,.64),transparent)}
+.hero-inner,.race-cards{position:relative;z-index:1}
+.gax-single-card{display:grid!important;grid-template-columns:minmax(0,360px)!important;justify-content:center}
+.gax-single-card .race-card{width:100%}
+.gax-preview-note{margin:1.4rem auto;background:#e4eff0;color:#18383f;border-left:4px solid var(--pine);padding:1rem 1.4rem;border-radius:10px;max-width:1180px;font-weight:600}
