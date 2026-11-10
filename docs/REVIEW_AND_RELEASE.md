@@ -12,11 +12,19 @@ Här publiceras enbart en **demonstrationsversion**. En enda HTML med **945 fikt
 
 Första aktivering av Pages måste ske av repoägaren via `Settings → Pages → Source: GitHub Actions`. Det automatiska flödet `.github/workflows/pages.yml` skapar sidan endast efter automatiskt godkänt källskydd.
 
-## Kartduell: verifierat banunderlag kontra publicerad bangeometri
+## Designgranskning och tid-/GPX-proveniens
 
-Arrangörens 2026-spår är publicerat som Garmin-kurs för nedladdning: https://connect.garmin.com/app/course/484861455. Det gamla GAX-projektet identifierade kursen men lagrade inte nedladdad GPX eftersom exporten då returnerade tomt innehåll och återpubliceringsrätten var oklar. Detta är **inte samma sak som att GAX2026 saknar GPX**.
+Efter genomgången den 10 november har sidan ett kortare analysflöde: fyra naturskildringar samt stationer öppnas i pop-up, alla större sektioner har metodinformation, klassfördelningen ligger under Start till mål, och Delsträckor + Personlig loppplan delar en sektion med två lägen. Starkaste avslutningen accepterar GAX-målets namn, och demoversionens könsserie visar uttryckligen **syntetisk**, inte historisk verklig demografi.
 
-Kartduellen är nu tillgänglig för **2026-design-demon** efter att användaren själv väljer en GPX-fil. Programmet parsar och visar bangeometrin tillfälligt i webbläsaren, utan uppladdning och utan commit i GitHub. Alla markörer är interpolerade påhittade löpare. Historiska upplagor lånar inte automatiskt 2026 års bana. Riktig GPX-replay på publika resultat kräver särskilt rättighets- och datagodkännande.
+Arrangören länkar från https://gax100.se/bana-karta/ till sin 2026-kurs på Garmin. Detta är en officiell **källhänvisning**, inte en licensierad, kopierad GPX-fil i denna repo.
+
+Det gamla GAX100-projektet dokumenterade fem tekniskt analyserade men *inte publiceringsklara* GPX-filer i `GPX_COVERAGE.md` och `data/gpx-audit.json`. Ursprungliga binära/XML-filer fanns enbart i ett ignorerat lokalt råarkiv. De har **inte** flyttats till detta repo och finns inte heller i det anslutna privata `loppanalys-private-data`. Vi har enbart portat historisk **metadata och källänkar** till `docs/data/route-candidates.json`, inklusive kontinuitetsavbrott och skillnaden mellan officiell 2026-kurs och icke-officiella kandidatspår.
+
+2021-A/B kan ännu inte knytas var för sig till rätt kandidat. 2018 och vissa 2021-filer innehåller stora spårglapp, och den publika GPX-inläsningen avvisar större glapp i stället för att uppfinna geometri.
+
+Kartduellen tillåter tillfällig GPX-inläsning **enbart lokalt** och knyter filen till valt tävlingsår. Inga ruttkoordinater uppladdas, lagras i Pages eller är tillgängliga efter sidomladdning. Kartduellens fiktiva löpare interpoleras längs vald bangeometri, inte utifrån verkliga GPS-loggar.
+
+Verifiering: `tests/test_gax_full_ux_review.py`, `tests/test_gax_gpx_local.py`, `tests/test_synthetic_data.py`, `tests/test_blueprint_contract.py`. Inga skyddade resultat eller tredjeparts-GPX ingår i körningarna.
 
 ## Verkliga resultat och publiceringsbeslut
 
