@@ -81,7 +81,7 @@ def run(path: Path):
         # 6. Duplicated unsubstantiated organizer-distance card is removed.
         metrics=page.locator("#course-intelligence .course-intel-card").first.locator(".dimension-grid > article")
         assert metrics.count()==6,f"Expected six independent dimension cards; found {metrics.count()}"
-        assert page.locator("#course-intelligence").get_by_text("GAX100-arrangörens-distans").count()==1
+        assert page.locator("#course-intelligence").get_by_text("Tävlingsdistans",exact=True).count()==1
 
         # 7. Per-year women/men chart must use the FICTIONAL source,
         # never claim exact age/gender evidence from historical results.
