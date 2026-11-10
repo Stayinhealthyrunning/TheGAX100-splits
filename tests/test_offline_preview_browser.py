@@ -10,7 +10,7 @@ def main(file: Path):
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True)
         page=browser.new_page(viewport={"width":390,"height":844},device_scale_factor=1)
-        page.on("pageerror",lambda exc:errors.append(type(exc).__name__))
+        page.on("pageerror",lambda exc:errors.append(str(exc)[:320]))
         page.goto(file.resolve().as_uri(),wait_until="domcontentloaded")
         page.wait_for_selector("#year-select option",state="attached",timeout=25000)
         assert page.locator("#year-select option").count()==14,"All 14 editions must load"

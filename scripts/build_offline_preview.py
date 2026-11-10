@@ -250,7 +250,8 @@ def prepare_payload(docs:Path):
     used=set()
     demo_boot=json.loads(json.dumps(bootstrap))
     demo_coverage=[]
-    files={"data/route-inventory.json":[]}
+    files={"data/route-inventory.json":[],
+           "data/route-candidates.json":json.loads((docs/"data/route-candidates.json").read_text(encoding="utf-8"))}
     for i,ed in enumerate(editions):
         filename=f"data/races/{ed['race_key']}.json"
         locked=json.loads((docs/filename).read_text(encoding="utf-8"))
@@ -267,6 +268,10 @@ def prepare_payload(docs:Path):
         target["timing_stations"]=len(TIMING)
         target["median_seconds"]=round(statistics.median(endings),2) if endings else None
         target["sex_known"]=len(race["results"])
+        target["sex_f"]=sum(row["sex"]=="F" for row in race["results"])
+        target["sex_m"]=sum(row["sex"]=="M" for row in race["results"])
+        target["sex_source"]="fictional_design_demo"
+        target["sex_evidence_note"]="Simulerat kön per demolöpare; 2026 kalibrerat på offentlig köns-/statussumma"
         target["demo_only"]=True
         target["source_age_verified"]=False
         demo_coverage.append(dict(target))
@@ -295,7 +300,7 @@ def build(docs:Path,out:Path):
     files=prepare_payload(docs)
     page=(docs/"index.html").read_text(encoding="utf-8")
     required_scripts=["profile-analysis.js","multi-year-map.js",
-                      "multi-year-comparison.js","gax-controls.js","app.js"]
+                      "multi-year-comparison.js","gax-controls.js","app.js","gax-ux.js"]
     for name in required_scripts:
         require(f"assets/{name}" in page, f"Missing GAX app script {name}")
     inline_css=[]

@@ -129,7 +129,7 @@ function requestedEdition(){const query=new URLSearchParams(location.search),has
 function parseQuery(){const requested=requestedEdition(),family=requested.family;if(family==='gax100')S.family=family;const year=requested.year;if(year&&S.boot.editions.some(e=>e.family===S.family&&e.year===year))S.year=year;if(requested.edition&&S.boot.editions.some(e=>e.race_key===requested.edition)){S.editionKey=requested.edition;S.year=S.boot.editions.find(e=>e.race_key===requested.edition).year;}}
 async function init(){try{S.boot=await fetch('data/bootstrap.json').then(r=>{if(!r.ok)throw Error('Katalogen kunde inte läsas ('+r.status+')');return r.json()});window.SatilaMultiYearComparison?.init?.({boot:S.boot,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
 async function loadRace(historyMode='replace'){window.SatilaMultiYearComparison?.captureCurrentSelection?.();let id=++S.loading;let ed=S.boot.editions.find(e=>e.race_key===S.editionKey)||S.boot.editions.find(e=>e.family===S.family&&e.year===S.year);if(!ed)return;S.editionKey=ed.race_key;S.year=ed.year;$('#race-title').textContent=`${famLabel(S.family)} · ${ed.edition_label||S.year}`;$('#race-subtitle').textContent=ed.date?ed.label+' · '+ed.date:ed.label;$('#source-indicator').textContent='Hämtar publicerade resultatdata…';let race;try{let req=await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`);if(!req.ok)throw Error('Detta lopp saknar datafil ('+req.status+')');race=await req.json();}catch(err){if(id!==S.loading)return;S.race=null;S.route=null;$('#source-indicator').textContent='Kunde inte hämta tävlingsdata: '+err.message;$('#source-indicator').setAttribute('role','alert');$('#race-subtitle').textContent='Upplagan kan inte visas just nu. Välj ett annat år eller försök igen.';$('#segment-table tbody').innerHTML='';$('#results-table tbody').innerHTML='';return;}if(id!==S.loading)return;$('#source-indicator').removeAttribute('role');S.race=race;S._splits=null;S._distanceCapability=null;buildSplitIndex();S.page=0;S.selectedSegment=0;S.podiumStart=0;S.podiumEnd=1;S.placementZoom=0;S.placementWindow=null;S.segmentSeriesMode='all';S.courseD=null;S.courseFromSegment=false;S.sex='all';S.status='all';S.className='all';S.club='';S.clubExact=false;S.compare=[];S.mapDuel=[];S.duelClock=0;S.compareSegment=null;S.duelCamera='both';S.duelManualZoom=false;S.selectedClubs=null;S.extraClassSelection=null;document.querySelectorAll('[data-family]').forEach(b=>{b.classList.toggle('selected',b.dataset.family===S.family);b.setAttribute('aria-pressed',String(b.dataset.family===S.family))});$('#year-select').innerHTML=S.boot.editions.filter(e=>e.family===S.family).map(e=>`<option value="${html(e.race_key)}" ${e.race_key===S.editionKey?'selected':''}>${html(e.edition_label||e.year)} · 100 miles</option>`).join('');const releaseLocked=race.release_state==='PRIVATE_DATA_WITHHELD',demo=Boolean(race.demo_only);$('#source-indicator').textContent=releaseLocked?'Källor verifierade · deltagaruppgifter ej publicerade':demo?'DESIGNDEMO · fiktiva resultat och kontrolltider':'Officiella GAX100-källor · '+race.stations.length+' kontroller';$('#official-source').href=ed.source_url;$('#official-source').textContent=demo?'Officiella årssummor ↗':'Originalresultat ↗';$('#scope-status').textContent=releaseLocked?`${format(ed.results)} resultat i privat databas · individuell visning spärrad`:demo?`${format(race.results.length)} fiktiva löpare · ${format(race.results.filter(r=>r.status==='FINISHED').length)} simulerade målgångar · ${format(race.splits.length)} simulerade passager`:`${format(ed.results)} resultat · ${format(ed.finishers)} målgångar · ${format(ed.split_observations)} tidspassager`;
-$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');S.route=null;const source=ed.route_file;if(source){try{S.route=await fetch('data/'+source,source==='routes/ultra85-2026.json'?{cache:'no-store'}:undefined).then(r=>r.ok?r.json():null)}catch{S.route=null}}if(id!==S.loading)return;if(S.editionKey==='2026-gax100'&&race.demo_only&&S._localGpxRoute)S.route=S._localGpxRoute;$('#course-source').textContent=race.demo_only?(S.route?.local_only?'2026-GPX läses enbart lokalt; banan används som visningsrutt för fiktiva demolöpare.':'GAX design-demo: ingen lokal GPX inläst. Delsträckor och passertider är fiktiva och modellerade efter aktuell tävlingsinformation.'):S.route?'Årsbunden, rättighetsklar GAX100-geometri visas som separat banreferens. Kontrolltidtagning och faktiska deltagarpassager är separata uppgifter.':'Ingen publicerbar GAX100-GPX har rättighets- och årsverifierats. Verkliga kontroll- och sluttider påverkas inte.';const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();refreshGaxLocalRouteControls();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
+$('#sex-filter').value='all';$('#status-filter').value='all';$('#club-filter').value='';prepareClubOptions();$('#class-filter').innerHTML='<option value="all">Alla klasser</option>'+Array.from(new Set(records().map(r=>r.class_name).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'sv')).map(k=>`<option value="${html(k)}">${html(k)}</option>`).join('');S.route=null;const source=ed.route_file;if(source){try{S.route=await fetch('data/'+source,source==='routes/ultra85-2026.json'?{cache:'no-store'}:undefined).then(r=>r.ok?r.json():null)}catch{S.route=null}}if(id!==S.loading)return;if(race.demo_only&&S._localGpxRoutes?.[S.editionKey])S.route=S._localGpxRoutes[S.editionKey];$('#course-source').textContent=race.demo_only?(S.route?.local_only?'Lokalt vald GPX används som visningsrutt för fiktiva demolöpare. Årsanknytningen är inte officiellt styrkt för kandidatspår.':'GAX design-demo: ingen lokal GPX inläst. Delsträckor och passertider är fiktiva och modellerade efter aktuell tävlingsinformation.'):S.route?'Årsbunden, rättighetsklar GAX100-geometri visas som separat banreferens. Kontrolltidtagning och faktiska deltagarpassager är separata uppgifter.':'Ingen publicerbar GAX100-GPX har rättighets- och årsverifierats. Verkliga kontroll- och sluttider påverkas inte.';const editionFinishTimes=records().filter(finish).map(r=>r.finish_seconds),target=median(editionFinishTimes);$('#target-time').value=num(target)?time(target):'';$('#target-time').dataset.defaultSource='edition-median';$('#target-time').dataset.defaultN=String(editionFinishTimes.length);$('#target-time').dataset.defaultSeconds=num(target)?String(target):'';const goalPlacement=$('#goal-placement-time');if(goalPlacement)goalPlacement.value='';updateQuery(historyMode);renderAll();refreshGaxLocalRouteControls();window.SatilaMultiYearComparison?.setContext?.(S.family,S.year);}
 function renderAll(){window.GaxCheckpointView?.render?.(S.race);subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderCourse();renderHistory();renderResults();renderFavorites();renderCompareChips();renderMapDuelChips();renderSearchSuggestions();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderAll?.()}catch(err){console.error('GAX100 analytics extension:',err)}},100);}
 function rerenderFilter(){S.page=0;subset();renderKpis();renderOverview();renderCumulativeFinish();renderClassDetails();renderDynamics();renderSegments();renderResults();const version=S.loading;clearTimeout(S._extraTimer);S._extraTimer=setTimeout(()=>{if(version!==S.loading)return;try{window.SatilaExtras?.renderFiltered?.()}catch(err){console.error('GAX100 analytics filter:',err)}},50);}
 function setFamily(v){if(v===S.family)return;S.family=v;S.year=Math.max(...S.boot.editions.filter(e=>e.family===v).map(e=>e.year));S.editionKey=null;loadRace('push').catch(console.error)}
@@ -219,7 +219,7 @@ function renderDynamics(){
    pacing categories never include a segment whose timing distance is gated. */
 function standoutFinishStrength(profiles){
  const cps=boundaries(),goal=cps.at(-1);
- if(cps.length<4||goal?.name!=='Mål'||!num(goal.km)||goal.km<=0)return[];
+ if(cps.length<4||!(goal?.is_finish||/^(mål|finish)/i.test(goal?.name||''))||!num(goal.km)||goal.km<=0)return[];
  const breakpoint=cps.slice(1,-1).filter(p=>p.km>=goal.km*.55&&p.km<=goal.km*.80)
   .sort((a,b)=>Math.abs(a.km/goal.km-2/3)-Math.abs(b.km/goal.km-2/3))[0];
  if(!breakpoint)return[];
@@ -287,7 +287,7 @@ function renderStandouts(){
   '<div class="standout-tabs" role="tablist" aria-label="Välj topplista">'+
     categories.map(c=>'<button type="button" role="tab" data-standout-tab="'+c.id+'" aria-controls="standout-active-panel" aria-selected="'+(c.id===active.id)+'">'+html(c.title)+'</button>').join('')+
   '</div>'+
-  '<div class="standout-explanation" role="note" aria-live="polite"><strong>Så ska resultatet tolkas</strong><p>'+html(STANDOUT_EXPLANATIONS[active.id])+'</p></div>'+
+  '<div class="standout-explanation" role="note" aria-live="polite"><strong>Så ska resultatet tolkas</strong><p>'+html((S.race?.demo_only?'DESIGNDEMO: Alla löpare och passertider är fiktiva. ':'')+(S.race?.demo_only?STANDOUT_EXPLANATIONS[active.id].replace(/verkliga/gi,'simulerade').replace(/verifierade/gi,'modellerade'):STANDOUT_EXPLANATIONS[active.id]))+'</p></div>'+
   '<div class="standout-active" id="standout-active-panel" role="tabpanel"><h4>'+html(active.title)+'</h4><div class="podium-pair">'+podiumPair(unique,5)+'</div></div>';
  $$('[data-standout-tab]',host).forEach(button=>button.addEventListener('click',()=>{
   S.standoutTab=button.dataset.standoutTab;renderStandouts();bindResultLinks(host)
@@ -365,13 +365,14 @@ function renderPlan(){
     return;
   }
   const allSegments=segmentStats(rows);
+  const medianLabel=S.race?.demo_only?'Fiktiv segmentmedian':'Historisk median';
   const distanceTotal=allSegments.reduce((sum,s)=>sum+(num(s.km)&&s.km>0?s.km:0),0);
   const parts=allSegments.map(s=>{
     const ratios=s.obs.map(o=>o.seconds/o.r.finish_seconds).filter(x=>num(x)&&x>0);
     const n=ratios.length;
     const observedWeight=n>=5?median(ratios):null;
     const fallbackWeight=paceDistanceSupported(s)&&distanceTotal>0&&num(s.km)&&s.km>0?s.km/distanceTotal:null;
-    return {...s,n,w:observedWeight??fallbackWeight,method:observedWeight!==null?'Historisk median':fallbackWeight!==null?'Distansfallback':'Saknas'};
+    return {...s,n,w:observedWeight??fallbackWeight,method:observedWeight!==null?medianLabel:fallbackWeight!==null?'Distansfallback':'Saknas'};
   });
   const sum=parts.reduce((value,p)=>value+(p.w||0),0);
   if(!sum||parts.some(p=>p.w===null)){
@@ -383,7 +384,7 @@ function renderPlan(){
   out.innerHTML=parts.map(p=>{
     const allocation=target*p.w/sum;
     elapsed+=allocation;
-    return `<tr><td><button type="button" data-plan-segment="${p.index}" aria-label="Visa ${html(p.from.name)} till ${html(p.to.name)} på banan">${html(p.from.name)} → ${html(p.to.name)} ↗</button></td><td>${fmtKm(p.km)}</td><td>${p.n}</td><td>${html(p.method)}</td><td><strong>${time(allocation)}</strong></td><td>${time(elapsed)}</td><td>${paceDistanceSupported(p)?pace(allocation,p.km,S.unit):'Distans ej verifierad'}</td><td title="Ingen verifierad fysisk kontrollankring längs GPX">Ej verifierat</td><td>GAX100-arrangörens TIME-par · n=${p.n} · ${p.method==='Historisk median'?'observerad tidsandel':'öppet märkt timing-km-fallback'}</td></tr>`;
+    return `<tr><td><button type="button" data-plan-segment="${p.index}" aria-label="Visa ${html(p.from.name)} till ${html(p.to.name)} på banan">${html(p.from.name)} → ${html(p.to.name)} ↗</button></td><td>${fmtKm(p.km)}</td><td>${p.n}</td><td>${html(p.method)}</td><td><strong>${time(allocation)}</strong></td><td>${time(elapsed)}</td><td>${paceDistanceSupported(p)?pace(allocation,p.km,S.unit):'Distans ej verifierad'}</td><td title="Ingen verifierad fysisk kontrollankring längs GPX">Ej verifierat</td><td>${S.race?.demo_only?'MODELLERADE DEMO-PASSAGER':'GAX100-arrangörens TIME-par'} · n=${p.n} · ${p.method===medianLabel?(S.race?.demo_only?'fiktiv tidsandel':'observerad tidsandel'):'öppet märkt timing-km-fallback'}</td></tr>`;
   }).join('');
   $$('[data-plan-segment]',out).forEach(button=>button.addEventListener('click',()=>{
     const i=+button.dataset.planSegment;
@@ -396,10 +397,10 @@ function renderPlan(){
       $('#course-map').scrollIntoView({block:'center',behavior:'smooth'});
     }
   }));
-  const sampled=parts.filter(p=>p.method==='Historisk median').length;
+  const sampled=parts.filter(p=>p.method===medianLabel).length;
   const cohortText=cohort==='near'?' inom ±10 % av måltiden':cohort==='class'?` i klassen ${classSelect.value}`:cohort==='all'?' i hela fältet':` med källkön ${cohort}`;
   const highest=parts.slice().sort((a,b)=>b.w-a.w)[0];
-  const defaultSeconds=Number($('#target-time').dataset.defaultSeconds),usesEditionMedian=num(defaultSeconds)&&Math.abs(target-defaultSeconds)<1;summary.textContent=`${usesEditionMedian?'Grundvärde: upplagans mediantid · ':''}${time(target)} · ${rows.length} fullföljare${cohortText} · ${sampled}/${parts.length} segment med minst fem verkliga tidsandelar. Övriga använder öppet märkt timingdistansfallback. Störst historisk tidsandel: ${highest?highest.from.name+' → '+highest.to.name:'—'}. Planen är en pacingreferens, inte en prognos.`;
+  const defaultSeconds=Number($('#target-time').dataset.defaultSeconds),usesEditionMedian=num(defaultSeconds)&&Math.abs(target-defaultSeconds)<1;summary.textContent=`${usesEditionMedian?'Grundvärde: upplagans mediantid · ':''}${time(target)} · ${rows.length} fullföljare${cohortText} · ${sampled}/${parts.length} segment med minst fem ${S.race?.demo_only?'simulerade':'verkliga'} tidsandelar. Övriga använder öppet märkt timingdistansfallback. Störst ${S.race?.demo_only?'simulerad':'historisk'} tidsandel: ${highest?highest.from.name+' → '+highest.to.name:'—'}. Planen är en pacingreferens, inte en prognos.`;
 }
 
 function focusSelectedSegmentOnCourse(){
@@ -700,7 +701,7 @@ function parseGaxLocalGPX(xmlText){
     const current=[lat,lon,elevation];
     if(last){
       const leg=haversine(last,current);
-      if(leg>2.5)throw Error('GPX-filen har ett hopp över 2,5 km; banan kan inte användas för Kartduell.');
+      if(leg>.5)throw Error('GPX-spåret har ett hopp större än 500 meter. Det kräver avbrottssäker segmenthantering och kan inte visas som en enda sammanhängande bana.');
       total+=leg;
     }
     if(i%keepEvery===0||i===nodes.length-1)points.push([total,lat,lon,elevation]);
@@ -712,38 +713,68 @@ function parseGaxLocalGPX(xmlText){
   return {points,source:'selected-local-gpx',status:'local-gpx-2026',course_year:2026,
     synthetic_projection_only:true,valid_source_geometry_for_publication:false,local_only:true};
 }
+const GAX_LOCAL_COURSE_REFERENCES={
+ '2026-gax100':['2026','Officiell arrangörskurs','https://connect.garmin.com/app/course/484861455',true],
+ '2024-gax100':['2024','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2659350',false],
+ '2023-gax100':['2023','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2332034',false],
+ '2022-gax100':['2022','Tidigare lokalt analyserad GPX-kandidat','https://www.plotaroute.com/route/2310208',false],
+ '2021-a-gax100':['2021-A','2021-kandidat; koppling till A är inte styrkt','https://tracedetrail.fr/en/trace/139697',false],
+ '2021-b-gax100':['2021-B','2021-kandidat; koppling till B är inte styrkt','https://tracedetrail.fr/en/trace/139697',false],
+ '2020-gax100':['2020','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2337511',false],
+ '2018-gax100':['2018','Lokal kandidat med två kända GPX-avbrott','https://tracedetrail.fr/en/trace/48826',false],
+ '2016-gax100':['2016','Extern GPX-kandidat · Plotaroute','https://www.plotaroute.com/route/2343997',false]
+};
 function refreshGaxLocalRouteControls(){
   const panel=$('#gax-local-gpx-card'),input=$('#gax-gpx-upload'),status=$('#gax-gpx-status');
   if(!panel||!input)return;
-  const available=S.editionKey==='2026-gax100'&&Boolean(S.race?.demo_only);
+  const selected=GAX_LOCAL_COURSE_REFERENCES[S.editionKey];
+  const available=Boolean(selected&&S.race?.demo_only);
   panel.hidden=!available;input.disabled=!available;
-  if(available&&status){
-    status.textContent=S._localGpxRoute
-      ?'2026-bana inläst endast lokalt: '+S._localGpxRoute.points.length+
-        ' punkter och '+fmtKm(S._localGpxRoute.points.at(-1)[0])+
-        ' km. Välj 2–5 demolöpare och öppna Kartduellen.'
-      :'Ingen GPX inläst. Hämta 2026-banan från Garmin och välj din GPX-fil här.';
-    status.removeAttribute('role');status.setAttribute('role','status');
+  if(!available)return;
+  const [label,provenance,url,isOfficial]=selected;
+  const source=$('#gax-gpx-source-link');
+  if(source){source.href=url;source.textContent=isOfficial?'Öppna officiell 2026-Garmin-kurs ↗':'Öppna källans GPX-kandidat ↗'}
+  const title=$('#gax-gpx-title');
+  if(title)title.textContent='Öppna '+label+' års GPX lokalt';
+  const caption=$('#gax-gpx-import-provenance');
+  if(caption)caption.textContent=provenance+'. Inga originalkoordinater publiceras av Loppanalys.';
+  const fieldLabel=$('#gax-gpx-file-label-text');
+  if(fieldLabel)fieldLabel.textContent='Välj lokal GPX för '+label;
+  const loaded=S._localGpxRoutes?.[S.editionKey];
+  if(status){
+    status.textContent=loaded
+      ?label+'-rutt inläst lokalt: '+loaded.points.length+' punkter, '+fmtKm(loaded.points.at(-1)[0])+
+        ' km. Kartduellen är redo för 2–5 fiktiva löpare.'
+      :'Ingen GPX inläst för '+label+'. Hämta en fil från källan och välj den här.';
+    status.setAttribute('role','status');
   }
 }
 async function loadGaxLocalGPX(event){
   const input=event.currentTarget,status=$('#gax-gpx-status'),file=input.files?.[0];
   if(!file)return;
-  if(!S.race?.demo_only||S.editionKey!=='2026-gax100'){
-    if(status){status.textContent='Välj först design-demoversionen för 2026.';status.setAttribute('role','alert')}
+  const selectedKey=S.editionKey;
+  if(!S.race?.demo_only||!GAX_LOCAL_COURSE_REFERENCES[selectedKey]){
+    if(status){status.textContent='Välj en upplaga med GPX-kandidat i design-demon.';status.setAttribute('role','alert')}
     input.value='';return;
   }
   try{
     if(!/\.gpx$/i.test(file.name)||file.size>5_500_000)
-      throw Error('Välj en vanlig GPX-fil för 2026 (högst 5,5 MB).');
+      throw Error('Välj en GPX-fil (högst 5,5 MB).');
     const route=parseGaxLocalGPX(await file.text());
-    if(!S.race?.demo_only||S.editionKey!=='2026-gax100')
-      throw Error('Loppåret ändrades medan GPX-filen lästes. Välj 2026 igen.');
-    S._localGpxRoute=route;S.route=route;S.courseD=null;
-    $('#course-source').textContent='2026-GPX inläst lokalt på din enhet. Visningsrutten används endast för fiktiva demolöpare och inga koordinater publiceras.';
-    refreshGaxLocalRouteControls();renderMapDuelChips();renderCourse();renderProfileIfOpen();
+    if(!S.race?.demo_only||S.editionKey!==selectedKey)
+      throw Error('Loppåret ändrades medan GPX-filen lästes.');
+    const keyInfo=GAX_LOCAL_COURSE_REFERENCES[selectedKey];
+    route.course_year=S.year;
+    route.course_edition_key=selectedKey;
+    route.source_ref_url=keyInfo[2];
+    route.official_course_identified=keyInfo[3];
+    route.evidence_note=keyInfo[1]+'. Användaren har valt GPX i webbläsaren; årsanknytningen har inte kontrollerats för kandidatspår.';
+    route.geometry_length_km=route.points.at(-1)[0];
+    S._localGpxRoutes??={};
+    S._localGpxRoutes[selectedKey]=route;S.route=route;S.courseD=null;
+    $('#course-source').textContent='Lokalt vald GPX för '+keyInfo[0]+'. Enbart fiktiva löpare och interpolerade positioner visas.';
+    refreshGaxLocalRouteControls();renderMapDuelChips();renderCourse();renderProfileIfOpen();window.SatilaExtras?.renderProvenance?.();window.SatilaExtras?.renderMapHistory?.();
   }catch(err){
-    S._localGpxRoute=null;S.route=null;
     if(status){status.textContent=err.message||'GPX-filen kunde inte läsas.';status.setAttribute('role','alert')}
     renderMapDuelChips();renderCourse();
   }finally{input.value=''}
@@ -1223,7 +1254,7 @@ function openMapDuel(){
   cancelAnimationFrame(S._mapDuelFrame);
   $('#map-duel-modal-share-status').textContent='';
   if(!validRouteComparison()){
-    host.innerHTML=empty(S.race?.demo_only?'Kartduellen behöver en lokal GPX-fil för 2026. Öppna officiella Garmin-kursen och välj sedan filen i banpanelen.':'Kartduell kräver en godkänd lokal rutt för exakt denna tävlingsupplaga. Resultaten kan fortfarande jämföras två och två utan karta.');
+    host.innerHTML=empty(S.race?.demo_only?'Kartduellen behöver en lokal GPX-fil för vald upplaga. Öppna länken i kartpanelen och välj sedan filen på din dator.':'Kartduell kräver en godkänd lokal rutt för exakt denna tävlingsupplaga. Resultaten kan fortfarande jämföras två och två utan karta.');
     dialog.showModal();return;
   }
   const data=runners.map((runner,i)=>({runner,anchors:runnerAnchors(runner),color:['#d8ad62','#69a07b','#8e9dc4','#d28975','#b58ec4'][i]}));
@@ -1284,6 +1315,14 @@ window.SatilaExtras=(()=>{
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">ÅLDER</p><h3>Vilka springer?</h3></div><button class="info" data-help-extra="age">i</button></div><div id="age-chart"></div></article>
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">KLUBB / ORT</p><h3>Största grupperna</h3></div><button class="info" data-help-extra="club">i</button></div><div id="club-chart"></div></article>
     </div>`);
+    if($('#group-bars')&&$('#extra-overview')&&!$('#gax-group-summary')){
+      const box=document.createElement('section');box.id='gax-group-summary';box.className='gax-group-summary';
+      box.innerHTML='<h4>Klasser och kön <small>inom valt resultatfält</small></h4>';
+      $('#sex-completion').after(box);
+      $('#group-bars').hidden=false;
+      box.appendChild($('#group-bars'));
+      box.insertAdjacentHTML('beforeend','<details class="gax-group-details"><summary>Visa alla grupper, klass, kön och klubb</summary><div id="group-table"></div></details>');
+    }
     if(!$('#extra-dynamics')) $('#dynamics').insertAdjacentHTML('beforeend',`<div id="extra-dynamics" class="extra-grid two-up">
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">PLACERINGSFÖRÄNDRING</p><h3>Vem arbetade sig framåt?</h3></div><button class="info" data-help-extra="gain">i</button></div><div id="placement-gain"></div></article>
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">SISTA TREDJEDELEN</p><h3>Avslutningens progression</h3></div><button class="info" data-help-extra="finishprogress">i</button></div><div id="finish-progression"></div></article>
@@ -1300,7 +1339,6 @@ window.SatilaExtras=(()=>{
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">KÖNSFÖRDELNING</p><h3>Andel kvinnor och män över tid</h3></div><button class="info" data-help-extra="sexhistory">i</button></div><div id="history-sex"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">ÅRENS FINGERAVTRYCK</p><h3>Fyra oberoende mått – inget syntetiskt betyg</h3></div><button class="info" data-help-extra="fingerprint">i</button></div><div id="history-fingerprint"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">COURSEVERSION & PROVENIENS</p><h3>Vad går att jämföra?</h3></div><button class="info" data-help-extra="provenance">i</button></div><div id="course-provenance"></div></article>
-      <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">GRUPPTABELL</p><h3>Kön och klass i valt fält</h3></div><button class="info" data-help-extra="grouptable">i</button></div><div id="group-table"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">KÄLLTÄCKNING</p><h3>Resultat, passager och rutt per år</h3></div><button class="info" data-help-extra="coverage">i</button></div><div id="coverage-table"></div></article>
     </div>`);
   }
@@ -1389,12 +1427,11 @@ window.SatilaExtras=(()=>{
     const fs=S.filtered.filter(finish),dnfs=S.filtered.filter(r=>r.status==='DNF');
     const started=fs.length+dnfs.length+S.filtered.filter(r=>r.status==='DSQ').length;
     const dims=[
-      ['GAX100-arrangörens-distans',fmtKm(eqTimingKm(S.race))+' km','Originalfält för resultat- och kontrollaxeln'],
-      ['Arrangörsdistans',num(S.race.organizer_advertised_km)?fmtKm(S.race.organizer_advertised_km)+' km':'—',num(S.race.organizer_advertised_km)?'Separat källbelagd annonserad distans':'Ingen separat källbelagd uppgift'],
-      ['Publika kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,'Stationsmetadata, även utan TIME'],
+      ['Tävlingsdistans',fmtKm(S.race.nominal_km)+' km','Arrangörens annonserade 100 miles · historiska spårlängder kan skilja sig'],
+      [S.race.demo_only?'Modellkontroller':'Publicerade kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,S.race.demo_only?'Fiktiva passager enligt demomodell':'Stationsmetadata, även utan TIME'],
       ['Median sluttid',fs.length>=5?time(median(fs.map(r=>r.finish_seconds))):'—','n='+fs.length],
       ['DNF-andel',started?(100*dnfs.length/started).toFixed(1).replace('.',',')+' %':'—','FINISHED + DNF + DSQ som startnämnare'],
-      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km)+' km':'—',S.route?(S.race.route_status==='participant_track_display_only'?'Verifierat deltagarspår · endast display':'Arrangörens GPX'):'Saknas för upplagan'],
+      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])+' km':'—',S.route?(S.race.route_status==='participant_track_display_only'?'Verifierat deltagarspår · endast display':'Arrangörens GPX'):'Saknas för upplagan'],
       ['Rå GPX D+',S.route&&num(S.route.raw_positive_gain_m_not_official)?Math.round(S.route.raw_positive_gain_m_not_official)+' m':'—',S.route&&!num(S.route.raw_positive_gain_m_not_official)?'Höjddata saknas i källspåret':'Ej officiell höjdmetrik']
     ];
     const seg=currentSeg();
@@ -1422,7 +1459,7 @@ window.SatilaExtras=(()=>{
     }
     h.innerHTML=`<article class="panel course-intel-card"><div class="panel-heading"><div><p class="eyebrow">COURSE INTELLIGENCE</p><h3>Banans dimensioner</h3></div><button class="info" data-help-extra="courseintel">i</button></div><div class="dimension-grid">${dims.map(d=>`<article><span>${esc(d[0])}</span><strong>${esc(d[1])}</strong><small>${esc(d[2])}</small></article>`).join('')}</div><p class="small muted">Dimensionerna redovisas separat och vägs inte ihop till något svårighetsbetyg.</p></article><article class="panel course-intel-card"><div class="panel-heading"><div><p class="eyebrow">DELSTRÄCKA</p><h3>${segmentTitle}</h3></div><button class="info" data-help-extra="courseintel">i</button></div>${segmentBody}<p class="small muted">Inga avbrottsplatser eller höjdmeter per segment uppskattas utan källa.</p></article>`;
   }
-  function renderMapHistory(){const h=$('#map-history');if(!h)return;if(S.route){h.innerHTML=`<div class="route-version-card"><strong>${S.family==='ultra85'?'2026':'2025–2026'}</strong><span>${esc(S.route.type||'OFFICIAL_ORGANIZER')}</span><b>${fmtKm(S.route.geometry_length_km)} km</b><small>${esc(S.route.evidence_note||'Officiell arrangörsgeometri')}</small></div><p class="small muted">Äldre år överlagras inte eftersom en lokal publicerbar ruttfil saknas eller ännu inte är promoted till jämförbar CourseVersion.</p>`}else h.innerHTML=empty('Den valda upplagan saknar verifierad lokal rutt. En modern rutt lånas inte bakåt.')}
+  function renderMapHistory(){const h=$('#map-history');if(!h)return;if(S.route){h.innerHTML=`<div class="route-version-card"><strong>${esc(S.editionKey)}</strong><span>${S.route.local_only?'Lokal kandidat / GPS-kurs':'Publicerad kurs'}</span><b>${fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])} km</b><small>${esc(S.route.evidence_note||'Årsbunden bangeometri för lokal visning')}</small></div><p class="small muted">Den inlästa rutten gäller endast vald upplaga och är inte automatiskt en verifierad jämförbar års-GPX eller en löpares uppmätta position.</p>`}else h.innerHTML=empty('Ingen årsbunden GPX är lokalt vald. Se ”Vad går att jämföra?” för tidigare kartinventering och källor.')}
   function historyEditions(){return S.boot.editions.filter(e=>e.family===S.family).sort((a,b)=>a.year-b.year)}
   function renderHistoryPerformance(){const h=$('#history-performance');if(!h)return;const ed=historyEditions().filter(e=>num(e.median_seconds));if(!ed.length){h.innerHTML=empty();return}const min=Math.min(...ed.map(e=>e.median_seconds)),max=Math.max(...ed.map(e=>e.median_seconds)),span=Math.max(1,max-min);h.innerHTML=`<div class="edition-dotplot">${ed.map(e=>`<button type="button" data-year-extra="${e.year}" style="--pos:${100*(e.median_seconds-min)/span}%"><span>${e.year}</span><i></i><strong>${time(e.median_seconds)}</strong></button>`).join('')}</div><p class="small muted">Punkterna är separata upplagemedianer. Ingen linje dras mellan år utan verifierad whole-course-grupp.</p>`;$$('[data-year-extra]',h).forEach(b=>b.addEventListener('click',()=>{S.year=+b.dataset.yearExtra;loadRace().then(()=>$('#race-context').scrollIntoView())}))}
   async function loadRaceMini(ed){try{return await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`).then(r=>r.ok?r.json():null)}catch{return null}}
@@ -1442,24 +1479,56 @@ window.SatilaExtras=(()=>{
     const coverage=await loadCoverage();
     if(S.family!==family)return;
     if(!coverage){host.innerHTML=empty('Källtäckningsfilen kunde inte läsas.');return}
-    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>a.year-b.year).map(e=>{
-      const known=e.sex_known,coverageRate=e.results?known/e.results:0;
-      return {...e,coverageRate,pf:known&&coverageRate>=.8?100*e.sex_f/known:null};
+    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>a.year-b.year||(a.edition_label||'').localeCompare(b.edition_label||'')).map(e=>{
+      const known=Number(e.sex_known)||0,coverageRate=e.results?known/e.results:0;
+      return {...e,coverageRate,pf:known&&coverageRate>=.8?100*(Number(e.sex_f)||0)/known:null};
     });
-    host.innerHTML=rows.some(e=>num(e.pf))?`<div class="sex-history-bars">${rows.map(e=>`<div><span>${e.year}</span><div class="stack">${num(e.pf)?`<i class="women" style="width:${e.pf}%"></i><i class="men" style="width:${100-e.pf}%"></i>`:''}</div><strong>${num(e.pf)?e.pf.toFixed(0)+' % K':'—'}</strong><small>${e.sex_f} K · ${e.sex_m} M · ${e.results-e.sex_known} utan kön · täckning ${(100*e.coverageRate).toFixed(0)} %${e.coverageRate<.8?' (trend dold under 80 %)':''}</small></div>`).join('')}</div>`:empty('Inget år når minst 80 % källstödd könstäckning.');
+    host.innerHTML=rows.some(e=>num(e.pf))?`<p class="small muted">${S.race?.demo_only?'DESIGNDEMO: kvinno- och mansfördelningen är simulerad; 2026 har kalibrerats mot offentliga årssummor. Ingen historisk könstrend kan utläsas.':'Andelar visas bara där könstäckningen är minst 80 %.'}</p><div class="sex-history-bars">${rows.map(e=>`<div><span>${html(e.edition_label||e.year)}</span><div class="stack">${num(e.pf)?`<i class="women" style="width:${e.pf}%"></i><i class="men" style="width:${100-e.pf}%"></i>`:''}</div><strong>${num(e.pf)?e.pf.toFixed(0)+' % K':'—'}</strong><small>${e.sex_f} K · ${e.sex_m} M · ${e.results-e.sex_known} utan kön · täckning ${(100*e.coverageRate).toFixed(0)} %${e.coverageRate<.8?' (trend dold under 80 %)':''}</small></div>`).join('')}</div>`:empty('Inget år når minst 80 % källstödd könstäckning.');
   }
 
   function renderFingerprint(){const h=$('#history-fingerprint');if(!h)return;const ed=historyEditions(),maxR=Math.max(1,...ed.map(e=>e.results)),maxT=Math.max(1,...ed.map(e=>e.timing_stations||0)),maxM=Math.max(1,...ed.map(e=>e.median_seconds||0)),maxD=Math.max(1,...ed.map(e=>e.results?100*e.dnf/e.results:0));h.innerHTML=`<div class="finger-table"><div class="finger-head"><b>År</b><b>Volym</b><b>Stationer</b><b>Median</b><b>DNF</b></div>${ed.map(e=>{const d=e.results?100*e.dnf/e.results:0;return `<div><b>${e.year}</b>${[[e.results/maxR,e.results],[ (e.timing_stations||0)/maxT,e.timing_stations||0],[ (e.median_seconds||0)/maxM,time(e.median_seconds)],[d/maxD,d.toFixed(1)+' %']].map(([p,v])=>`<span><i style="--v:${Math.max(0,p)*100}%"></i><em>${esc(v)}</em></span>`).join('')}</div>`}).join('')}</div>`}
+  let routeCandidatePromise=null;
+  function loadRouteCandidates(){
+    if(!routeCandidatePromise)routeCandidatePromise=fetch('data/route-candidates.json').then(r=>{
+      if(!r.ok)throw Error('GPX-kandidatinventering saknas');
+      return r.json();
+    }).catch(()=>null);
+    return routeCandidatePromise;
+  }
   async function renderProvenance(){
-    const host=$('#course-provenance');
-    if(!host)return;
+    const host=$('#course-provenance');if(!host)return;
     const family=S.family;
-    host.innerHTML='<p class="muted small">Laddar banversioner och källor…</p>';
-    const coverage=await loadCoverage();
+    host.innerHTML='<p class="muted small">Läser banunderlag och GPX-proveniens…</p>';
+    const [coverage,manifest]=await Promise.all([loadCoverage(),loadRouteCandidates()]);
     if(S.family!==family)return;
-    if(!coverage){host.innerHTML=empty('Proveniensfilen kunde inte läsas.');return}
-    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>b.year-a.year);
-    host.innerHTML=`<p class="small muted">Svep tabellen i sidled på smala skärmar för distanskällor, källfil, SHA-256 och verifieringsreservation.</p><div class="table-scroll"><table><thead><tr><th>Familj/år</th><th>Arrangör-km</th><th>GAX100-arrangörens-km</th><th>GPX-km</th><th>CourseVersion</th><th>Whole-course-grupp</th><th>Ruttstatus</th><th>Källtyp</th><th>Källfil</th><th>SHA-256</th><th>Publik displayrutt</th><th>Verifieringsreservation</th></tr></thead><tbody>${rows.map(e=>`<tr><td>${esc(e.family)} · ${e.year}</td><td>${fmtKm(e.organizer_advertised_km)}</td><td>${fmtKm(eqTimingKm(e))}</td><td>${fmtKm(e.route_geometry_km)}</td><td>${esc(e.course_version||'Ej verifierad')}</td><td>${esc(e.whole_course_comparison_group||'Ej verifierad')}</td><td>${esc(e.route_status||'none')}</td><td>${esc(e.route_source_type||'—')}</td><td>${esc(e.route_source_filename||'—')}</td><td><code>${esc(e.route_sha256||'—')}</code></td><td>${e.route_file?'Sanerad GPX-displayrutt · '+esc(e.route_file):'Ingen publicerad historisk GPX'}</td><td>${esc(e.distance_evidence_note||e.route_evidence_note||'Ruttens geometri är inte verifierad för denna upplaga.')}${!e.whole_course_comparison_group?' · Helbaneprestation kan inte seriejämföras.':''}</td></tr>`).join('')}</tbody></table></div><p class="small muted">GAX100-arrangörens-distans, källbelagd arrangörsdistans och GPX-geometri redovisas separat. 2025/2026-arrangörsrutten för 21/43 km är ett uttryckligt projektantagande; äldre års geometri och helbaneprestation är inte automatiskt jämförbara. Rå deltagar-GPX publiceras inte.</p>`;
+    if(!coverage){host.innerHTML=empty('Källtäckningsfilen kunde inte läsas.');return}
+    const byKey=new Map((manifest?.editions||[]).map(e=>[e.race_key,e]));
+    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>b.year-a.year||(b.edition_label||'').localeCompare(a.edition_label||''));
+    const render=e=>{
+      const route=byKey.get(e.race_key),local=S._localGpxRoutes?.[e.race_key];
+      const link=route?.source_url
+        ?'<a href="'+esc(route.source_url)+'" target="_blank" rel="noopener noreferrer">'+esc(route.source_label)+' ↗</a>'
+        :'<span class="muted">Ej identifierad</span>';
+      const gap=Number.isInteger(route?.discontinuities)
+        ?route.discontinuities===0?'Sammanhängande vid tidigare granskning'
+         :route.discontinuities+' kända stora avbrott'
+        :'Inte undersökt i tillgänglig fil';
+      const status=local?'Lokal GPX vald · illustrativ kartduell'
+       :route?.status==='organizer_course_link'?'Officiell Garmin-kurs identifierad, ingen GPX sparad'
+       :route?.source_url?'Kandidat identifierad, ingen publik GPX-fil'
+       :'Saknas i inventeringen';
+      const statedKm=Number.isFinite(route?.gpx_km)
+        ?fmtKm(route.gpx_km)+' km · käll-/auditvärde':'—';
+      return '<tr><th scope="row">'+esc(e.edition_label||e.year)+'</th>'
+       +'<td>161,9 km</td><td>'+fmtKm(eqTimingKm(e))+' km</td>'
+       +'<td>'+link+'</td><td>'+statedKm+'</td><td>'+esc(gap)+'</td>'
+       +'<td>'+esc(status)+'</td><td>'+esc(route?.status_label||'Inga verifierade bangeometridata')+'</td></tr>';
+    };
+    host.innerHTML='<p class="small muted">Källinventering från tidigare GAX-arbete. Originalfilerna låg på en lokal arbetsdisk och är inte med i detta repo. Källlänkar gör det möjligt att välja en GPX <strong>lokalt</strong>, utan att kopiera originalfiler till GitHub.</p>'
+      +'<div class="table-scroll gax-route-source-scroll"><table class="gax-route-table">'
+      +'<thead><tr><th>Upplaga</th><th>100 miles</th><th>Timingaxel*</th><th>Identifierad källa</th><th>Uppgiven GPX-längd</th><th>Spårkontinuitet</th><th>Kartstatus</th><th>Källbedömning</th></tr></thead><tbody>'
+      +rows.map(render).join('')+'</tbody></table></div>'
+      +'<p class="small muted">* Tidtagningens kilometeraxel och arrangörens tävlingsdistans är olika storheter. Spårkandidater från 2018, 2021 och 2022 var tekniskt granskade men inte officiellt årsgodkända. 2026 års arrangörskurs är verifierad som <em>länk</em>, inte som distribuerbar GPX-fil. Inga gamla GPX-koordinater eller licensanspråk publiceras här. <a href="https://gax100.se/bana-karta/" target="_blank" rel="noopener noreferrer">Arrangörens bana och GPX ↗</a></p>';
   }
 
   function renderGroupTable(){
@@ -1545,7 +1614,7 @@ window.SatilaExtras=(()=>{
   function renderFiltered(){renderSexCompletion();renderGoal();renderAge();renderClub();renderPlacementGain();renderFinishProgress();renderLastSegmentStrength();renderSegments();renderCourseIntel();renderGroupTable()}
   function wire(){if(wired)return;wired=true;document.addEventListener('click',e=>{const info=e.target.closest('[data-help-extra]');if(info){showHelp(info.closest('.panel')?.querySelector('h3')?.textContent,extraHelp[info.dataset.helpExtra]);return}const linked=e.target.closest('[data-extra-segment]');if(linked){$('#segment-table [data-select-segment="'+linked.dataset.extraSegment+'"]')?.click();return}if(e.target.closest('[data-segment],[data-select-segment]'))setTimeout(renderSegments,0)});document.addEventListener('change',e=>{if(e.target.matches('#podium-segment-start'))setTimeout(renderSegments,0)});document.addEventListener('click',e=>{if(e.target.matches('#goal-placement-run'))renderGoal()});document.addEventListener('keydown',e=>{if(e.target.matches('[data-extra-segment]')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('#segment-table [data-select-segment="'+e.target.dataset.extraSegment+'"]')?.click();return}if(e.target.matches('#goal-placement-time')&&e.key==='Enter')renderGoal()})}
   function renderAll(){ensurePanels();wire();renderFiltered();renderCourseIntel();renderMapHistory();renderHistoryPerformance();renderSexHistory();renderFingerprint();renderProvenance();renderCoverage()}
-  return {renderAll,renderFiltered,renderSegments};
+  return {renderAll,renderFiltered,renderSegments,renderProvenance,renderMapHistory};
 })();
 
 init();

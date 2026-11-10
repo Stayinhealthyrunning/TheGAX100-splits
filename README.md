@@ -21,7 +21,7 @@ För att aktivera webbsidan första gången: `Settings → Pages → Build and d
 
 ## Nytt design- och datautkast – 10 november 2026
 
-Österlendesignen har ersatt den tidigare stora hero-/rubrikytan med en kompakt introduktion, originalillustrerad kustvy, varma fält-/sandtoner, salvia och havsblå accenter. Direkt under toppen finns årsväljaren och sökverktyget. Till detta har vi lagt två källstödda informationssektioner:
+Österlendesignen har ersatt den tidigare stora hero-/rubrikytan med en kompakt introduktion, originalillustrerad kustvy, varma fält-/sandtoner, salvia och havsblå accenter. Direkt under toppen finns årsväljaren och sökverktyget. Till detta har vi lagt två källstödda informationsdelar, nu samlade i en **pop-up** som öppnas med knappen *Upptäck de fyra etapperna*:
 
 - **Fyra delar:** Ystad–Magleberg, Magleberg–Haväng, Haväng–Sandhammaren och Sandhammaren–Ystad, baserade på arrangörens banbeskrivning på https://gax100.se/bana-karta/.
 - **Stationer och reptider:** arrangörens aktuella information på https://gax100.se/information/ (2027). Aid-stationernas kilometer och reptidstabellens kilometer skiljer sig åt vid vissa punkter och hålls avsiktligt åtskilda.
@@ -32,22 +32,34 @@ För att aktivera webbsidan första gången: `Settings → Pages → Build and d
 
 Kontrollerna ligger i `tests/test_synthetic_data.py`, `tests/test_offline_preview_browser.py` och `.github/workflows/quality.yml`, inklusive 390px/1440px visningsprov och aktiva profil-/jämförelsedialoger.
 
-## Kartduell med 2026 års GPX – lokalt och utan uppladdning
+## UX- och analysförbättringar, november 2026
 
-**Ja, arrangörens officiella 2026-GPX finns som navigationsunderlag:** https://gax100.se/bana-karta/ hänvisar till Garmin-kursen https://connect.garmin.com/app/course/484861455 (GAX100M-2026). Tidigare arkivinventering kunde verifiera kursen men Garmin-proxy gav enbart tomma svar; den fullständiga 2026-koordinatfilen hade därför inte importerats till det nya repot.
+- **Fyra banavsnitt samt stationer och reptider** öppnas nu i en tillgänglig pop-up. De tar ingen permanent höjd mellan startsidan och analysen.
+- **Infoikoner** finns vid överordnade sektioner och individuella analyskort, med begriplig metodinformation samt tydlig skillnad mellan verklig källa och fiktiv demo.
+- **Klasser och kön** ligger kompakt under staplarna i **Start till mål**, i stället för ett separat fullbrett kort.
+- **Starkaste avslutningen** fungerar med GAX:s faktiska målkontrollbenämning `Mål · Ystad`, även i syntetiskt testläge.
+- **Delsträckor & personlig loppplan** har nu två lägen i en enda sektion. Standardläget är hela loppet; personlig plan börjar med upplagans **medianmåltid** som går att ändra.
+- **Banans dimensioner** saknar nu redundant tom arrangörsdistans. Tävlingsdistans, faktiskt GPX-underlag och tidtagningens km-axel redovisas separat.
+- **Andel kvinnor och män över tid** ritas från alla 945 fiktiva demolöpares kön (2026 kalibrerat mot offentlig gruppsumma). Detta är **inte** en verifierad historisk könstrend för verkliga deltagare.
 
-För att prova Kartduellen utan att publicera arrangörens GPX:
+## Kartduell och historiska GPX-källor – utan publicering av andras spår
 
-1. Öppna GitHub Pages-versionen, välj **2026** under Loppår.
-2. Öppna arrangörens Garmin-länk ovan och ladda ned GPX-filen med Garmin Connects exportfunktion (Garmin kan kräva inloggning).
-3. På GAX-sidan, under **Löparjämförelse**, välj **Välj GPX-fil för 2026**.
-4. Välj 2–5 fiktiva löpare, klicka **Öppna Kartduell**, spela eller dra tävlingsklockan.
+Arrangörens aktuella GPX-kurs för **2026** finns på https://gax100.se/bana-karta/ och https://connect.garmin.com/app/course/484861455.
 
-GPX läses **uteslutande i webbläsarens arbetsminne** och skickas inte till GitHub Pages eller något GAX-API. Den försvinner vid omladdning; byter du år till annat än 2026 är Kartduellen för banan spärrad. Inga ruttpunkter lagras som publika filer. Rättighet att ladda ned för privat navigering är inte liktydigt med licens för webbåterpublicering.
+Den tidigare GAX-utredningen analyserade fem lokala GPX-filer, inklusive **2022-kandidaten (161,74 km, sammanhängande)**, **2018-kandidaten (två stora avbrott)** och två **2021-kandidater** med ett respektive 58 avbrott. Originalfilerna låg i ett ignorerat lokalt arbetsarkiv och är **inte tillgängliga i detta GitHub-repo**. 2021-kandidaterna kan inte med säkerhet knytas till upplaga A respektive B. Källmetadata, SHA-256 för tidigare analyserade filer, länkar och kontinuitetsstatus finns nu i `docs/data/route-candidates.json`. Där finns även externa kandidatbanor för 2016, 2020, 2023 och 2024.
 
-Det **är 2026 års bangeometri, inte löparnas GPS-loggar**. Demoversionens namn, passertider och rörelser är fiktiva och beräknas genom tidsinterpolation mellan modellkontroller. En karta med en rörlig markör är därför inte bevis för en faktiskt uppmätt position. De verkliga löparresultaten berörs inte.
+**Kartduellen kan användas per vald upplaga** när du själv har hämtat motsvarande GPX-fil:
 
-Kontrolleras automatiskt av `tests/test_gax_gpx_local.py` med en syntetisk 152 km-testbana som skapas i testminnet. Testet provar inläsning, 2 löpare, SVG-kartuppspelning, att årsvalet begränsar routen till 2026 samt att GPX aldrig laddas upp eller sparas efter omladdning. **Testbanan följer inte GAX och publiceras aldrig.**
+1. Välj önskat år. För källor som finns identifierade visas en kartpanel.
+2. Klicka på källans länk (arrangörskurs för 2026, annars extern **kandidat**) och hämta GPX lokalt om källan tillåter det.
+3. Välj filen i kartpanelen. En kontroll säkerställer geografi, spårlängd, koordinatformat och sammanhängande linje. Stora avbrott avvisas i stället för att fyllas med uppdiktad geometri.
+4. Markera två till fem demolöpare och välj **Öppna Kartduell**. Kartan, animationen och tävlingsklockan arbetar i webbläsaren. Positioner mellan de simulerade kontrollpassagerna är **illustrativa**, inte uppmätt GPS.
+
+**Ingen GPX läggs i webbplatsens publika filer.** Varje importerad fil finns enbart i webbläsarens arbetsminne, knuten till vald upplaga, och försvinner vid omladdning. De tidigare analyserade filerna är ännu inte återpubliceringsklara; arrangörens Garmin-länk betyder inte automatiskt att vi får distribuera banfilen vidare.
+
+**Avgränsning:** de fem tidigare råspåren har inte ”flyttats” eftersom deras bytes inte finns i de anslutna arkiven. När de lokala originalfilerna finns tillgängliga kan de granskas och knytas till rätt upplaga innan någon eventuell senare publicering. Nu kan du granska kartfunktionen med egna GPX-filer.
+
+Kontrolleras med `tests/test_gax_gpx_local.py` (lokal GPX, kartuppspelning och utebliven uppladdning) och `tests/test_gax_full_ux_review.py` (alla åtta granskade förbättringar). GitHub Actions använder endast en fiktiv Skåne-GPX i minnet.
 
 ## Privat resultatdatabas och GDPR
 
