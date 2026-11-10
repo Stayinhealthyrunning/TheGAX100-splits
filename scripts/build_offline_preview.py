@@ -251,6 +251,7 @@ def prepare_payload(docs:Path):
     demo_boot=json.loads(json.dumps(bootstrap))
     demo_coverage=[]
     files={"data/route-inventory.json":[],
+           "data/course-display.json":json.loads((docs/"data/course-display.json").read_text(encoding="utf-8")),
            "data/route-candidates.json":json.loads((docs/"data/route-candidates.json").read_text(encoding="utf-8"))}
     for i,ed in enumerate(editions):
         filename=f"data/races/{ed['race_key']}.json"

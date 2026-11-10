@@ -42,11 +42,11 @@ Kontrollerna ligger i `tests/test_synthetic_data.py`, `tests/test_offline_previe
 - **Banans dimensioner** saknar nu redundant tom arrangörsdistans. Tävlingsdistans, faktiskt GPX-underlag och tidtagningens km-axel redovisas separat.
 - **Andel kvinnor och män över tid** ritas från alla 945 fiktiva demolöpares kön (2026 kalibrerat mot offentlig gruppsumma). Detta är **inte** en verifierad historisk könstrend för verkliga deltagare.
 
-## Kartduell och historiska GPX-källor – utan publicering av andras spår
+## Bankarta, GPX-jämförelse och Kartduell
 
-Under **Bana & kartor** visas arrangörens [2026-bana](https://gax100.se/bana-karta/) via Garmins [inbäddade karta](https://connect.garmin.com/embed/course/484861455). Den visas direkt för 2026 och märks som referens för övriga upplagor utan egen visningsrutt. Kartan behöver nätanslutning och har en direktlänk till Garmin Connect.
+**Bana & kartor** använder samma OpenStreetMap-rendering som Sätila, med 94 % opacitet för kartplattorna och automatisk zoom för kartans utsnitt. Årsvalet visar närmaste tillgängliga GPX-år. Vid lika avstånd används det äldre året. Båda 2021-upplagorna visar 2021-kandidaten som referens eftersom A/B-kopplingen är oklar.
 
-Den tidigare GAX-utredningen analyserade fem lokala GPX-filer, inklusive **2022-kandidaten (161,74 km, sammanhängande)**, **2018-kandidaten (två stora avbrott)** och två **2021-kandidater** med ett respektive 58 avbrott. Originalfilerna låg i ett ignorerat lokalt arbetsarkiv och är **inte tillgängliga i detta GitHub-repo**. 2021-kandidaterna kan inte med säkerhet knytas till upplaga A respektive B. Källmetadata, SHA-256 för tidigare analyserade filer, länkar och kontinuitetsstatus finns nu i `docs/data/route-candidates.json`. Där finns även externa kandidatbanor för 2016, 2020, 2023 och 2024.
+I **Jämför GPX-spår på samma karta** finns arrangörens Garmin-export för 2026, Plotaroute-kandidaterna för 2021 och 2022, och AllTrails-spåret med obekräftat år. AllTrails-spåret ingår endast i jämförelsevyn. 2021-spårets 58 avbrott ritas som luckor. 2018-spåret och den andra 2021-kandidaten är dokumenterade i källinventeringen, men deras original har inte kunnat återfinnas. De offentliga filerna innehåller kartgeometri med höjd och källhänvisning. Original-GPX, tidsstämplar och deltagaruppgifter ingår inte.
 
 **Kartduellen kan användas per vald upplaga** när du själv har hämtat motsvarande GPX-fil:
 
@@ -55,11 +55,9 @@ Den tidigare GAX-utredningen analyserade fem lokala GPX-filer, inklusive **2022-
 3. Välj filen i kartpanelen. En kontroll säkerställer geografi, spårlängd, koordinatformat och sammanhängande linje. Stora avbrott avvisas i stället för att fyllas med uppdiktad geometri.
 4. Markera två till fem demolöpare och välj **Öppna Kartduell**. Kartan, animationen och tävlingsklockan arbetar i webbläsaren. Positioner mellan de simulerade kontrollpassagerna är **illustrativa**, inte uppmätt GPS.
 
-**Ingen GPX läggs i webbplatsens publika filer.** Varje importerad fil finns enbart i webbläsarens arbetsminne, knuten till vald upplaga, och försvinner vid omladdning. De tidigare analyserade filerna är ännu inte återpubliceringsklara; arrangörens Garmin-länk betyder inte automatiskt att vi får distribuera banfilen vidare.
+Vid manuell GPX-import behåller webbläsaren filen i arbetsminnet för den valda upplagan. Den återställs vid omladdning. Bankartans referenser används för visning. Kartduellen använder en lokalt vald fil.
 
-**Avgränsning:** de fem tidigare råspåren har inte ”flyttats” eftersom deras bytes inte finns i de anslutna arkiven. När de lokala originalfilerna finns tillgängliga kan de granskas och knytas till rätt upplaga innan någon eventuell senare publicering. Nu kan du granska kartfunktionen med egna GPX-filer.
-
-Kontrolleras med `tests/test_gax_gpx_local.py` (lokal GPX, kartuppspelning och utebliven uppladdning) och `tests/test_gax_full_ux_review.py` (alla åtta granskade förbättringar). GitHub Actions använder endast en fiktiv Skåne-GPX i minnet.
+`scripts/build_course_display.py` återskapar bankartans kompakta geometri från kontrollsummerade originalfiler. `tests/test_gax_gpx_local.py` provar alla år, lagerjämförelsen och lokal import för Kartduellen.
 
 ## Privat resultatdatabas och GDPR
 
