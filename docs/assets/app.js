@@ -287,7 +287,7 @@ function renderStandouts(){
   '<div class="standout-tabs" role="tablist" aria-label="Välj topplista">'+
     categories.map(c=>'<button type="button" role="tab" data-standout-tab="'+c.id+'" aria-controls="standout-active-panel" aria-selected="'+(c.id===active.id)+'">'+html(c.title)+'</button>').join('')+
   '</div>'+
-  '<div class="standout-explanation" role="note" aria-live="polite"><strong>Så ska resultatet tolkas</strong><p>'+html(STANDOUT_EXPLANATIONS[active.id])+'</p></div>'+
+  '<div class="standout-explanation" role="note" aria-live="polite"><strong>Så ska resultatet tolkas</strong><p>'+html((S.race?.demo_only?'DESIGNDEMO: Alla löpare och passertider är fiktiva. ':'')+(S.race?.demo_only?STANDOUT_EXPLANATIONS[active.id].replace(/verkliga/gi,'simulerade').replace(/verifierade/gi,'modellerade'):STANDOUT_EXPLANATIONS[active.id]))+'</p></div>'+
   '<div class="standout-active" id="standout-active-panel" role="tabpanel"><h4>'+html(active.title)+'</h4><div class="podium-pair">'+podiumPair(unique,5)+'</div></div>';
  $$('[data-standout-tab]',host).forEach(button=>button.addEventListener('click',()=>{
   S.standoutTab=button.dataset.standoutTab;renderStandouts();bindResultLinks(host)
@@ -365,13 +365,14 @@ function renderPlan(){
     return;
   }
   const allSegments=segmentStats(rows);
+  const medianLabel=S.race?.demo_only?'Fiktiv segmentmedian':'Historisk median';
   const distanceTotal=allSegments.reduce((sum,s)=>sum+(num(s.km)&&s.km>0?s.km:0),0);
   const parts=allSegments.map(s=>{
     const ratios=s.obs.map(o=>o.seconds/o.r.finish_seconds).filter(x=>num(x)&&x>0);
     const n=ratios.length;
     const observedWeight=n>=5?median(ratios):null;
     const fallbackWeight=paceDistanceSupported(s)&&distanceTotal>0&&num(s.km)&&s.km>0?s.km/distanceTotal:null;
-    return {...s,n,w:observedWeight??fallbackWeight,method:observedWeight!==null?'Historisk median':fallbackWeight!==null?'Distansfallback':'Saknas'};
+    return {...s,n,w:observedWeight??fallbackWeight,method:observedWeight!==null?medianLabel:fallbackWeight!==null?'Distansfallback':'Saknas'};
   });
   const sum=parts.reduce((value,p)=>value+(p.w||0),0);
   if(!sum||parts.some(p=>p.w===null)){
@@ -383,7 +384,7 @@ function renderPlan(){
   out.innerHTML=parts.map(p=>{
     const allocation=target*p.w/sum;
     elapsed+=allocation;
-    return `<tr><td><button type="button" data-plan-segment="${p.index}" aria-label="Visa ${html(p.from.name)} till ${html(p.to.name)} på banan">${html(p.from.name)} → ${html(p.to.name)} ↗</button></td><td>${fmtKm(p.km)}</td><td>${p.n}</td><td>${html(p.method)}</td><td><strong>${time(allocation)}</strong></td><td>${time(elapsed)}</td><td>${paceDistanceSupported(p)?pace(allocation,p.km,S.unit):'Distans ej verifierad'}</td><td title="Ingen verifierad fysisk kontrollankring längs GPX">Ej verifierat</td><td>GAX100-arrangörens TIME-par · n=${p.n} · ${p.method==='Historisk median'?'observerad tidsandel':'öppet märkt timing-km-fallback'}</td></tr>`;
+    return `<tr><td><button type="button" data-plan-segment="${p.index}" aria-label="Visa ${html(p.from.name)} till ${html(p.to.name)} på banan">${html(p.from.name)} → ${html(p.to.name)} ↗</button></td><td>${fmtKm(p.km)}</td><td>${p.n}</td><td>${html(p.method)}</td><td><strong>${time(allocation)}</strong></td><td>${time(elapsed)}</td><td>${paceDistanceSupported(p)?pace(allocation,p.km,S.unit):'Distans ej verifierad'}</td><td title="Ingen verifierad fysisk kontrollankring längs GPX">Ej verifierat</td><td>${S.race?.demo_only?'MODELLERADE DEMO-PASSAGER':'GAX100-arrangörens TIME-par'} · n=${p.n} · ${p.method===medianLabel?(S.race?.demo_only?'fiktiv tidsandel':'observerad tidsandel'):'öppet märkt timing-km-fallback'}</td></tr>`;
   }).join('');
   $$('[data-plan-segment]',out).forEach(button=>button.addEventListener('click',()=>{
     const i=+button.dataset.planSegment;
@@ -396,10 +397,10 @@ function renderPlan(){
       $('#course-map').scrollIntoView({block:'center',behavior:'smooth'});
     }
   }));
-  const sampled=parts.filter(p=>p.method==='Historisk median').length;
+  const sampled=parts.filter(p=>p.method===medianLabel).length;
   const cohortText=cohort==='near'?' inom ±10 % av måltiden':cohort==='class'?` i klassen ${classSelect.value}`:cohort==='all'?' i hela fältet':` med källkön ${cohort}`;
   const highest=parts.slice().sort((a,b)=>b.w-a.w)[0];
-  const defaultSeconds=Number($('#target-time').dataset.defaultSeconds),usesEditionMedian=num(defaultSeconds)&&Math.abs(target-defaultSeconds)<1;summary.textContent=`${usesEditionMedian?'Grundvärde: upplagans mediantid · ':''}${time(target)} · ${rows.length} fullföljare${cohortText} · ${sampled}/${parts.length} segment med minst fem verkliga tidsandelar. Övriga använder öppet märkt timingdistansfallback. Störst historisk tidsandel: ${highest?highest.from.name+' → '+highest.to.name:'—'}. Planen är en pacingreferens, inte en prognos.`;
+  const defaultSeconds=Number($('#target-time').dataset.defaultSeconds),usesEditionMedian=num(defaultSeconds)&&Math.abs(target-defaultSeconds)<1;summary.textContent=`${usesEditionMedian?'Grundvärde: upplagans mediantid · ':''}${time(target)} · ${rows.length} fullföljare${cohortText} · ${sampled}/${parts.length} segment med minst fem ${S.race?.demo_only?'simulerade':'verkliga'} tidsandelar. Övriga använder öppet märkt timingdistansfallback. Störst ${S.race?.demo_only?'simulerad':'historisk'} tidsandel: ${highest?highest.from.name+' → '+highest.to.name:'—'}. Planen är en pacingreferens, inte en prognos.`;
 }
 
 function focusSelectedSegmentOnCourse(){
@@ -1426,8 +1427,8 @@ window.SatilaExtras=(()=>{
     const fs=S.filtered.filter(finish),dnfs=S.filtered.filter(r=>r.status==='DNF');
     const started=fs.length+dnfs.length+S.filtered.filter(r=>r.status==='DSQ').length;
     const dims=[
-      ['GAX100-arrangörens-distans',fmtKm(eqTimingKm(S.race))+' km','Originalfält för resultat- och kontrollaxeln'],
-      ['Publika kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,'Stationsmetadata, även utan TIME'],
+      ['Tävlingsdistans',fmtKm(S.race.nominal_km)+' km','Arrangörens annonserade 100 miles · historiska spårlängder kan skilja sig'],
+      [S.race.demo_only?'Modellkontroller':'Publicerade kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,S.race.demo_only?'Fiktiva passager enligt demomodell':'Stationsmetadata, även utan TIME'],
       ['Median sluttid',fs.length>=5?time(median(fs.map(r=>r.finish_seconds))):'—','n='+fs.length],
       ['DNF-andel',started?(100*dnfs.length/started).toFixed(1).replace('.',',')+' %':'—','FINISHED + DNF + DSQ som startnämnare'],
       ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])+' km':'—',S.route?(S.race.route_status==='participant_track_display_only'?'Verifierat deltagarspår · endast display':'Arrangörens GPX'):'Saknas för upplagan'],
