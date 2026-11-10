@@ -66,15 +66,18 @@ function render(race){
   content.innerHTML='<p class="muted">Kontrollpassagerna finns i den privata, verifierade resultatdatabasen. Individuella kontrolltider visas först när publiceringskontrollerna är godkända.</p>';
   return;
  }
+ const demo=Boolean(race.demo_only);
+ const title=panel.querySelector('.panel-heading h3');
+ if(title)title.textContent=demo?'GAX · simulerade kontrollpassager':'GAX · officiella kontrollpassager';
  const rows=stations(race);
  if(!rows.length){
   content.innerHTML='<p class="muted">Ingen källverifierad kontrollpassage för vald upplaga. Sluttider kan fortfarande analyseras.</p>';
   return;
  }
- content.innerHTML='<p class="muted small">Varje rad motsvarar en faktisk kontroll i vald upplaga. Ordningen följer medianen av registrerade passertider, inte en antagen GPS-position. Median visas endast vid minst fem verkliga tider.</p>'
- +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Käll-km*</th><th>Observerade tider (n)</th><th>Median passertid</th><th>Datastatus</th></tr></thead><tbody>'
- +rows.map(st=>'<tr><th scope="row">'+h(st.name)+'</th><td>'+h(displayKm(st))+'</td><td>'+st.n+'</td><td>'+time(st.med)+'</td><td>'+(st.distance_conflict?'Km-konflikt – tidsanalys enbart':st.n?'Verifierad tidsobservation':'Ingen tidsobservation')+'</td></tr>').join('')
- +'</tbody></table></div><p class="muted small">* Källans kilometerangivelser är inte verifierad årsspecifik GPS-distans. Inga km/h- eller min/km-värden beräknas här. ”Mål” bygger på officiell sluttid och visas skilt från mellankontrollerna.</p>';
+ content.innerHTML=(demo?'<p class="muted small">Fiktiva passertider vid kontroller från arrangörens 2027-referensmodell, inte historiskt uppmätta kontrollpassager. Median kräver minst fem simulerade tider.</p>':'<p class="muted small">Varje rad motsvarar en faktisk kontroll i vald upplaga. Ordningen följer medianen av registrerade passertider, inte en antagen GPS-position. Median visas endast vid minst fem verkliga tider.</p>')
+ +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>'+(demo?'Modell-km*':'Käll-km*')+'</th><th>'+(demo?'Simulerade tider (n)':'Observerade tider (n)')+'</th><th>Median passertid</th><th>Datastatus</th></tr></thead><tbody>'
+ +rows.map(st=>'<tr><th scope="row">'+h(st.name)+'</th><td>'+h(displayKm(st))+'</td><td>'+st.n+'</td><td>'+time(st.med)+'</td><td>'+(demo?'Simulerad kontrollpassage':st.distance_conflict?'Km-konflikt – tidsanalys enbart':st.n?'Verifierad tidsobservation':'Ingen tidsobservation')+'</td></tr>').join('')
+ +'</tbody></table></div>'+(demo?'<p class="muted small">* Kilometer och tider är en pedagogisk modell efter aktuella stationsuppgifter; alla individvärden är fiktiva. Segmentfart presenteras inte som verifierad GPX-fart.</p>':'<p class="muted small">* Källans kilometerangivelser är inte verifierad årsspecifik GPS-distans. Inga km/h- eller min/km-värden beräknas här. ”Mål” bygger på officiell sluttid och visas skilt från mellankontrollerna.</p>');
 }
 function renderProfile(race,runner){
  const content=$('#profile-content');
@@ -91,8 +94,8 @@ function renderProfile(race,runner){
   last=elapsed>0?elapsed:last;
   return '<tr><th scope="row">'+h(st.name)+'</th><td>'+time(elapsed)+'</td><td>'+delta+'</td><td>'+h(displayKm(st))+'</td></tr>';
  }).join('');
- panel.innerHTML='<h3>Officiella kontrollpassager · GAX</h3>'
- +'<p class="muted small">Exakta källtider i medianbaserad visningsordning. ”Sedan föregående” beräknas bara när två faktiska klocktider är stigande; saknade passager fylls inte ut.</p>'
+ panel.innerHTML='<h3>'+(race.demo_only?'Simulerade kontrollpassager · GAX':'Officiella kontrollpassager · GAX')+'</h3>'
+ +'<p class="muted small">'+(race.demo_only?'Samtliga tider är fiktiva och utgår från en modell av loppets aktuella kontroller. Segmenten beräknas mellan påhittade, men stigande passertider.':'Exakta källtider i medianbaserad visningsordning. ”Sedan föregående” beräknas bara när två faktiska klocktider är stigande; saknade passager fylls inte ut.')+'</p>'
  +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Ack. tid</th><th>Sedan föregående observerade</th><th>Käll-km*</th></tr></thead><tbody>'+body+'</tbody></table></div>';
  content.appendChild(panel);
 }
@@ -104,8 +107,8 @@ function renderComparison(race,a,b){
  const rows=stations(race).filter(st=>obsA.has(String(st.uid))&&obsB.has(String(st.uid)));
  const panel=document.createElement('section');
  panel.id='gax-direct-controls';panel.className='gax-checkpoint-profile';
- panel.innerHTML='<h3>Gemensamma officiella kontrollpassager</h3>'
- +'<p class="muted small">A och B visar källans ackumulerade tid. Skillnaden är B minus A, positivt värde betyder att A passerade tidigare. Endast faktiskt registrerade tider jämförs.</p>'
+ panel.innerHTML='<h3>'+(race.demo_only?'Jämför simulerade kontrollpassager':'Gemensamma officiella kontrollpassager')+'</h3>'
+ +'<p class="muted small">'+(race.demo_only?'Båda löparna är fiktiva. Tiderna är modellerade och används bara för att granska analysfunktionerna.':'A och B visar källans ackumulerade tid. Skillnaden är B minus A, positivt värde betyder att A passerade tidigare. Endast faktiskt registrerade tider jämförs.')+'</p>'
  +(rows.length?'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>A</th><th>B</th><th>B − A</th></tr></thead><tbody>'
  +rows.map(st=>{
  const x=obsA.get(String(st.uid)),y=obsB.get(String(st.uid)),diff=y-x;

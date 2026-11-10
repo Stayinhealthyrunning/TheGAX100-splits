@@ -26,6 +26,8 @@ jobs:
           for js in docs/assets/*.js; do node --check "$js"; done
       - name: Verify official GAX aggregates and empty public individual-data files
         run: python3 -B tests/test_blueprint_contract.py
+      - name: Verify all 945 fictional identities, sexes, splits and cutoff constraints
+        run: python3 -B tests/test_synthetic_data.py
       - name: Build synthetic offline GAX review
         run: python3 -B scripts/build_offline_preview.py --docs docs --out preview/GAX100-UI-DEMO.html
       - name: Install browser for actual preview acceptance
@@ -40,10 +42,19 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           html=Path('preview/GAX100-UI-DEMO.html').read_text(encoding='utf-8')
-          assert html.count('Demolöpare ') >= 945
-          assert 'FÖRHANDSGRANSKNING' in html
+          assert html.count('fiction-') >= 945
+          assert 'DESIGNDEMO' in html
           assert 'ALL NAMES AND TIMES ARE FABRICATED' in html
           assert 'gax100.sqlite' not in html
-          print('GAX100_CLEAN_MIGRATION_PASS: 14 years, 945 synthetic demo entrants')
+          print('GAX100_OSTERLEN_PASS: 14 years, 945 synthetic Swedish names, modeled splits, original person data excluded')
           PY
-# No private registry, source DB, artifacts or participant details handled here.
+      - name: Make safe, standalone GAX design demo downloadable
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAX100-OSTERLEN-DESIGNDEMO
+          path: preview/GAX100-UI-DEMO.html
+          if-no-files-found: error
+          retention-days: 7
+# The uploaded HTML is verified synthetic ONLY. No private registry,
+# actual participant files or actual GAX control observations are processed.

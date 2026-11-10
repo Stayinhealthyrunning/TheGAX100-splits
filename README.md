@@ -17,7 +17,20 @@ För att aktivera webbsidan första gången: `Settings → Pages → Build and d
 - **945** officiella resultatposter, **651** målgångar och **1 838** källregistrerade kontrollobservationer i aggregat.
 - För **2023** gäller den officiella resultattabellen: **90 resultatposter och 70 målgångar**.
 - `docs/data/races/*.json`: alla deltagar- och kontrollistor är avsiktligt tomma och markerade `PRIVATE_DATA_WITHHELD`.
-- Den publika webbversionen som GitHub Pages bygger genereras av `scripts/build_offline_preview.py` och använder **945 påhittade demolöpare**.
+- Den publika webbversionen som GitHub Pages bygger genereras av `scripts/build_offline_preview.py` och använder **945 påhittade svenska löparnamn**.
+
+## Nytt design- och datautkast – 10 november 2026
+
+Österlendesignen har ersatt den tidigare stora hero-/rubrikytan med en kompakt introduktion, originalillustrerad kustvy, varma fält-/sandtoner, salvia och havsblå accenter. Direkt under toppen finns årsväljaren och sökverktyget. Till detta har vi lagt två källstödda informationssektioner:
+
+- **Fyra delar:** Ystad–Magleberg, Magleberg–Haväng, Haväng–Sandhammaren och Sandhammaren–Ystad, baserade på arrangörens banbeskrivning på https://gax100.se/bana-karta/.
+- **Stationer och reptider:** arrangörens aktuella information på https://gax100.se/information/ (2027). Aid-stationernas kilometer och reptidstabellens kilometer skiljer sig åt vid vissa punkter och hålls avsiktligt åtskilda.
+
+`scripts/build_offline_preview.py` skapar numera **945 unika påhittade svenska namn**, fiktiva klubbar, kön, realistiskt spridda sluttider, placeringar, DNF/DNS och **tio modellerade passertider per fullföljande demolöpare**. Sluttidernas grova spann och 2026 års anonymiserade köns-/statusfördelning har kalibrerats mot https://gax100.se/resultat/ – inga verkliga namn, klubbkopplingar, startnummer eller individsplittider kopieras därifrån. Andra års könsfördelningar är enbart modellantaganden.
+
+**Demografiska egenskaper, alla tider och alla splits är uttryckligen fiktiva.** Stationernas modell baseras på 2027 års kända banbeskrivning och påstår inte att samma kontrollpunkter användes för samtliga historiska upplagor. Analysmotorn kan beräkna modelltempo enbart i demo-versionen; riktiga historiska GAX-resultat har fortsatt spärr för overifierad GPS-/distansbaserad fart.
+
+Kontrollerna ligger i `tests/test_synthetic_data.py`, `tests/test_offline_preview_browser.py` och `.github/workflows/quality.yml`, inklusive 390px/1440px visningsprov och aktiva profil-/jämförelsedialoger.
 
 ## Privat resultatdatabas och GDPR
 

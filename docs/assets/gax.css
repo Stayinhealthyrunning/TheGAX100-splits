@@ -1,9 +1,247 @@
-/* GAX100 event-only skin on the unchanged Sätila 1.0 component blueprint. */
-:root{--forest:#102f38;--deep:#071d25;--moss:#275b61;--pine:#367b80;--mist:#c5d9d9;--sand:#f2f3ef;--gold:#d5b06b;--border:#d8e3e0;--ink:#1c3336;--muted:#5d6e70}
-#header{background:rgba(7,29,37,.97)}
-.hero{background:linear-gradient(125deg,rgba(5,28,37,.79),rgba(12,61,69,.36)),linear-gradient(165deg,#123d48 0%,#316575 44%,#87a9a8 68%,#dbc09a 100%);background-position:center!important;background-size:cover!important;min-height:530px}
-.hero::after{content:"";position:absolute;inset:auto 0 0;height:42%;pointer-events:none;background:linear-gradient(0deg,rgba(4,29,36,.64),transparent)}
-.hero-inner,.race-cards{position:relative;z-index:1}
-.gax-single-card{display:grid!important;grid-template-columns:minmax(0,360px)!important;justify-content:center}
-.gax-single-card .race-card{width:100%}
-.gax-preview-note{margin:1.4rem auto;background:#e4eff0;color:#18383f;border-left:4px solid var(--pine);padding:1rem 1.4rem;border-radius:10px;max-width:1180px;font-weight:600}
+/*
+ * GAX100 / Österlen i juli – visual language 2026-11-10.
+ * Original CSS-only identity; no third-party photos or copyrighted assets.
+ * The Sätila interaction/analysis engine and DOM IDs remain unchanged.
+ */
+:root{
+ --forest:#25423e;--deep:#1c3438;--moss:#5d776b;--pine:#7b9889;
+ --mist:#e4ede5;--stone:#626e62;--sand:#f4efe5;--gold:#e0b76f;
+ --paper:#fffcf5;--border:#deded3;--ink:#263d39;--muted:#65746c;
+ --radius:16px;--shadow:0 12px 36px rgba(52,69,57,.07);
+ --gax-sea:#78aeb7;--gax-poppy:#cb6c53;--gax-wheat:#d5b578;
+}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background:#f6f2e9;color:var(--ink);font-size:15px;line-height:1.55}
+h1,h2,h3{color:var(--forest)}
+h1,h2,.gax-stage h3,.gax-stations-intro h2{font-family:Georgia,"Iowan Old Style",Cambria,serif}
+h2{letter-spacing:-.035em}
+small,.small{line-height:1.5}
+a{transition:color .16s}
+:focus-visible{outline:3px solid #cc845d!important;outline-offset:3px}
+#header{
+ height:66px!important;
+ background:rgba(255,252,245,.96)!important;
+ color:var(--forest)!important;border-bottom:1px solid #e4e1d5;
+ box-shadow:0 3px 17px rgba(29,61,56,.06)!important;
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)
+}
+#header .brand{font-size:13px;letter-spacing:.11em;color:#21413a}
+#header .brand em{color:#b97155}
+#header .brand svg{color:#c98b56}
+#header .primary-nav a{color:#466158}
+#header .primary-nav a:hover,#header .primary-nav a:focus{color:#a45d43}
+#header .menu-btn{color:#21413a;border:1px solid #bed1bf;background:#faf9f2}
+#header .header-cta{color:#fff;background:var(--forest)}
+.eyebrow{color:#a16c47;font-size:10px;letter-spacing:.18em;font-weight:850}
+.btn.gold,.btn.green{box-shadow:none}
+.panel{background:rgba(255,253,248,.98)!important;border-color:var(--border)!important;box-shadow:var(--shadow)!important}
+.section-heading h2{font-size:clamp(26px,3.6vw,39px);line-height:1.15;letter-spacing:-.03em}
+.section-heading p:not(.eyebrow){max-width:760px}
+.section-mark{color:#9d916f}
+.section{scroll-margin-top:92px}
+#gax-title{font-weight:500}
+.gax-hero{
+ min-height:0!important;height:auto!important;
+ padding:0 max(22px,calc((100vw - 1260px)/2)) 0!important;
+ background:linear-gradient(114deg,#f9edda 0%,#f1e7d6 37%,#d9e6df 73%,#bddad8 100%)!important;
+ color:var(--forest)!important;overflow:hidden;
+ border-bottom:1px solid #d5d7c6;isolation:isolate
+}
+.gax-hero:after,.gax-hero .hero-overlay{display:none!important}
+.gax-hero-inner{
+ position:relative;display:grid!important;grid-template-columns:minmax(0,1.14fr) minmax(300px,.86fr);
+ min-height:0!important;gap:14px;align-items:center!important;
+ max-width:1260px;margin:0 auto;padding:20px 0 13px
+}
+.gax-hero-copy{max-width:620px;position:relative;z-index:3;padding:0}
+.gax-hero .hero-eyebrow{display:flex;align-items:center;gap:9px;color:#8a7958;font-size:10px;letter-spacing:.20em;margin:0 0 9px}
+.gax-sun-dot{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:var(--gax-poppy)}
+.gax-hero #gax-title{
+ margin:0;font-family:Georgia,"Iowan Old Style",Cambria,serif;
+ font-size:clamp(50px,6.1vw,82px)!important;line-height:1.02;letter-spacing:-.075em;
+ font-weight:550;color:#264a42;text-wrap:balance
+}
+.gax-hero #gax-title span{color:#c66e50;font-style:italic;font-weight:450}
+.gax-hero .gax-hero-lead{
+ font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(21px,2.4vw,30px)!important;
+ font-weight:400;font-style:italic;color:#3b6259!important;margin:5px 0 9px!important;max-width:none
+}
+.gax-hero .gax-hero-desc{font-size:13px!important;color:#526e65!important;max-width:480px!important;margin:0!important;line-height:1.55}
+.gax-hero .hero-actions{margin-top:12px;gap:9px;align-items:center}
+.gax-hero .btn{min-height:38px;font-size:12px;padding:8px 15px;border-radius:7px;box-shadow:none;letter-spacing:.005em}
+.gax-hero .gax-primary{background:#244a43;color:#fff;border-color:#244a43}
+.gax-hero .gax-primary:hover{background:#3a665c;color:#fff}
+.gax-hero .gax-secondary{background:rgba(255,255,255,.24);color:#315b52;border-color:#9caf9d}
+.gax-hero .gax-secondary:hover{background:rgba(255,255,255,.72);color:#214039}
+.gax-hero-art{align-self:stretch;position:relative;min-height:200px;display:flex;align-items:center;justify-content:center}
+.gax-hero-art:before{content:"";position:absolute;inset:5% -12% 2% 7%;border-radius:50%;background:#fce5ba;filter:blur(39px);opacity:.34}
+.gax-summer-scene{display:block;position:relative;width:100%;height:auto;max-height:225px;border-radius:120px 10px 11px 10px;opacity:.94;box-shadow:0 18px 36px #6b93831c;overflow:hidden}
+.gax-art-caption{position:absolute;bottom:3px;right:0;font-size:8px;font-weight:850;letter-spacing:.19em;color:#62766b;background:#f2e9d8c9;padding:6px 9px;border-radius:4px}
+.gax-fact-band{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 auto;width:100%;max-width:1260px;border-top:1px solid #d8d8cb;gap:0}
+.gax-fact-band div{padding:7px 16px 8px;text-align:center;border-right:1px solid #d8d8cb}
+.gax-fact-band div:first-child{text-align:left;padding-left:0}
+.gax-fact-band div:last-child{border-right:0;text-align:right;padding-right:0}
+.gax-fact-band strong{display:block;color:#284b44;font-family:Georgia,serif;font-weight:600;font-size:20px;letter-spacing:-.03em;line-height:1.15}
+.gax-fact-band strong small{font-family:inherit;font-size:12px}
+.gax-fact-band span{display:block;margin-top:2px;color:#64786c;font-weight:700;font-size:10px;letter-spacing:.04em}
+.gax-single-card{display:none!important}
+.gax-preview-note{max-width:1260px;margin:14px auto 0;background:#f3e8d5;color:#6c5338;border-left:3px solid #c78c62;padding:10px 17px;font-size:12px;border-radius:5px;font-weight:600}
+#race-context{padding-top:18px!important;padding-bottom:20px!important}
+#race-context .context-main{background:#fffbf2;border:1px solid #e0dcd0;box-shadow:var(--shadow);padding:16px 20px;border-radius:12px}
+#race-context .context-main .eyebrow{margin-bottom:3px}
+#race-context .context-main h2{font-family:Georgia,serif;font-size:clamp(19px,2.2vw,26px)}
+#race-context .source-status{margin:8px 0 0;padding-left:3px}
+#race-context .source-pill{background:#e6ede3;color:#415b4e}
+#race-context .source-status a{color:#9b603a}
+#race-context .year-control{min-width:155px}
+#race-context .year-control select{border-radius:7px;background:#fff;color:#21443f}
+#runner-tools{padding-top:12px!important;padding-bottom:25px!important}
+#runner-tools .section-heading{margin-bottom:14px}
+#runner-tools .runner-search-wide{background:#fffaf0;border-left:4px solid #bf8762!important;padding:16px 20px}
+#runner-tools .runner-search-wide input{background:#fff;min-height:45px}
+#runner-tools .runner-search-wide>label{font-size:12px}
+#runner-tools .runner-search-wide>.small{margin-bottom:0}
+#runner-tools .section-heading h2{font-size:28px}
+#map-duel-builder .section-heading h2{font-size:clamp(26px,3.4vw,36px)}
+#map-duel-builder .duel-selector-panel{border-left:4px solid #7eaab0!important}
+#map-duel-builder #open-map-duel,#map-duel-builder #share-map-duel-selection{display:none!important}
+#map-duel-builder .map-duel-picker-actions .btn.gold{background:#244a43;color:#fff}
+#section-nav{background:rgba(255,252,245,.96);border:1px solid #dfdfd1;box-shadow:0 4px 15px #284a3412}
+#section-nav a{color:#536c60}
+#section-nav a.active,#section-nav a:hover{background:#31574e;color:#fff}
+#overview,#segments,#history{position:relative}
+#overview:before,#segments:before,#history:before{content:"";position:absolute;top:0;left:25px;right:25px;height:1px;background:linear-gradient(90deg,transparent,#d5d4c4,transparent)}
+#results .results-toolbar{border-bottom:1px solid #e7e5d9;padding-bottom:15px}
+#results-table tbody tr:hover{background:#f4f4e9}
+#history-table,#results-table,#segment-table{font-variant-numeric:tabular-nums}
+.kpi-status-summary article{border-radius:10px;background:#f1f4eb}
+#finish-chart svg,#history-chart svg,#percentile-chart svg{max-width:100%}
+#method{background:linear-gradient(120deg,#e9e8d9,#f1ede0);border-top:1px solid #e0dccd;max-width:none}
+#method>*{max-width:1260px;margin-left:auto;margin-right:auto}
+.method-grid article{background:#fffcf6;border:1px solid #e3dfd4;border-radius:12px;padding:18px}
+.gax-offline-demo{
+ position:relative!important;z-index:40;top:auto!important;
+ background:#f4e6ce;color:#705739;border-bottom:1px solid #e0cbaa;
+ font-size:11px;font-weight:650;line-height:1.45;
+ text-align:center;padding:7px 18px;letter-spacing:.005em
+}
+.gax-offline-demo strong{display:inline-block;margin-right:8px;color:#8b523a;letter-spacing:.11em}
+.gax-landscape-section,.gax-stations-section{padding-top:34px!important;padding-bottom:24px!important}
+.gax-landscape-head{max-width:1120px}
+.gax-landscape-head h2,.gax-stations-intro h2{font-size:clamp(29px,3.4vw,42px);line-height:1.11;font-weight:500}
+.gax-landscape-head p:not(.eyebrow){max-width:720px}
+.gax-stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.gax-stage{position:relative;overflow:hidden;min-width:0;min-height:212px;border:1px solid #d9dfd1;border-radius:12px;padding:19px 16px 16px;display:flex;flex-direction:column;background:#f0e6c6;color:#28413b}
+.gax-stage:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6}
+.gax-stage-fields{background:linear-gradient(160deg,#f6e8bf,#e2d4a1)}
+.gax-stage-fields:before{background:repeating-linear-gradient(165deg,transparent 0 16px,#b5a47a27 17px 19px)}
+.gax-stage-hills{background:linear-gradient(160deg,#e0e4cd,#b7c9ad)}
+.gax-stage-hills:before{background:radial-gradient(ellipse at 30% 105%,#71978433 0 52%,transparent 53%),radial-gradient(ellipse at 88% 105%,#7e9e8230 0 52%,transparent 53%)}
+.gax-stage-sea{background:linear-gradient(150deg,#d7e8e5,#9cc9ca)}
+.gax-stage-sea:before{background:repeating-linear-gradient(167deg,transparent 0 20px,#f8ffff53 21px 23px)}
+.gax-stage-finish{background:linear-gradient(155deg,#f2ddbb,#dfb89b)}
+.gax-stage-finish:before{background:radial-gradient(circle at 98% 5%,#f5efc6 0 36px,transparent 38px)}
+.gax-stage>*{position:relative;z-index:1}
+.gax-stage-number{font-size:10px;font-weight:900;color:#596d5d;letter-spacing:.12em}
+.gax-stage-number i{display:inline-block;width:17px;height:1px;vertical-align:middle;background:#748a76;margin:0 5px}
+.gax-stage-glyph{font:normal 53px/1 Georgia,serif;position:absolute;right:12px;top:13px;opacity:.34;color:#507d77}
+.gax-stage h3{font-size:21px;line-height:1.12;font-weight:600;letter-spacing:-.035em;margin:35px 0 9px}
+.gax-stage p{font-size:12px;line-height:1.48;color:#41574d;margin:0 0 15px}
+.gax-stage-tag{margin-top:auto;color:#486656;font-size:9px;font-weight:900;letter-spacing:.15em}
+.gax-source-foot{font-size:11px;color:#718077;padding:12px 4px 0}
+.gax-source-foot a,.gax-text-link{color:#9c6949;text-decoration:underline;text-underline-offset:3px;font-weight:750}
+.gax-stations-section{margin-top:2px}
+.gax-stations-intro{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:20px}
+.gax-stations-intro p:not(.eyebrow){color:var(--muted);max-width:755px;margin:6px 0 0;font-size:13px}
+.gax-stations-intro h2{margin:0}
+.gax-text-link{font-size:11px;white-space:nowrap;padding-bottom:5px}
+.gax-station-track{
+ position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ background:#fffaf1;border:1px solid var(--border);border-radius:14px;
+ padding:30px 10px 13px;box-shadow:var(--shadow);gap:0
+}
+.gax-station-track:before{content:"";position:absolute;height:2px;top:20px;left:10%;right:10%;background:linear-gradient(90deg,#c5a676,#7eacaa,#c5a676)}
+.gax-station-point{min-width:0;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center;padding:4px 8px 6px}
+.gax-station-point:before{content:"";position:absolute;top:-18px;width:11px;height:11px;border-radius:50%;border:3px solid #fffaf1;background:#a47458;box-shadow:0 0 0 1px #c3b69c}
+.gax-station-point:nth-child(3):before{background:#649c96}
+.gax-station-km{font-family:Georgia,serif;font-size:23px;font-weight:600;color:#3e685a;line-height:1.12}
+.gax-station-point strong{font-size:12px;line-height:1.3;margin-top:3px;color:#2e4d44}
+.gax-station-point small{font-size:10px;line-height:1.3;color:#7d8678;margin-top:4px}
+.gax-cutoffs{margin-top:11px;background:#fffdf7;border:1px solid #e2ded1;border-radius:9px;overflow:hidden}
+.gax-cutoffs summary{padding:10px 15px;cursor:pointer;color:#36544a;font-size:12px;font-weight:850;list-style:none}
+.gax-cutoffs summary::-webkit-details-marker{display:none}
+.gax-cutoffs summary span{float:right}
+.gax-cutoffs[open] summary{border-bottom:1px solid #e8e2d6;background:#f9f5ec}
+.gax-cutoffs .table-scroll{padding:8px 14px}
+.gax-cutoffs table{font-size:12px}
+.gax-cutoffs>p{padding:0 14px 12px;margin:0}
+.gax-checkpoint-profile,.gax-controls-panel{border-left:4px solid #7fa7a1!important}
+.gax-check-table th{color:#315749}
+@media(max-width:1020px){
+ #header .primary-nav{gap:12px}
+ #header .primary-nav a{font-size:10px}
+ .gax-stages{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gax-stage{min-height:190px}
+ .gax-hero-inner{grid-template-columns:minmax(0,1.12fr) minmax(240px,.88fr)}
+}
+@media(max-width:760px){
+ html{scroll-padding-top:73px}
+ #header{height:59px!important}
+ #header .primary-nav{background:#fffaf0;border-bottom:1px solid var(--border);box-shadow:0 10px 25px #243d311d;top:58px}
+ #header .primary-nav a{color:#294a41;font-size:13px;padding:8px 7px}
+ .gax-hero{padding-inline:17px!important}
+ .gax-hero-inner{display:grid!important;grid-template-columns:1fr;padding:22px 0 12px}
+ .gax-hero-copy{max-width:none}
+ .gax-hero-art{display:none}
+ .gax-hero #gax-title{font-size:clamp(48px,12vw,67px)!important;line-height:1}
+ .gax-hero .gax-hero-lead{font-size:22px!important}
+ .gax-hero .gax-hero-desc{font-size:12px!important;max-width:550px!important}
+ .gax-hero .hero-actions{margin-top:15px}
+ .gax-hero .btn{min-height:36px;padding:7px 11px;font-size:11px}
+ .gax-fact-band{grid-template-columns:repeat(5,minmax(0,1fr));gap:0}
+ .gax-fact-band div{padding:9px 4px!important;text-align:center!important}
+ .gax-fact-band strong{font-size:17px}
+ .gax-fact-band strong small{font-size:9px}
+ .gax-fact-band span{font-size:8px;line-height:1.25}
+ #race-context{padding-top:14px!important}
+ #race-context .context-main{padding:12px 14px;align-items:center}
+ #race-context .context-main h2{font-size:19px}
+ #runner-tools{padding-top:10px!important}
+ .gax-stations-intro{display:block}
+ .gax-text-link{display:inline-block;margin-top:9px}
+ .gax-station-track{grid-template-columns:repeat(5,minmax(0,1fr));padding:27px 2px 12px}
+ .gax-station-point{padding-inline:2px}
+ .gax-station-km{font-size:17px}
+ .gax-station-point strong{font-size:10px;overflow-wrap:anywhere}
+ .gax-station-point small{font-size:9px}
+ .gax-station-track:before{top:19px}
+ .gax-station-point:before{top:-16px}
+ .gax-landscape-section,.gax-stations-section{padding-top:24px!important;padding-bottom:20px!important}
+ .section-heading h2{font-size:27px}
+}
+@media(max-width:470px){
+ .gax-fact-band div{min-width:0}
+ .gax-fact-band strong{font-size:15px}
+ .gax-fact-band span{font-size:8px}
+ .gax-stages{grid-template-columns:1fr 1fr;gap:8px}
+ .gax-stage{min-height:203px;padding:12px 11px}
+ .gax-stage h3{font-size:18px;margin:31px 0 8px}
+ .gax-stage p{font-size:11px;line-height:1.4}
+ .gax-stage-number{font-size:9px}
+ .gax-stage-tag{font-size:8px}
+ .gax-stage-glyph{font-size:37px}
+ .gax-hero .hero-actions{gap:6px}
+ .gax-hero .btn{padding:7px 10px;font-size:10px}
+ #race-context .context-main{display:flex;flex-wrap:wrap;gap:8px}
+ #race-context .context-main>div{flex:1 1 55%}
+ #race-context .context-main .year-control{flex:1 1 32%;min-width:115px}
+ #race-context .source-status{font-size:10px}
+ .gax-station-km{font-size:15px}
+ .gax-station-point strong{font-size:9px}
+ .gax-station-point small{font-size:8px}
+ .gax-cutoffs table{min-width:360px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* In offline/Pages design mode, avoid repeating the status banner beneath the hero. */
+.gax-is-demo .gax-preview-note{display:none!important}
