@@ -32,6 +32,23 @@ För att aktivera webbsidan första gången: `Settings → Pages → Build and d
 
 Kontrollerna ligger i `tests/test_synthetic_data.py`, `tests/test_offline_preview_browser.py` och `.github/workflows/quality.yml`, inklusive 390px/1440px visningsprov och aktiva profil-/jämförelsedialoger.
 
+## Kartduell med 2026 års GPX – lokalt och utan uppladdning
+
+**Ja, arrangörens officiella 2026-GPX finns som navigationsunderlag:** https://gax100.se/bana-karta/ hänvisar till Garmin-kursen https://connect.garmin.com/app/course/484861455 (GAX100M-2026). Tidigare arkivinventering kunde verifiera kursen men Garmin-proxy gav enbart tomma svar; den fullständiga 2026-koordinatfilen hade därför inte importerats till det nya repot.
+
+För att prova Kartduellen utan att publicera arrangörens GPX:
+
+1. Öppna GitHub Pages-versionen, välj **2026** under Loppår.
+2. Öppna arrangörens Garmin-länk ovan och ladda ned GPX-filen med Garmin Connects exportfunktion (Garmin kan kräva inloggning).
+3. På GAX-sidan, under **Löparjämförelse**, välj **Välj GPX-fil för 2026**.
+4. Välj 2–5 fiktiva löpare, klicka **Öppna Kartduell**, spela eller dra tävlingsklockan.
+
+GPX läses **uteslutande i webbläsarens arbetsminne** och skickas inte till GitHub Pages eller något GAX-API. Den försvinner vid omladdning; byter du år till annat än 2026 är Kartduellen för banan spärrad. Inga ruttpunkter lagras som publika filer. Rättighet att ladda ned för privat navigering är inte liktydigt med licens för webbåterpublicering.
+
+Det **är 2026 års bangeometri, inte löparnas GPS-loggar**. Demoversionens namn, passertider och rörelser är fiktiva och beräknas genom tidsinterpolation mellan modellkontroller. En karta med en rörlig markör är därför inte bevis för en faktiskt uppmätt position. De verkliga löparresultaten berörs inte.
+
+Kontrolleras automatiskt av `tests/test_gax_gpx_local.py` med en syntetisk 152 km-testbana som skapas i testminnet. Testet provar inläsning, 2 löpare, SVG-kartuppspelning, att årsvalet begränsar routen till 2026 samt att GPX aldrig laddas upp eller sparas efter omladdning. **Testbanan följer inte GAX och publiceras aldrig.**
+
 ## Privat resultatdatabas och GDPR
 
 De faktiska 945 deltagarposterna och verkliga kontrolltiderna ligger **endast** i det privata repot `Stayinhealthyrunning/loppanalys-private-data`, i `gax100/fresh/gax100.sqlite`. Dit hör även `gax100/satila_blueprint_adapter.py` och den privata GDPR-publiceringsgrinden `gax100/privacy_release_gate.py`, med Sätilas gemensamma spärrregister samt GAX-ägarintyget om vuxna deltagare.
