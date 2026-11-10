@@ -1321,6 +1321,7 @@ window.SatilaExtras=(()=>{
       $('#sex-completion').after(box);
       $('#group-bars').hidden=false;
       box.appendChild($('#group-bars'));
+      box.insertAdjacentHTML('beforeend','<details class="gax-group-details"><summary>Visa alla grupper, klass, kön och klubb</summary><div id="group-table"></div></details>');
     }
     if(!$('#extra-dynamics')) $('#dynamics').insertAdjacentHTML('beforeend',`<div id="extra-dynamics" class="extra-grid two-up">
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">PLACERINGSFÖRÄNDRING</p><h3>Vem arbetade sig framåt?</h3></div><button class="info" data-help-extra="gain">i</button></div><div id="placement-gain"></div></article>
@@ -1338,7 +1339,6 @@ window.SatilaExtras=(()=>{
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">KÖNSFÖRDELNING</p><h3>Andel kvinnor och män över tid</h3></div><button class="info" data-help-extra="sexhistory">i</button></div><div id="history-sex"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">ÅRENS FINGERAVTRYCK</p><h3>Fyra oberoende mått – inget syntetiskt betyg</h3></div><button class="info" data-help-extra="fingerprint">i</button></div><div id="history-fingerprint"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">COURSEVERSION & PROVENIENS</p><h3>Vad går att jämföra?</h3></div><button class="info" data-help-extra="provenance">i</button></div><div id="course-provenance"></div></article>
-      <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">GRUPPTABELL</p><h3>Kön och klass i valt fält</h3></div><button class="info" data-help-extra="grouptable">i</button></div><div id="group-table"></div></article>
       <article class="panel extra-wide"><div class="panel-heading"><div><p class="eyebrow">KÄLLTÄCKNING</p><h3>Resultat, passager och rutt per år</h3></div><button class="info" data-help-extra="coverage">i</button></div><div id="coverage-table"></div></article>
     </div>`);
   }
