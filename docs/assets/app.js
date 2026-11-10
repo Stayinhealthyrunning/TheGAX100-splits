@@ -219,7 +219,7 @@ function renderDynamics(){
    pacing categories never include a segment whose timing distance is gated. */
 function standoutFinishStrength(profiles){
  const cps=boundaries(),goal=cps.at(-1);
- if(cps.length<4||goal?.name!=='Mål'||!num(goal.km)||goal.km<=0)return[];
+ if(cps.length<4||!(goal?.is_finish||/^(mål|finish)/i.test(goal?.name||''))||!num(goal.km)||goal.km<=0)return[];
  const breakpoint=cps.slice(1,-1).filter(p=>p.km>=goal.km*.55&&p.km<=goal.km*.80)
   .sort((a,b)=>Math.abs(a.km/goal.km-2/3)-Math.abs(b.km/goal.km-2/3))[0];
  if(!breakpoint)return[];
@@ -1284,6 +1284,13 @@ window.SatilaExtras=(()=>{
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">ÅLDER</p><h3>Vilka springer?</h3></div><button class="info" data-help-extra="age">i</button></div><div id="age-chart"></div></article>
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">KLUBB / ORT</p><h3>Största grupperna</h3></div><button class="info" data-help-extra="club">i</button></div><div id="club-chart"></div></article>
     </div>`);
+    if($('#group-bars')&&$('#extra-overview')&&!$('#gax-group-summary')){
+      const box=document.createElement('section');box.id='gax-group-summary';box.className='gax-group-summary';
+      box.innerHTML='<h4>Klasser och kön <small>inom valt resultatfält</small></h4>';
+      $('#sex-completion').after(box);
+      $('#group-bars').hidden=false;
+      box.appendChild($('#group-bars'));
+    }
     if(!$('#extra-dynamics')) $('#dynamics').insertAdjacentHTML('beforeend',`<div id="extra-dynamics" class="extra-grid two-up">
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">PLACERINGSFÖRÄNDRING</p><h3>Vem arbetade sig framåt?</h3></div><button class="info" data-help-extra="gain">i</button></div><div id="placement-gain"></div></article>
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">SISTA TREDJEDELEN</p><h3>Avslutningens progression</h3></div><button class="info" data-help-extra="finishprogress">i</button></div><div id="finish-progression"></div></article>
@@ -1390,11 +1397,10 @@ window.SatilaExtras=(()=>{
     const started=fs.length+dnfs.length+S.filtered.filter(r=>r.status==='DSQ').length;
     const dims=[
       ['GAX100-arrangörens-distans',fmtKm(eqTimingKm(S.race))+' km','Originalfält för resultat- och kontrollaxeln'],
-      ['Arrangörsdistans',num(S.race.organizer_advertised_km)?fmtKm(S.race.organizer_advertised_km)+' km':'—',num(S.race.organizer_advertised_km)?'Separat källbelagd annonserad distans':'Ingen separat källbelagd uppgift'],
       ['Publika kontroller',S.race.stations.filter(s=>s.is_analysis_boundary).length,'Stationsmetadata, även utan TIME'],
       ['Median sluttid',fs.length>=5?time(median(fs.map(r=>r.finish_seconds))):'—','n='+fs.length],
       ['DNF-andel',started?(100*dnfs.length/started).toFixed(1).replace('.',',')+' %':'—','FINISHED + DNF + DSQ som startnämnare'],
-      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km)+' km':'—',S.route?(S.race.route_status==='participant_track_display_only'?'Verifierat deltagarspår · endast display':'Arrangörens GPX'):'Saknas för upplagan'],
+      ['Displayrutt',S.route?fmtKm(S.route.geometry_length_km??S.route.points?.at(-1)?.[0])+' km':'—',S.route?(S.race.route_status==='participant_track_display_only'?'Verifierat deltagarspår · endast display':'Arrangörens GPX'):'Saknas för upplagan'],
       ['Rå GPX D+',S.route&&num(S.route.raw_positive_gain_m_not_official)?Math.round(S.route.raw_positive_gain_m_not_official)+' m':'—',S.route&&!num(S.route.raw_positive_gain_m_not_official)?'Höjddata saknas i källspåret':'Ej officiell höjdmetrik']
     ];
     const seg=currentSeg();
@@ -1442,11 +1448,11 @@ window.SatilaExtras=(()=>{
     const coverage=await loadCoverage();
     if(S.family!==family)return;
     if(!coverage){host.innerHTML=empty('Källtäckningsfilen kunde inte läsas.');return}
-    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>a.year-b.year).map(e=>{
-      const known=e.sex_known,coverageRate=e.results?known/e.results:0;
-      return {...e,coverageRate,pf:known&&coverageRate>=.8?100*e.sex_f/known:null};
+    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>a.year-b.year||(a.edition_label||'').localeCompare(b.edition_label||'')).map(e=>{
+      const known=Number(e.sex_known)||0,coverageRate=e.results?known/e.results:0;
+      return {...e,coverageRate,pf:known&&coverageRate>=.8?100*(Number(e.sex_f)||0)/known:null};
     });
-    host.innerHTML=rows.some(e=>num(e.pf))?`<div class="sex-history-bars">${rows.map(e=>`<div><span>${e.year}</span><div class="stack">${num(e.pf)?`<i class="women" style="width:${e.pf}%"></i><i class="men" style="width:${100-e.pf}%"></i>`:''}</div><strong>${num(e.pf)?e.pf.toFixed(0)+' % K':'—'}</strong><small>${e.sex_f} K · ${e.sex_m} M · ${e.results-e.sex_known} utan kön · täckning ${(100*e.coverageRate).toFixed(0)} %${e.coverageRate<.8?' (trend dold under 80 %)':''}</small></div>`).join('')}</div>`:empty('Inget år når minst 80 % källstödd könstäckning.');
+    host.innerHTML=rows.some(e=>num(e.pf))?`<p class="small muted">${S.race?.demo_only?'DESIGNDEMO: kvinno- och mansfördelningen är simulerad; 2026 har kalibrerats mot offentliga årssummor. Ingen historisk könstrend kan utläsas.':'Andelar visas bara där könstäckningen är minst 80 %.'}</p><div class="sex-history-bars">${rows.map(e=>`<div><span>${html(e.edition_label||e.year)}</span><div class="stack">${num(e.pf)?`<i class="women" style="width:${e.pf}%"></i><i class="men" style="width:${100-e.pf}%"></i>`:''}</div><strong>${num(e.pf)?e.pf.toFixed(0)+' % K':'—'}</strong><small>${e.sex_f} K · ${e.sex_m} M · ${e.results-e.sex_known} utan kön · täckning ${(100*e.coverageRate).toFixed(0)} %${e.coverageRate<.8?' (trend dold under 80 %)':''}</small></div>`).join('')}</div>`:empty('Inget år når minst 80 % källstödd könstäckning.');
   }
 
   function renderFingerprint(){const h=$('#history-fingerprint');if(!h)return;const ed=historyEditions(),maxR=Math.max(1,...ed.map(e=>e.results)),maxT=Math.max(1,...ed.map(e=>e.timing_stations||0)),maxM=Math.max(1,...ed.map(e=>e.median_seconds||0)),maxD=Math.max(1,...ed.map(e=>e.results?100*e.dnf/e.results:0));h.innerHTML=`<div class="finger-table"><div class="finger-head"><b>År</b><b>Volym</b><b>Stationer</b><b>Median</b><b>DNF</b></div>${ed.map(e=>{const d=e.results?100*e.dnf/e.results:0;return `<div><b>${e.year}</b>${[[e.results/maxR,e.results],[ (e.timing_stations||0)/maxT,e.timing_stations||0],[ (e.median_seconds||0)/maxM,time(e.median_seconds)],[d/maxD,d.toFixed(1)+' %']].map(([p,v])=>`<span><i style="--v:${Math.max(0,p)*100}%"></i><em>${esc(v)}</em></span>`).join('')}</div>`}).join('')}</div>`}
