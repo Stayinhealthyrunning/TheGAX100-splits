@@ -25,22 +25,30 @@ jobs:
           set -euo pipefail
           for js in docs/assets/*.js; do node --check "$js"; done
       - name: Verify official GAX aggregates and empty public individual-data files
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B tests/test_blueprint_contract.py
       - name: Verify all 945 fictional identities, sexes, splits and cutoff constraints
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B tests/test_synthetic_data.py
       - name: Build synthetic offline GAX review
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B scripts/build_offline_preview.py --docs docs --out preview/GAX100-UI-DEMO.html
       - name: Install browser for actual preview acceptance
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: |
           python3 -m pip install --disable-pip-version-check playwright==1.56.0
           python3 -m playwright install --with-deps chromium
       - name: Test 390px mobile and 1440px desktop, profiles and comparisons
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B tests/test_offline_preview_browser.py --file preview/GAX100-UI-DEMO.html
       - name: Built-in maps, zoom and individual and comparison replay
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B tests/test_gax_gpx_local.py --file preview/GAX100-UI-DEMO.html
       - name: Complete eight-point GAX UX and historic GPX metadata review
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         run: python3 -B tests/test_gax_full_ux_review.py --file preview/GAX100-UI-DEMO.html
       - name: Verify only test names in generated output
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' }}
         shell: bash
         run: |
           python3 - <<'PY'
@@ -53,12 +61,15 @@ jobs:
           print('GAX100_OSTERLEN_PASS: 14 years, 945 synthetic Swedish names, modeled splits, original person data excluded')
           PY
       - name: Make safe, standalone GAX design demo downloadable
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        if: ${{ hashFiles('docs/data/release-manifest.json') == '' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
         uses: actions/upload-artifact@v4
         with:
           name: GAX100-OSTERLEN-DESIGNDEMO
           path: preview/GAX100-UI-DEMO.html
           if-no-files-found: error
           retention-days: 7
+      - name: Verify and stage filtered production files
+        if: ${{ hashFiles('docs/data/release-manifest.json') != '' }}
+        run: python3 -B scripts/build_pages.py --docs docs --out production-check
 # The uploaded HTML is verified synthetic ONLY. No private registry,
 # actual participant files or actual GAX control observations are processed.

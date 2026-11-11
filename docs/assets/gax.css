@@ -322,3 +322,7 @@ a{transition:color .16s}
 .gax-course-layers summary{cursor:pointer;font-weight:700}
 #gax-course-layer-choices{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0}
 #gax-course-layer-choices label{font-size:.88rem}
+
+.gax-production-copy{display:none}
+.gax-production .gax-production-copy{display:inline}
+.gax-production :is(.gax-preview-note,.gax-demo-copy){display:none}
