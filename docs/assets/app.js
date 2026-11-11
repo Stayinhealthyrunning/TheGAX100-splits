@@ -601,7 +601,7 @@ function gaxDisplayRoute(year){
 }
 
 function gaxReplayRoute(edition,race){
-  const display=race.demo_only?gaxDisplayRoute(edition.year):null;
+  const display=(race.demo_only||document.documentElement.classList.contains("gax-production"))?gaxDisplayRoute(edition.year):null;
   if(!display)return null;
   // The first point after a gap shares the prior cumulative distance.
   // Preserve its break marker for rendering and map hit-testing.
@@ -611,7 +611,7 @@ function gaxReplayRoute(edition,race){
 
 function replayMapSource(){
   return S.route?.display?S.route.evidence_note+
-    ' Uppspelningen bygger på fiktiva passertider och beräknade positioner.'+
+    (S.race?.demo_only?' Uppspelningen bygger på fiktiva passertider och beräknade positioner.':' Markörerna visar beräknade positioner mellan tillgängliga tidsankare.')+
     (S.route.display.runs.length>1?' Markören hoppar över luckor i spåret.':''):'';
 }
 
@@ -1323,7 +1323,7 @@ function openMapDuel(){
   const pts=routePoints(),maxClock=Math.ceil(Math.max(0,...data.map(item=>item.anchors.at(-1).t)));
   let clock=0,playing=false,startedAt=0,startedClock=0;
   S.mapDuelCamera='full';
-  host.innerHTML=`<p class="muted small">${S.race?.demo_only?html(replayMapSource()):'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
+  host.innerHTML=`<p class="muted small">${S.route?.display?html(replayMapSource()):'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
   dialog.showModal();
   const map=$('#map-duel-map'),elev=$('#map-duel-elevation'),play=$('#map-duel-play'),range=$('#map-duel-clock');
   replaySoundtrack.bind(host);
