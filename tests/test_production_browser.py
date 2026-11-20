@@ -34,7 +34,7 @@ def check(site: Path):
             assert page.locator("#gax-title").inner_text().strip().lower() == "gax100 splits"
             page.wait_for_function("() => {const x=document.querySelector('.gax-hero-image');return x?.complete && x.naturalWidth >= 1100;}",timeout=16000)
             assert page.locator(".gax-hero-image").get_attribute("src")=="assets/hero-ales-stenar-trail-runners.webp"
-            assert "GAX100 Analys 1.2" in page.title()
+            assert "GAX100 Analys 1.3" in page.title()
             assert page.locator(".gax-station-point.gax-station-terminal").count() == 2
             assert page.locator(".gax-cutoffs tbody tr").count() >= 9
             config = page.evaluate("() => fetch('data/replay-audio.json').then(r => r.json())")
