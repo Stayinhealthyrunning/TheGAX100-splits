@@ -146,6 +146,9 @@ def main(path):
     official=json.loads((DATA/'official-result-classification.json').read_text(encoding='utf-8'))
     previous=json.loads((DATA/'name-based-classification.json').read_text(encoding='utf-8'))
     bootstrap=json.loads((DATA/'bootstrap.json').read_text(encoding='utf-8'))
+    manual=json.loads((DATA/'manual-result-classification.json').read_text(encoding='utf-8'))
+    if manual.get('schema')!='gax100-manual-analytical-group-1':
+        raise ValueError('Missing manual analytical group provenance')
     if official.get('schema')!='gax100-confirmed-race-classification-1' or previous.get('schema')!='gax100-first-name-statistical-estimate-1':
         raise ValueError('Expected existing privacy/source schemas')
     # Cross-check SCB's majority with EXPLICIT classes for the same given
@@ -170,9 +173,10 @@ def main(path):
         released={str(r['id']):r for r in race['results']}
         confirmed={str(x['result_id']):x['sex'] for x in official.get('editions',{}).get(key,[])}
         existing={str(x['result_id']):x for x in previous.get('editions',{}).get(key,[])}
+        owner_groups={str(x['result_id']) for x in manual.get('editions',{}).get(key,[])}
         entries=[]
         for result_id,row in released.items():
-            if row.get('sex') in ('F','M') or result_id in confirmed:
+            if row.get('sex') in ('F','M') or result_id in confirmed or result_id in owner_groups:
                 continue
             first=runner_first_name(row.get('name'))
             if not first:continue

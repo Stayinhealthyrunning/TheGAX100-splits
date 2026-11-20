@@ -9,7 +9,7 @@ const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const positiveInt=v=>Number.isInteger(v)&&v>0;
 const sexOf=r=>r?.sex==='F'||r?.sex==='M'?r.sex:null;
 const finish=r=>r?.status==='FINISHED'&&finite(r.finish_seconds)&&r.finish_seconds>0;
-function reconcile(race,doc,nameDoc){
+function reconcile(race,doc,nameDoc,manualDoc){
  if(!race||!Array.isArray(race.results)||race.demo_only||race.release_state==='PRIVATE_DATA_WITHHELD')
    return{race_key:race?.race_key,applied:0,finish:0};
  const publishedFinishers=race.results.filter(finish);
@@ -60,6 +60,22 @@ function reconcile(race,doc,nameDoc){
    if(!fromApi&&!fromCohort&&!fromScb)throw Error('GAX first-name estimate lacks required supporting statistics');
    estimateLookup.set(key,estimate);
  }
+ // Manually supplied analytical groups are neither verified race classes
+ // nor statistical first-name estimates. Never set the official row.sex.
+ const manualEntries=manualDoc?.schema==='gax100-manual-analytical-group-1'
+   ?manualDoc.editions?.[race.race_key]:null;
+ if(!Array.isArray(manualEntries))
+   throw Error('GAX manual analytical group overlay missing or invalid');
+ const manualLookup=new Map();
+ for(const entry of manualEntries){
+   const key=String(entry.result_id),row=allPublic.get(key);
+   if(!row||manualLookup.has(key)||lookup.has(key)||estimateLookup.has(key)||sexOf(row)||
+     row.status!==entry.status||!['M','F'].includes(entry.group_sex)||
+     entry.method!=='user_manual_unverified_2026_11_20'||
+     Object.keys(entry).sort().join(',')!=='group_sex,method,result_id,status')
+     throw Error('GAX manual group conflicts with released or verified data');
+   manualLookup.set(key,entry);
+ }
  for(const row of race.results){
    row.source_reported_place=positiveInt(row.place)?row.place:null;
    if(!finish(row)){
@@ -86,6 +102,12 @@ function reconcile(race,doc,nameDoc){
    row.name_based_method=estimate.method;
    row.name_based_evidence_count=estimate.evidence_count;
    row.name_based_probability=estimate.probability??null;
+ }
+ for(const row of race.results){
+   const manual=manualLookup.get(String(row.id));
+   if(!manual||sexOf(row))continue;
+   row.manual_group_sex=manual.group_sex;
+   row.manual_group_provenance='user_supplied_unverified';
  }
  const sorted=publishedFinishers.slice().sort((a,b)=>
    a.finish_seconds-b.finish_seconds||String(a.id).localeCompare(String(b.id)));
@@ -123,7 +145,7 @@ function reconcile(race,doc,nameDoc){
  }
  return{race_key:race.race_key,applied:updates.length,finish:publishedFinishers.length,
    classified:publishedFinishers.filter(r=>sexOf(r)).length,
-   estimated:estimateLookup.size,
+   estimated:estimateLookup.size,manual:manualLookup.size,
    derivedOverall:publishedFinishers.filter(r=>r.place_provenance==='computed_from_official_finish_time').length,
    sourceOverall:publishedFinishers.filter(r=>r.place_provenance!=='computed_from_official_finish_time').length};
 }

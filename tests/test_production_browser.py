@@ -132,6 +132,32 @@ def check(site: Path):
             # Name estimates must NOT turn into an official class in the raw data.
             raw_2024=page.request.get(f"http://127.0.0.1:{server.server_port}/data/races/2024-gax100.json").json()
             assert all(r["sex"] is None for r in raw_2024["results"]), "Source manifest bundles must remain byte-for-byte unchanged"
+            # Owner-provided groups must be visible to analysis but MUST NOT
+            # be reported as official sex/classes. Keep the anonymous record unknown.
+            manual=page.request.get(f"http://127.0.0.1:{server.server_port}/data/manual-result-classification.json").json()
+            assert sum(map(len,manual["editions"].values()))==18
+            browser_manual=page.evaluate("""async () => {
+              const key='2019-gax100';
+              const [race,official,est,manual]=await Promise.all([
+                fetch('data/races/'+key+'.json').then(r=>r.json()),
+                fetch('data/official-result-classification.json').then(r=>r.json()),
+                fetch('data/name-based-classification.json').then(r=>r.json()),
+                fetch('data/manual-result-classification.json').then(r=>r.json())
+              ]);
+              window.GaxResultIntegrity.reconcile(race,official,est,manual);
+              const entry=manual.editions[key][0];
+              const marked=race.results.find(r=>r.id===entry.result_id);
+              const unnamed=race.results.find(r=>r.name==='N N');
+              return {originalSex:marked.sex,manualGroup:marked.manual_group_sex,
+                officialRank:marked.class_place,unnamedSex:unnamed?.sex,
+                unnamedManual:unnamed?.manual_group_sex,unnamedEstimate:unnamed?.name_based_sex};
+            }""")
+            assert browser_manual["originalSex"] is None
+            assert browser_manual["manualGroup"]=="M"
+            assert browser_manual["officialRank"] is None
+            assert browser_manual["unnamedSex"] is None
+            assert browser_manual["unnamedManual"] is None
+            assert browser_manual["unnamedEstimate"] is None
             # The map-playback time anchors must use actual EQ TIMES and
             # resolve only their positions from the estimated 44/80/130 km.
             anchors = page.evaluate("""async () => {

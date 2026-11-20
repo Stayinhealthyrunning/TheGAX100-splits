@@ -175,7 +175,33 @@ def stage(docs, output):
                           estimate["evidence_count"]>=30,
                           "Weak SCB 2022 sex-separated name prevalence evidence")
                 else:check(False,"Unknown name-estimate method")
-        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json", "name-based-classification.json"}
+        # Manual site-owner assignments are UNVERIFIED analytical groups.
+        # They never alter official results, verified classes or SCB frequencies.
+        manual=load(data/"manual-result-classification.json")
+        check(manual.get("schema")=="gax100-manual-analytical-group-1" and
+              manual.get("source")=="site_owner_supplied_in_chat_2026-11-20",
+              "Unknown source for manual analytical groups")
+        check(set(manual.get("editions",{}))==expected_keys,
+              "Manual overlay must have one list for each released edition")
+        for edition_key,entries in manual["editions"].items():
+            original=load(data/"races"/(edition_key+".json"))
+            allowed={str(row["id"]):row for row in original["results"]}
+            confirmed={str(x["result_id"]) for x in source_classes.get("editions",{}).get(edition_key,[])}
+            guessed={str(x["result_id"]) for x in entries_by_year.get(edition_key,[])}
+            seen=set()
+            for entry in entries:
+                check(set(entry)=={"result_id","status","group_sex","method"},
+                      "Manual analytical group carries unexpected attributes")
+                token=str(entry["result_id"])
+                check(token not in seen and token not in confirmed and token not in guessed,
+                      "Manual group duplicates or overrides an existing class")
+                seen.add(token)
+                row=allowed.get(token)
+                check(row is not None and row["status"]==entry["status"] and
+                      row.get("sex") not in ("F","M") and entry["group_sex"] in ("F","M") and
+                      entry["method"]=="user_manual_unverified_2026_11_20",
+                      "Manual group does not match an unclassified, released result")
+        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json", "name-based-classification.json", "manual-result-classification.json"}
         for name in files:
             target = output / "data" / name
             target.parent.mkdir(parents=True, exist_ok=True)
