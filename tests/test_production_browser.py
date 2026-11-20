@@ -212,7 +212,7 @@ def check(site: Path):
             assert "Ingen tidsförankrad kartjämförelse" in page.locator("#compare-content").inner_text()
             page.locator("#compare-dialog [data-close='compare-dialog']").click()
             page.locator("#results-table [data-open]").first.click()
-            page.locator("[data-profile-tab='replay']").first.click()
+            page.locator("[data-profile-section='profile-replay']").first.click()
             assert "utan tidsförankrad Replay" in page.locator("#profile-replay-stage").inner_text()
             assert page.locator("#profile-replay-play").count()==0
             page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
