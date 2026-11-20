@@ -106,7 +106,7 @@ def stage(docs, output):
                 shutil.copyfile(sound, dest)
             else:
                 print("Audio asset not yet present in GitHub; replay remains available without music")
-        files |= {"course-display.json", "route-candidates.json", "route-inventory.json"}
+        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json"}
         for name in files:
             target = output / "data" / name
             target.parent.mkdir(parents=True, exist_ok=True)
