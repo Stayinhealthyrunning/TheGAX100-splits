@@ -81,7 +81,7 @@ const replaySoundtrack={
   close(){this.playing=false;this.audio?.pause();if(this.audio){this.audio.currentTime=0;this.audio.src='';this.audio=null;}this.root=null;this.available=false;}
 };
 
-const key='gax100-analys-favorites-v1';let S={boot:null,family:'gax100',year:null,editionKey:null,race:null,route:null,verifiedClassifications:null,routeByFamily:{},filtered:[],page:0,sort:'place',q:'',sex:'all',status:'all',className:'all',club:'',clubExact:false,clubOptions:[],clubSuggestionIndex:-1,unit:'pace',finishSex:new Set(['F','M']),selectedSegment:0,podiumStart:0,podiumEnd:1,standoutTab:'relative',compare:[],mapDuel:[],favorites:readCache(key),searchIndex:-1,mapDuelSearchIndex:-1,loading:0,courseD:null,duelD:null,placementWindow:null,segmentSeriesMode:'all'};
+const key='gax100-analys-favorites-v1';let S={boot:null,family:'gax100',year:null,editionKey:null,race:null,route:null,verifiedClassifications:null,manualClassifications:null,routeByFamily:{},filtered:[],page:0,sort:'place',q:'',sex:'all',status:'all',className:'all',club:'',clubExact:false,clubOptions:[],clubSuggestionIndex:-1,unit:'pace',finishSex:new Set(['F','M']),selectedSegment:0,podiumStart:0,podiumEnd:1,standoutTab:'relative',compare:[],mapDuel:[],favorites:readCache(key),searchIndex:-1,mapDuelSearchIndex:-1,loading:0,courseD:null,duelD:null,placementWindow:null,segmentSeriesMode:'all'};
 const HELP={finish:'Officiella sluttider för FINISHED. Samma 15-minutersbin används för alla könsserier. DNS, DNF och UNKNOWN ingår inte i histogrammet. Kvinna/man visas endast för källstödd uppgift.',percentiles:'P10, P25, P50, P75 och P90 är kvantiler av giltiga sluttider hos fullföljare i det aktuella fälturvalet. Median visas först vid n ≥ 5. Inga saknade tider blir noll.',podium:'Placering bland kvinnor respektive män bestäms av giltiga officiella målgångar eller positiva segmenttider mellan två valda, exakta observationer. Bilder från sociala medier används inte; initialavatarer visas.',groups:'Kön, klass, ålder och klubb/ort härleds enbart från publicerade GAX100-arrangörens-fält. Ett filtrerat urval påverkar fältstatistik men inte sökfunktionen.',status:'Anmälda är alla publicerade resultatrader i urvalet. Startande kräver känd startstatus (FINISHED + DNF + DSQ); en post med okänd status räknas inte som bekräftad start. DNF och Fullföljt visar respektive källstatus; DSQ och okänd status redovisas inte som egna delar här.',flow:'Visar antal verkliga TIME-registreringar vid varje publik kontroll för urvalets löpare. Trivial Start=100 % utelämnas. En saknad passage innebär inte i sig DNF.',placement:'Endast FINISHED med verklig sluttid och publicerad totalplacering. Klick på en punkt för att öppna löparprofilen.',standouts:'Ovanliga prestationer beräknas inom en edition från två verkliga tidtagningspassager. Minst fem giltiga observationer krävs där en gruppmedian används. Ingen personidentitet mellan år antas.',segments:'En segmenttid kräver två verkliga och tidsmässigt positiva passager. Start=0 används före första observerade kontroll. Delsträckans distans kommer från källans timingaxel, inte från GPS-vägens längd. Median n ≥ 5; Q25–Q75 n ≥ 10.',course:'Källbelagd arrangörs- eller deltagargeometri används som displayrutt ovanpå OpenStreetMap med sin redovisade proveniens. Deltagarspår är inte officiell ban- eller tidtagningsevidens. Kartposition mellan verifierade ändankare är illustrativ; rå D+ är inte officiell höjdmetrik.',plan:'Måltiden fördelas efter medianen av exakta segmenttidsandelar (segmenttid / sluttid) inom vald edition och kohort, minst fem per segment. Saknas historiskt underlag används explicit timingdistans som märkt fallback. Värdena normaliseras till exakt hela måltiden; planen är en pacingreferens, inte prognos.',history:'Deltagarantal, fullföljare och status kan visas för alla källstödda år. Enskilda års mediantider redovisas separat men kopplas inte till en gemensam utvecklingskurva utan verifierad whole-course-jämförbarhet. År 2020 har ingen importkälla i arkivet.'};
 HELP.placement+=' okänd status räknas inte som bekräftad start.';
 function showHelp(title,body){$('#help-title').textContent=title||'Metod';$('#help-content').textContent=`${body||'Beskrivning saknas.'} Visningen utgår alltid från det aktuella urvalet och publicerade källfält. Saknade värden visas som saknade och ersätts aldrig med antaganden.`;$('#help-dialog').showModal()}
@@ -97,12 +97,15 @@ const analyticalSex=r=>{
   const source=r?.sex==='F'||r?.sex==='M'?r.sex:null,fromClass=explicitClassSex(r);
   if(source&&fromClass&&source!==fromClass)return null;
   if(source)return source;
-  // Explicit lower-trust category; never write it back to the official race sex.
+  // Site-owner input is an UNVERIFIED analytical grouping, not official sex.
+  const manual=r?.manual_group_sex==='F'||r?.manual_group_sex==='M'?r.manual_group_sex:null;
+  if(manual)return !fromClass||fromClass===manual?manual:null;
   const estimate=r?.name_based_sex==='F'||r?.name_based_sex==='M'?r.name_based_sex:null;
   return !fromClass||fromClass===estimate?estimate:null;
 };
 const sexLabel=r=>{
   const sex=analyticalSex(r),label=sex==='F'?'Kvinna':sex==='M'?'Man':'Okänt/inkonsekvent';
+  if(r?.manual_group_sex&&!['F','M'].includes(r.sex))return label+' (manuellt angivet, ej verifierat)';
   return r?.name_based_sex&&r?.sex!=='F'&&r?.sex!=='M'?label+' (namnstatistiskt uppskattat)':label;
 };
 function records(){return S.race?.results||[]}
@@ -199,16 +202,18 @@ function subset(){let list=records().filter(r=>(S.sex==='all'||analyticalSex(r)=
 function updateQuery(mode='replace'){let hash=new URLSearchParams(location.hash.includes('=')?location.hash.slice(1):'');hash.set('family',S.family);hash.set('year',S.year);if(S.editionKey)hash.set('edition',S.editionKey);if(mode==='push')for(const key of ['compareA','compareB','compareTime','compareSegment','mapDuel','mapDuelTime'])hash.delete(key);let target='#'+hash.toString();if(location.hash===target)return;if(mode==='push')history.pushState(null,'',target);else if(mode==='replace')history.replaceState(null,'',target);}
 function requestedEdition(){const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));return {family:hash.get('family')||query.get('family'),year:Number(hash.get('year')||query.get('year'))||null,edition:hash.get('edition')||query.get('edition')||null}}
 function parseQuery(){const requested=requestedEdition(),family=requested.family;if(family==='gax100')S.family=family;const year=requested.year;if(year&&S.boot.editions.some(e=>e.family===S.family&&e.year===year))S.year=year;if(requested.edition&&S.boot.editions.some(e=>e.race_key===requested.edition)){S.editionKey=requested.edition;S.year=S.boot.editions.find(e=>e.race_key===requested.edition).year;}}
-async function init(){try{[S.boot,S.courseDisplay,S.verifiedClassifications,S.nameEstimates]=await Promise.all([
+async function init(){try{[S.boot,S.courseDisplay,S.verifiedClassifications,S.nameEstimates,S.manualClassifications]=await Promise.all([
   fetch('data/bootstrap.json').then(r=>{if(!r.ok)throw Error('Katalogen kunde inte läsas ('+r.status+')');return r.json()}),
   fetch('data/course-display.json').then(r=>r.ok?r.json():[]).catch(()=>[]),
   fetch('data/official-result-classification.json').then(r=>r.ok?r.json():null).catch(()=>null),
-  fetch('data/name-based-classification.json').then(r=>r.ok?r.json():null).catch(()=>null)
+  fetch('data/name-based-classification.json').then(r=>r.ok?r.json():null).catch(()=>null),
+  fetch('data/manual-result-classification.json').then(r=>r.ok?r.json():null).catch(()=>null)
 ]);window.SatilaMultiYearComparison?.init?.({boot:S.boot,getRoute:gaxReplayRoute,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
 async function loadRace(historyMode='replace'){window.SatilaMultiYearComparison?.captureCurrentSelection?.();let id=++S.loading;let ed=S.boot.editions.find(e=>e.race_key===S.editionKey)||S.boot.editions.find(e=>e.family===S.family&&e.year===S.year);if(!ed)return;S.editionKey=ed.race_key;S.year=ed.year;$('#race-title').textContent=`${famLabel(S.family)} · ${ed.edition_label||S.year}`;$('#race-subtitle').textContent=ed.date?ed.label+' · '+ed.date:ed.label;$('#source-indicator').textContent='Hämtar publicerade resultatdata…';let race;try{let req=await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`);if(!req.ok)throw Error('Detta lopp saknar datafil ('+req.status+')');race=await req.json();}catch(err){if(id!==S.loading)return;S.race=null;S.route=null;$('#source-indicator').textContent='Kunde inte hämta tävlingsdata: '+err.message;$('#source-indicator').setAttribute('role','alert');$('#race-subtitle').textContent='Upplagan kan inte visas just nu. Välj ett annat år eller försök igen.';$('#segment-table tbody').innerHTML='';$('#results-table tbody').innerHTML='';return;}if(id!==S.loading)return;$('#source-indicator').removeAttribute('role');
 try{
   if(!race.demo_only&&race.release_state!=='PRIVATE_DATA_WITHHELD'&&S.verifiedClassifications?.schema!=='gax100-confirmed-race-classification-1')throw Error('Verifierade klassuppgifter saknas i offentlig produktionsutgåva');
-  S.resultAudit=window.GaxResultIntegrity?.reconcile(race,S.verifiedClassifications,S.nameEstimates);
+  if(!race.demo_only&&race.release_state!=='PRIVATE_DATA_WITHHELD'&&S.manualClassifications?.schema!=='gax100-manual-analytical-group-1')throw Error('Manuell källklassificering saknas i offentlig produktionsutgåva');
+  S.resultAudit=window.GaxResultIntegrity?.reconcile(race,S.verifiedClassifications,S.nameEstimates,S.manualClassifications);
 }catch(error){
   S.race=null;S.route=null;
   $('#source-indicator').textContent='Resultatkontroll misslyckades – osäkra klass-/placeringsuppgifter visas inte';
@@ -297,10 +302,11 @@ function podiumPair(objs,limit=3){
   // results, nor turn a statistical estimate into an official medal.
   const known=objs.filter(x=>analyticalSex(x.r)),unknown=objs.length-known.length;
   const estimated=objs.filter(x=>x.r.name_based_sex&&!['F','M'].includes(x.r.sex)).length;
+   const manual=objs.filter(x=>x.r.manual_group_sex&&!['F','M'].includes(x.r.sex)).length;
   const item=(o,i,rank)=>{
     const medal=rank??i+1,officialRank=Number.isInteger(o.r.class_place)&&
       ['duv_confirmed_class','published_class','computed_complete_class'].includes(o.r.class_place_provenance);
-    return `<button class="podium-row" type="button" data-open="${html(o.r.id)}"><span class="medal medal-${Math.min(medal,3)}">${medal}</span><span class="avatar" aria-hidden="true">${html(initial(o.r.name))}</span><span><strong>${html(o.r.name)}</strong><small>${html(o.r.class_name||'Klass saknas')} · ${o.r.place?'total #'+html(o.r.place):'totalplacering saknas'}${o.r.name_based_sex&&!['F','M'].includes(o.r.sex)?' · NAMNUPPSKATTAT':''}${officialRank?' · klass #'+html(o.r.class_place):''}</small></span><span class="finish">${html(o.value)}</span></button>`;
+    return `<button class="podium-row" type="button" data-open="${html(o.r.id)}"><span class="medal medal-${Math.min(medal,3)}">${medal}</span><span class="avatar" aria-hidden="true">${html(initial(o.r.name))}</span><span><strong>${html(o.r.name)}</strong><small>${html(o.r.class_name||'Klass saknas')} · ${o.r.place?'total #'+html(o.r.place):'totalplacering saknas'}${o.r.name_based_sex&&!['F','M'].includes(o.r.sex)?' · NAMNUPPSKATTAT':''}${o.r.manual_group_sex&&!['F','M'].includes(o.r.sex)?' · MANUELL GRUPP':''}${officialRank?' · klass #'+html(o.r.class_place):''}</small></span><span class="finish">${html(o.value)}</span></button>`;
   };
   const groups=['F','M'].map(sex=>{
     const members=objs.filter(x=>analyticalSex(x.r)===sex);
@@ -314,11 +320,11 @@ function podiumPair(objs,limit=3){
       verifiedRanked.some(x=>x.r.class_place===1);
     const candidates=verifiedRanked.length?verifiedRanked:ranked.slice(0,limit);
     const title=sex==='F'?'KVINNOR':'MÄN';
-    const note=(unknown||estimated)?
+    const note=(unknown||estimated||manual)?
       '<p class="muted small">Resultaten omfattar '+unknown+' utan klass och '+estimated+
-      ' med namnstatistiskt uppskattad grupp. Källverifierade klassplaceringar markeras särskilt; övriga är inte officiella pallplaceringar.</p>':'';
+      ' med namnstatistiskt uppskattad grupp och '+manual+' med manuellt angiven, ej verifierad grupp. Källverifierade klassplaceringar markeras särskilt; övriga är inte officiella pallplaceringar.</p>':'';
     return '<div class="podium-group"><h4>'+title+' <small>n='+members.length+
-      (unknown||estimated?' · ofullständig klassindelning':'')+'</small></h4>'+
+      (unknown||estimated||manual?' · ofullständig klassindelning':'')+'</small></h4>'+
       note+candidates.map((o,i)=>item(o,i,verifiedRanked.length?o.r.class_place:null)).join('')+
       (!members.length?'<p class="muted small">Ingen redovisad prestation med klassuppgift.</p>':'')+'</div>';
   }).join('');
@@ -1748,7 +1754,7 @@ window.SatilaExtras=(()=>{
     const editions=coverage.filter(e=>e.family===family)
       .sort((a,b)=>a.year-b.year||(a.edition_label||'').localeCompare(b.edition_label||''));
     const rows=await Promise.all(editions.map(async e=>{
-      let officialF=0,officialM=0,estimatedF=0,estimatedM=0,unclassified=0;
+      let officialF=0,officialM=0,estimatedF=0,estimatedM=0,manualF=0,manualM=0,unclassified=0;
       try{
         const race=await fetch('data/races/'+encodeURIComponent(e.race_key)+'.json')
           .then(r=>{if(!r.ok)throw Error('Missing race');return r.json()});
@@ -1756,13 +1762,17 @@ window.SatilaExtras=(()=>{
           .map(entry=>[String(entry.result_id),entry.sex]));
         const guessed=new Map((S.nameEstimates?.editions?.[e.race_key]||[])
           .map(entry=>[String(entry.result_id),entry.estimated_sex]));
+        const manually=new Map((S.manualClassifications?.editions?.[e.race_key]||[])
+          .map(entry=>[String(entry.result_id),entry.group_sex]));
         for(const r of race.results){
           const sex=r.sex==='F'||r.sex==='M'?r.sex:verified.get(String(r.id));
           if(sex==='F')officialF++;
           else if(sex==='M')officialM++;
           else{
-            const estimate=guessed.get(String(r.id));
-            if(estimate==='F')estimatedF++;
+            const manual=manually.get(String(r.id)),estimate=guessed.get(String(r.id));
+            if(manual==='F')manualF++;
+            else if(manual==='M')manualM++;
+            else if(estimate==='F')estimatedF++;
             else if(estimate==='M')estimatedM++;
             else unclassified++;
           }
@@ -1771,10 +1781,10 @@ window.SatilaExtras=(()=>{
         officialF=e.sex_f||0;officialM=e.sex_m||0;
         unclassified=Math.max(0,(e.results||0)-officialF-officialM);
       }
-      const women=officialF+estimatedF,men=officialM+estimatedM;
+      const women=officialF+estimatedF+manualF,men=officialM+estimatedM+manualM;
       const known=women+men,coverageRate=e.results?known/e.results:0;
       return {...e,sex_f:women,sex_m:men,sex_known:known,
-        official_known:officialF+officialM,estimated:estimatedF+estimatedM,
+        official_known:officialF+officialM,estimated:estimatedF+estimatedM,manual:manualF+manualM,
         unclassified,coverageRate,pf:known&&coverageRate>=.8?100*women/known:null};
     }));
     if(S.family!==family)return;
@@ -1786,7 +1796,7 @@ window.SatilaExtras=(()=>{
           (displayed?'<i class="women" style="width:'+e.pf+'%"></i><i class="men" style="width:'+(100-e.pf)+'%"></i>':'')+
           '</div><strong>'+(displayed?e.pf.toFixed(0)+' % K':'—')+'</strong><small>'+
           e.sex_f+' K · '+e.sex_m+' M · '+e.unclassified+' okända · '+
-          e.official_known+' officiellt källbelagda · '+e.estimated+' namnuppskattade · '+
+          e.official_known+' officiellt källbelagda · '+e.estimated+' namnuppskattade · '+e.manual+' manuellt angivna (ej verifierade) · '+
           (100*e.coverageRate).toFixed(0)+' % täckning'+
           (displayed?'':' (trend dold under 80 %)')+
           '</small></div>';
