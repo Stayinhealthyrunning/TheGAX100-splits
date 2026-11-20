@@ -10,7 +10,7 @@ För varje löpare används Start som tidsnoll, varje faktiskt registrerad kontr
 
 Kilometeruppskattningen **ger aldrig en uppskattad kontrolltid**. Om en löpare saknar en registrerad passage vid en viss kontroll får den kontrollen inte användas som ett eget tidsankare. Rörelsen mellan närmast föregående och nästa verkliga tid interpoleras endast som en illustrativ position på en tydligt angiven GPX-referensbana, inte som faktisk deltagar-GPS.
 
-År eller löpare utan mellantider använder en separat, tydligt märkt Start–Mål-illustration utifrån officiell sluttid. Den metoden visar inga verifierade mellanplaceringar och får inte beskrivas som checkpointförankrad.
+För löpare **utan registrerade mellantider** används inte en tidsanimerad kartrekonstruktion. Individuell Replay visar i stället en **statisk referensbana** och officiell sluttid. Kartduell och direktjämförelse mellan löpare får bara animera inbördes rörelse när **samtliga valda löpare** har minst ett riktigt mellanankare. Annars visas en statisk karta och faktiska sluttider utan tävlingsklocka eller påhittad mellanplacering. Detta gäller även jämförelser mellan år.
 
 ## Funktioner
 
