@@ -113,6 +113,25 @@ def check(site: Path):
             # 2024: current organizer reference may be shown but not claimed for 2024.
             page.select_option("#year-select","2024-gax100")
             page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('uppskattat, ej årsmätt')",timeout=20000)
+            # Regression: the 2024 podium was incorrectly empty despite 54
+            # official finishers. Explicit source classes are F=18 / M=36.
+            page.wait_for_function("() => document.querySelector('#overall-podium')?.textContent.includes('KVINNOR')",timeout=15000)
+            podium_headers=page.locator("#overall-podium .podium-group h4").all_inner_texts()
+            assert len(podium_headers)==2, "2024 must have two official sex-class podiums"
+            assert any("n=18" in h for h in podium_headers)
+            assert any("n=36" in h for h in podium_headers)
+            assert page.locator("#overall-podium .podium-group .podium-row").count()==6
+            assert "Ingen verifierad prestation" not in page.locator("#overall-podium").inner_text()
+            source=page.request.get(f"http://127.0.0.1:{server.server_port}/data/official-result-classification.json").json()
+            expected=source["editions"]["2024-gax100"]
+            assert len(expected)==54 and sum(r["sex"]=="F" for r in expected)==18
+            name_est=page.request.get(f"http://127.0.0.1:{server.server_port}/data/name-based-classification.json").json()
+            assert len(name_est["editions"])==14
+            assert sum(map(len,name_est["editions"].values()))>=100
+            assert all(r["status"]!="FINISHED" for r in name_est["editions"]["2024-gax100"])
+            # Name estimates must NOT turn into an official class in the raw data.
+            raw_2024=page.request.get(f"http://127.0.0.1:{server.server_port}/data/races/2024-gax100.json").json()
+            assert all(r["sex"] is None for r in raw_2024["results"]), "Source manifest bundles must remain byte-for-byte unchanged"
             # The map-playback time anchors must use actual EQ TIMES and
             # resolve only their positions from the estimated 44/80/130 km.
             anchors = page.evaluate("""async () => {
