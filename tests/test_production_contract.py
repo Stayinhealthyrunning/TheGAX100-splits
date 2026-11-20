@@ -119,6 +119,54 @@ class ProductionContract(unittest.TestCase):
                 self.assertEqual(entry["mode"],"conflicting_source")
                 self.assertEqual(len(entry["alternatives_km"]),2)
 
+    def test_source_classifications_and_estimates_are_separate(self):
+        boot = json.loads((DATA / "bootstrap.json").read_text(encoding="utf-8"))
+        official = json.loads((DATA / "official-result-classification.json").read_text(encoding="utf-8"))
+        estimate = json.loads((DATA / "name-based-classification.json").read_text(encoding="utf-8"))
+        self.assertEqual(official["schema"], "gax100-confirmed-race-classification-1")
+        self.assertEqual(estimate["schema"], "gax100-first-name-statistical-estimate-1")
+        keys = {e["race_key"] for e in boot["editions"]}
+        self.assertEqual(set(estimate["editions"]), keys)
+        total_estimates = 0
+        confirmed_finishers = 0
+        for key in keys:
+            race=json.loads((DATA / "races" / (key + ".json")).read_text(encoding="utf-8"))
+            by_id={str(r["id"]):r for r in race["results"]}
+            verified=official["editions"].get(key,[])
+            source_ids=set()
+            for v in verified:
+                token=str(v["result_id"])
+                self.assertNotIn(token,source_ids)
+                source_ids.add(token)
+                self.assertEqual(by_id[token]["status"],"FINISHED")
+                self.assertEqual(by_id[token]["finish_seconds"],v["finish_seconds"])
+                self.assertIn(v["sex"],("F","M"))
+            confirmed_finishers += len(source_ids)
+            estimate_ids=set()
+            for v in estimate["editions"][key]:
+                token=str(v["result_id"])
+                self.assertNotIn(token,source_ids,"Name estimate overrides official class")
+                self.assertNotIn(token,estimate_ids,"Duplicate name estimate")
+                estimate_ids.add(token)
+                self.assertIn(token,by_id,"Name estimate adds unapproved runner")
+                self.assertEqual(by_id[token]["status"],v["status"])
+                self.assertIsNone(by_id[token]["sex"])
+                self.assertIn(v["estimated_sex"],("F","M"))
+                self.assertNotIn("name",v,"Estimated overlay must not copy names")
+                if v["method"]=="genderize_first_name_SE":
+                    self.assertGreaterEqual(v["probability"],0.99)
+                    self.assertGreaterEqual(v["evidence_count"],50)
+                elif v["method"]=="verified_cohort_first_name_consensus":
+                    self.assertIsNone(v["probability"])
+                    self.assertGreaterEqual(v["evidence_count"],4)
+                else:self.fail("Unknown name-estimate method")
+            total_estimates += len(estimate_ids)
+        self.assertEqual(confirmed_finishers, 480)
+        self.assertGreaterEqual(total_estimates, 100)
+        self.assertEqual(len(official["editions"]["2024-gax100"]),54)
+        self.assertEqual(sum(x["sex"]=="F" for x in official["editions"]["2024-gax100"]),18)
+        self.assertEqual(sum(x["sex"]=="M" for x in official["editions"]["2024-gax100"]),36)
+
     def test_page_metadata_and_privacy_contract(self):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
