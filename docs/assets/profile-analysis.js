@@ -376,7 +376,7 @@ function render(record,ctx){
     ['Sluttid',ctx.time(record.finish_seconds),record.status],
     ['Placering',record.place?'#'+record.place:(field.place?'#'+field.place:'—'),'total'],
     ['Klassplats',classInfo.place?'#'+classInfo.place:'—',record.class_name||'saknas'],
-    ['Könsplats',sexInfo.place?'#'+sexInfo.place:'—',ctx.sexLabel(record)],
+    ['Könsplats',sexInfo.place?(record.name_based_sex&&record.sex!=='F'&&record.sex!=='M'?'≈#':'#')+sexInfo.place:'—',record.name_based_sex&&record.sex!=='F'&&record.sex!=='M'?'Endast en namnbaserad statistisk grupp, inte officiell könsplacering':ctx.sexLabel(record)],
     ['Snittfart',finite(paceKm)?ctx.pace(record.finish_seconds,paceKm,ctx.S.unit):'—',finite(paceKm)&&ctx.S.race?.family==='gax100'&&!ctx.S.race?.demo_only?'nominell 100 miles · ej GPX-mätt':finite(paceKm)?ctx.fmtKm(paceKm)+' km':'fysisk distans ej verifierad'],
     ['Snabbare än fältet',pct(field.percentile),'n='+field.n],
     ['Checkpointtäckning',cover.observed+'/'+cover.total,cover.observed===cover.total?'komplett':'partiell']
