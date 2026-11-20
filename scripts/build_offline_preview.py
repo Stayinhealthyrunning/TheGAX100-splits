@@ -300,6 +300,16 @@ def prepare_payload(docs:Path):
 def build(docs:Path,out:Path):
     files=prepare_payload(docs)
     page=(docs/"index.html").read_text(encoding="utf-8")
+    # Public production metadata must never be inherited by a standalone,
+    # fully synthetic demo; retain explicit fictional-source labeling.
+    for prop, value in (
+        ('name="description"', 'GAX100 design-demo med helt fiktiva deltagare och tider.'),
+        ('property="og:description"', 'Fiktiv GAX100-design-demo, inga verkliga individuella resultat.'),
+        ('name="twitter:description"', 'GAX100 design-demo med fiktiva löparprofiler.'),
+    ):
+        pattern = r'(<meta ' + re.escape(prop) + r' content=")[^"]*(")'
+        page, count = re.subn(pattern, lambda m: m.group(1)+value+m.group(2), page, count=1)
+        require(count==1, "Missing demo metadata field: "+prop)
     required_scripts=["profile-analysis.js","multi-year-map.js",
                       "multi-year-comparison.js","gax-controls.js","app.js","gax-ux.js"]
     for name in required_scripts:

@@ -1,3 +1,13 @@
+> **Aktuell produktionsstatus: GAX100 Analys 1.0 (20 november 2026).** Det här dokumentet
+> beskriver huvudsakligen 2026 års *tidigare syntetiska designgranskning*.
+> Den verkliga, integritetsfiltrerade versionen publicerades i PR #11 den 11 november.
+> Se [V1_RELEASE_NOTES.md](V1_RELEASE_NOTES.md) och [projektets README](../README.md)
+> för gällande drift, gränser och releasekontroller. Texten nedan sparas som historik.
+>
+> **Förtydligande:** ursprungliga 1 838 källobservationer är inte samma sak som
+> de 2 482 publicerade tidsraderna, eftersom officiell sluttid också representeras
+> som målpassage. År 2025–2026 har endast verifierade målpassager i denna publicering.
+>
 # GAX100 – verifierbar granskning och skyddad publicering
 
 ## Vad som flyttats till nya repot
