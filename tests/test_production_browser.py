@@ -213,6 +213,27 @@ def check(site: Path):
                 assert "Officiella GAX100-källor" in page.locator("#source-indicator").inner_text()
                 result = page.evaluate("(key) => fetch('data/races/'+key+'.json').then(r=>r.json()).then(j=>j.stations.length)",key)
                 assert result==1, "A finish-only year acquired fictitious checkpoints"
+
+                # A year with only a finish observation must STILL have a
+                # four-leg pacing plan backed by observed other-year TIME pairs.
+                if not page.locator("#gax-personal-plan-panel").is_visible():
+                    page.locator('[data-gax-mode="personal"]').click()
+                page.wait_for_function("""() => document.querySelectorAll('#plan-table tbody tr').length===4 &&
+                  document.querySelector('#plan-summary')?.textContent.includes('historiska upplagor')""",timeout=30000)
+                assert page.locator("#plan-milestones .plan-milestone").count()==4
+                legs=page.locator("#plan-table tbody tr")
+                assert all(int(legs.nth(i).locator("td").nth(2).inner_text())>=5 for i in range(4))
+                assert "Vägd flerårsmodell" in page.locator("#plan-table").inner_text()
+                assert legs.last.locator("td").nth(5).inner_text()==page.locator("#target-time").input_value()
+                diagnostics=page.evaluate("""async () => {
+                  const source=await window.GaxHistoricalPlan.load(
+                    await fetch('data/bootstrap.json').then(r=>r.json()));
+                  const samples=window.GaxHistoricalPlan.collect(source,{});
+                  return [...new Set(samples.map(x=>x.edition))];
+                }""")
+                assert "2014-gax100" in diagnostics and "2016-gax100" in diagnostics
+                assert "2024-gax100" in diagnostics
+
                 assert page.locator("#gax-controls-content .gax-start-control").count()==1
                 page.wait_for_function("() => document.querySelector('#extra-dynamics')?.hidden === true",timeout=15000)
                 assert page.locator("#extra-dynamics").is_hidden()
