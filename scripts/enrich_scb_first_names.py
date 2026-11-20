@@ -148,11 +148,25 @@ def main(path):
     bootstrap=json.loads((DATA/'bootstrap.json').read_text(encoding='utf-8'))
     if official.get('schema')!='gax100-confirmed-race-classification-1' or previous.get('schema')!='gax100-first-name-statistical-estimate-1':
         raise ValueError('Expected existing privacy/source schemas')
+    # Cross-check SCB's majority with EXPLICIT classes for the same given
+    # name already present in the public GAX cohort. Never label an individual
+    # when their given name demonstrably occurs across classes locally.
+    official_first=collections.defaultdict(set)
+    race_by_year={}
+    for edition in bootstrap['editions']:
+        key=edition['race_key']
+        race=json.loads((DATA/'races'/(key+'.json')).read_text(encoding='utf-8'))
+        race_by_year[key]=race
+        confirmed={str(x['result_id']):x['sex'] for x in official.get('editions',{}).get(key,[])}
+        for row in race['results']:
+            sex=row.get('sex') if row.get('sex') in ('F','M') else confirmed.get(str(row['id']))
+            firstname=runner_first_name(row.get('name'))
+            if firstname and sex in ('F','M'):official_first[firstname].add(sex)
     by_year={}
     tally=collections.Counter()
     for ed in bootstrap['editions']:
         key=ed['race_key']
-        race=json.loads((DATA/'races'/(key+'.json')).read_text(encoding='utf-8'))
+        race=race_by_year[key]
         released={str(r['id']):r for r in race['results']}
         confirmed={str(x['result_id']):x['sex'] for x in official.get('editions',{}).get(key,[])}
         existing={str(x['result_id']):x for x in previous.get('editions',{}).get(key,[])}
@@ -166,6 +180,10 @@ def main(path):
             old=existing.get(result_id)
             if choice:
                 kind,sex,prob,n=choice
+                known_sexes=official_first.get(first,set())
+                if any(known!=sex for known in known_sexes):
+                    tally['scb_conflicts_with_official_gax_class_held_unknown']+=1
+                    continue
                 if old and old['estimated_sex']!=sex:
                     tally['existing_conflict_held_unknown']+=1
                     continue
