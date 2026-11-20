@@ -1,4 +1,4 @@
-# Gax100 Splits – version 1.3
+# Gax100 Splits – version 1.3.1
 
 Webbaserad analys av **The GAX 100 miles**, byggd på samma grund som Loppanalys.se:s Sätila-analys.
 
@@ -61,3 +61,14 @@ Se [metod- och versionsanteckning 1.3](docs/V1_3_RELEASE_NOTES.md) för kontroll
 - Oförändrat: 14 historiska upplagor, 945 integritetsfiltrerade resultat och 651 fullföljande. Granskningsadressen ligger separat från Loppanalys.se:s startsida.
 
 Se [versionsanteckningar 1.2](docs/V1_2_RELEASE_NOTES.md) och [1.1](docs/V1_1_RELEASE_NOTES.md).
+
+## Version 1.3.1 – resultat- och klassificeringsgranskning
+
+- Rättade 2024 års pallplatser. De 54 fullföljande fördelas enligt **officiell DUV/arrangörskälla på 18 i damklass och 36 i herrklass**. Ingen uppgift har gissats från namn för detta resultatunderlag.
+- Samtliga 14 årgångar granskas systematiskt mot officiella resultat och slutklockor. **480 fullföljare** har entydiga träffar för officiell tävlingsklass från arrangören/DUV i 2014–2024-källmaterialet.
+- Separat rapporterad, **namnstatistiskt UPPSKATTAD** klass har skapats för **109 tidigare oklassificerade offentliga resultat**. För 12 av dessa stödjer svenskavgränsad publik förnamnsstatistik en högkonfidensbedömning (minst 99 % vid minst 50 registerobservationer); övriga 97 bygger på enhällig förnamnsgrupp hos minst fyra *olika* redan källverifierade GAX-deltagare. **128 förblir okända**. Uppskattningen är en statistisk grupp, inte en uppgift om personens faktiska kön eller identitet.
+- Individuell sexklass tilldelas aldrig som officiellt faktum på grund av ett namn; varje namnuppskattning har en separat datanyckel och visas alltid som uppskattad i resultatlistan och berörda diagram. Anmälan om felaktig klassificering kan göras via <https://www.loppanalys.se/integritet/>.
+- Officiella totalplaceringar och klassplaceringar särhålls. Där en officiell totalplacering inte kan härledas ur en källkolumn, beräknas **total ordningsplacering från officiella sluttider** och får metodbeteckning. Detta påverkar profiler, jämförelser och pallplatser konsekvent.
+- De 14 integritetsfiltrerade resultatfilernas originalmanifest ändras **inte**; de två nya publicerade överläggen refererar enbart redan publicerade resultat-ID:n. GitHub Pages-bygget avbryts om en klassuppgift skulle gälla en annan löpare eller övertrumfa officiell klass.
+
+Källor och metoder: <https://statistik.d-u-v.org/> · <https://genderize.io/documentation/api/reference> · [Release notes 1.3.1](docs/V1_3_1_RELEASE_NOTES.md).
