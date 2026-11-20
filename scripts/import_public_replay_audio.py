@@ -32,8 +32,8 @@ def request(url):
 def candidate_links(page, url):
     # Common official Pixabay audio-CDN links embedded in public source HTML.
     patterns = [
-        r'https?:(?:\\/\\/|//)cdn\\?.pixabay\\?.com[^\\"\\'<> ]+?\\?.mp3[^\\"\\'<> ]*',
-        r'/(?:download/audio|audio)/[^\\"\\'<> ]+?\\?.mp3[^\\"\\'<> ]*',
+        r"https?://cdn\\.pixabay\\.com/[^\\\"'<>\\s]+\\.mp3(?:\\?[^\\\"'<>\\s]*)?",
+        r"/(?:download/audio|audio)/[^\\\"'<>\\s]+\\.mp3(?:\\?[^\\\"'<>\\s]*)?",
     ]
     found=[]
     source=html.unescape(page.decode("utf-8","replace")).replace("\\/", "/")
