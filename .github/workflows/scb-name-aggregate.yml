@@ -5,8 +5,9 @@ on:
     paths:
       - .github/workflows/scb-name-aggregate.yml
       - scripts/inspect_scb_workbook.py
+      - scripts/enrich_scb_first_names.py
 permissions:
-  contents: read
+  contents: write
 jobs:
   scb-aggregate:
     runs-on: ubuntu-24.04
@@ -26,5 +27,19 @@ jobs:
              -o /tmp/scb_names_2022.xlsx
           test "$(stat -c %s /tmp/scb_names_2022.xlsx)" -gt 10000
           file /tmp/scb_names_2022.xlsx
-      - name: Inspect headers and sex-separated public aggregate sheet names only
-        run: python3 -B scripts/inspect_scb_workbook.py /tmp/scb_names_2022.xlsx
+      - name: Match official population name statistics to already released result IDs
+        run: python3 -B scripts/enrich_scb_first_names.py /tmp/scb_names_2022.xlsx
+      - name: Commit only per-result ESTIMATED classes, never names or source workbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/data/name-based-classification.json; then
+            echo "No new SCB estimate overlays to save"
+            exit 0
+          fi
+          git config user.name "GAX100 SCB Statistical Audit"
+          git config user.email "gax100-release@users.noreply.github.com"
+          git add docs/data/name-based-classification.json
+          git commit -m "data(gax): source-audited SCB 2022 name prevalence estimates"
+          git pull --rebase origin data/gax-scb-name-statistics-2026-11-20
+          git push origin HEAD:data/gax-scb-name-statistics-2026-11-20
