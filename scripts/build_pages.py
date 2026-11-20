@@ -77,6 +77,29 @@ def stage(docs, output):
                 target = output / "assets" / asset.name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(asset, target)
+        # Replay music is a separate, non-personal config asset. Its referenced
+        # binary is served only if present in this GitHub repo. Never fetch from
+        # third-party storage at runtime or silently substitute a different song.
+        audio_config = data / "replay-audio.json"
+        if audio_config.exists():
+            config = load(audio_config)
+            src = config.get("src", "")
+            check(src == "assets/audio/audioera-acoustic-guitar-happy-637709.mp3" and
+                  config.get("schema") == "loppanalys-replay-audio-1",
+                  "Invalid GAX100 replay sound config")
+            (output / "data").mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(audio_config, output / "data" / "replay-audio.json")
+            sound = docs / src
+            if sound.exists():
+                check(sound.stat().st_size > 10000 and
+                      hashlib.sha256(sound.read_bytes()).hexdigest() ==
+                      "ed089921eb56654ab4c97025c5ceebd057e6c739a9d3f15328033dc909d09e49",
+                      "Replay soundtrack differs from the user-supplied original")
+                dest = output / src
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(sound, dest)
+            else:
+                print("Audio asset not yet present in GitHub; replay remains available without music")
         files |= {"course-display.json", "route-candidates.json", "route-inventory.json"}
         for name in files:
             target = output / "data" / name

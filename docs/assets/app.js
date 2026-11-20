@@ -13,11 +13,72 @@ const pace=(sec,km,unit='pace')=>!num(sec)||!num(km)||km<=0?'—':unit==='speed'
 const fmtKm=n=>num(n)?n.toFixed(1).replace('.',','):'—';
 const readCache=(key,other=[])=>{try{let j=JSON.parse(localStorage.getItem(key));return Array.isArray(j)?j:other}catch{return other}};
 
-/* One soundtrack shared by the two modal map players. Music is independent
-   of the animation clock: it loops at the finish until the dialog closes. */
+/* One configurable soundtrack shared by the two modal replay players.
+   Playback is strictly opt-in on a user click; it never autoplays on page load.
+   Config is shared with future events and may be replaced without editing JS. */
 const replaySoundtrack={
-  bind(host){host?.querySelectorAll('[data-replay-music],[data-replay-volume],[data-replay-audio-note]').forEach(el=>el.remove());},
-  start(){},pause(){},close(){}
+  audio:null,root:null,playing:false,available:false,config:null,configTask:null,
+  bind(host){
+    this.close();this.root=host;
+    const toggle=host?.querySelector('[data-replay-music]'),
+      volume=host?.querySelector('[data-replay-volume]'),
+      note=host?.querySelector('[data-replay-audio-note]');
+    if(!toggle)return;
+    toggle.disabled=true;
+    toggle.setAttribute('aria-pressed','false');
+    toggle.textContent='♫ Musik kontrolleras';
+    let credit=host.querySelector('.replay-music-credit');
+    if(!credit){credit=document.createElement('p');credit.className='replay-music-credit';host.querySelector('.replay-controls,.map-duel-playback')?.after(credit);}
+    const show=message=>{if(note){note.hidden=!message;note.textContent=message||'';}};
+    const setup=async()=>{
+      try{
+        if(!this.configTask)this.configTask=fetch('data/replay-audio.json').then(r=>{if(!r.ok)throw Error('Musikkonfiguration saknas');return r.json();});
+        const config=await this.configTask;
+        if(this.root!==host)return;
+        this.config=config;
+        const res=await fetch(config.src,{method:'HEAD'});
+        if(!res.ok)throw Error('MP3 saknas i GitHub-repot');
+        if(this.root!==host)return;
+        this.audio=new Audio(config.src);this.audio.loop=true;this.audio.preload='metadata';
+        this.audio.volume=Math.max(0,Math.min(1,Number(localStorage.getItem('loppanalys-replay-volume')||config.volume||.3)));
+        this.audio.addEventListener('error',()=>{show('Musiken kunde inte laddas. Kartuppspelningen fungerar fortfarande.');this.available=false;});
+        this.available=true;toggle.disabled=false;
+        toggle.textContent='♫ Musik';toggle.setAttribute('aria-pressed','true');
+        if(volume)volume.value=String(this.audio.volume);
+        credit.textContent='';
+        const link=document.createElement('a');
+        link.href=config.source_url||'https://pixabay.com/';link.target='_blank';link.rel='noopener noreferrer';
+        link.textContent=config.credit||'Musik: AudioERA / Pixabay';
+        credit.append('Musik i replay: ',link);
+        show('');
+        if(this.playing)this.audio.play().catch(()=>show('Starta musiken via knappen.'));
+      }catch(err){
+        if(this.root!==host)return;
+        this.available=false;toggle.disabled=true;toggle.textContent='♪ Musik ej tillgänglig';
+        credit.textContent='Musikfilen behöver publiceras i GitHub innan ljud kan spelas.';
+        show('Uppspelningen fungerar utan musik.');
+      }
+    };
+    toggle.addEventListener('click',()=>{
+      if(!this.audio||!this.available)return;
+      const next=toggle.getAttribute('aria-pressed')!=='true';
+      toggle.setAttribute('aria-pressed',String(next));toggle.textContent=next?'♫ Musik':'♪ Musik av';
+      if(!next)this.audio.pause();else if(this.playing)this.audio.play().catch(()=>show('Starta musiken igen.'));
+    });
+    volume?.addEventListener('input',()=>{
+      if(!this.audio)return;
+      this.audio.volume=Math.max(0,Math.min(1,Number(volume.value)||0));
+      try{localStorage.setItem('loppanalys-replay-volume',String(this.audio.volume));}catch{}
+    });
+    setup();
+  },
+  start(){
+    this.playing=true;
+    if(this.audio&&this.available&&this.root?.querySelector('[data-replay-music]')?.getAttribute('aria-pressed')==='true')
+      this.audio.play().catch(()=>{const note=this.root?.querySelector('[data-replay-audio-note]');if(note){note.hidden=false;note.textContent='Tryck på Musik för att aktivera ljudet.';}});
+  },
+  pause(){this.playing=false;this.audio?.pause();},
+  close(){this.playing=false;this.audio?.pause();if(this.audio){this.audio.currentTime=0;this.audio.src='';this.audio=null;}this.root=null;this.available=false;}
 };
 
 const key='gax100-analys-favorites-v1';let S={boot:null,family:'gax100',year:null,editionKey:null,race:null,route:null,routeByFamily:{},filtered:[],page:0,sort:'place',q:'',sex:'all',status:'all',className:'all',club:'',clubExact:false,clubOptions:[],clubSuggestionIndex:-1,unit:'pace',finishSex:new Set(['F','M']),selectedSegment:0,podiumStart:0,podiumEnd:1,standoutTab:'relative',compare:[],mapDuel:[],favorites:readCache(key),searchIndex:-1,mapDuelSearchIndex:-1,loading:0,courseD:null,duelD:null,placementWindow:null,segmentSeriesMode:'all'};
@@ -27,7 +88,8 @@ function showHelp(title,body){$('#help-title').textContent=title||'Metod';$('#he
 const famLabel=id=>({gax100:'100 miles'}[id]||id);
 const eqTimingKm=r=>num(r?.eq_timing_leg_km)?r.eq_timing_leg_km:r?.nominal_km;
 const advertisedKm=r=>num(r?.organizer_advertised_km)?r.organizer_advertised_km:eqTimingKm(r);
-const wholeCoursePaceKm=r=>r?.family==='gax100'&&!r?.distance_verified&&!r?.demo_only?null:r?.distance_semantics_status==='organizer_eq_discrepancy'?(num(r?.measured_route_geometry_km)?r.measured_route_geometry_km:null):eqTimingKm(r);
+/* Nominal finish pace is mathematically valid for a 100 mile event; it is not GPS-certified segment pace. */
+const wholeCoursePaceKm=r=>r?.family==='gax100'&&!r?.demo_only?160.9344:r?.distance_semantics_status==='organizer_eq_discrepancy'?(num(r?.measured_route_geometry_km)?r.measured_route_geometry_km:null):eqTimingKm(r);
 const editionDistanceLabel=r=>num(r?.organizer_advertised_km)&&r.organizer_advertised_km!==eqTimingKm(r)?`${fmtKm(r.organizer_advertised_km)} km annonserat · GAX100-arrangörens ${fmtKm(eqTimingKm(r))} km`:`${fmtKm(eqTimingKm(r))} km`;
 const finish=r=>r.status==='FINISHED'&&num(r.finish_seconds)&&r.finish_seconds>0;
 const explicitClassSex=r=>{const value=String(r?.class_name||'').trim().toLocaleLowerCase('sv');return /^(kvinna|kvinnor|dam)(\b|\s|$)/.test(value)?'F':/^(man|män|herr)(\b|\s|$)/.test(value)?'M':null};
@@ -289,7 +351,12 @@ function standoutsFor(rows){
 }
 function renderStandouts(){
  const categories=standoutsFor(S.filtered),host=$('#standouts');
- if(!categories.length){host.innerHTML=empty('För denna upplaga krävs fler verkliga segmentpar för att hitta ovanliga lopp.');return}
+ if(!categories.length){
+   const runners=S.filtered.filter(finish).sort((a,b)=>a.finish_seconds-b.finish_seconds);
+   const best=runners.slice(0,5);
+   host.innerHTML=best.length?'<div class="gax-coverage-note"><strong>Endast Start → Mål kan jämföras denna upplaga.</strong><p>Officiella måltider finns, men fler registrerade mellankontroller krävs för att analysera ovanliga delsträckor. Här är de snabbaste fullföljarna i urvalet.</p></div><h4>Snabbaste målgångar</h4><div class="gax-finish-leaders">'+best.map((r,i)=>'<button class="mini-result" data-open="'+html(r.id)+'"><span>'+(i+1)+'. '+html(r.name)+'</span><strong>'+time(r.finish_seconds)+'</strong><small>Slutplacering #'+html(r.place??'—')+'</small></button>').join('')+'</div>':empty('Inga registrerade målgångar i det valda urvalet.');
+   bindResultLinks(host);return;
+  }
  if(!categories.some(c=>c.id===S.standoutTab))S.standoutTab=categories[0].id;
  const active=categories.find(c=>c.id===S.standoutTab);
  const unique=active.list.filter((x,i,a)=>a.findIndex(z=>z.r.id===x.r.id)===i);
@@ -829,7 +896,7 @@ function renderProfileLegacy(r){
   const paceKm=wholeCoursePaceKm(S.race);
   const kpis=[['Sluttid',time(r.finish_seconds)],['Totalplacering',r.place??'—'],['Snittfart',num(paceKm)?pace(r.finish_seconds,paceKm,S.unit):'Distanskonflikt'],['Registrerade passager',passages.length]]
     .map(([label,value])=>`<article><small>${html(label)}</small><strong>${html(value)}</strong></article>`).join('');
-  const distanceNote=num(paceKm)?'':`<p class="muted small">Helbanetempo visas inte: GAX100-arrangörens anger ${fmtKm(eqTimingKm(S.race))} km medan arrangörskällan anger ${fmtKm(S.race.organizer_advertised_km)} km, och ingen årsspecifik godkänd GPX-längd finns.</p>`;
+  const distanceNote=num(paceKm)&&!S.race?.demo_only?'<p class="muted small">Snittfarten beräknas från officiell måltid och nominell distans 100 miles (160,934 km), inte från verifierat GPS-spår. Delsträckornas fysiska distanser verifieras separat.</p>':'';
   let previous={name:'Start',seconds:0};
   const journey=S.race.stations.filter(st=>st.is_analysis_boundary&&num(st.km)&&st.km>0).sort((a,b)=>a.sort-b.sort||a.km-b.km).map(st=>{
     const observation=observed(r,st),elapsed=observation?.elapsed_seconds;
@@ -1457,7 +1524,7 @@ window.SatilaExtras=(()=>{
   }
 
   function placements(r){return S.race.stations.filter(s=>s.is_analysis_boundary).map(st=>{const o=observed(r,st);return o&&num(o.place)?{st,place:o.place,t:o.elapsed_seconds}:null}).filter(Boolean)}
-  function renderPlacementGain(){const h=$('#placement-gain');if(!h)return;const xs=S.filtered.map(r=>{const a=placements(r);return a.length>=2?{r,from:a[0],to:a.at(-1),delta:a[0].place-a.at(-1).place}:null}).filter(Boolean).sort((a,b)=>b.delta-a.delta);if(!xs.length){h.innerHTML=empty('Minst två publicerade placeringspassager krävs.');return}const top=xs.slice(0,10).map(x=>({label:x.r.name,value:Math.max(0,x.delta),raw:x.delta,r:x.r}));const max=Math.max(1,...top.map(x=>Math.abs(x.raw)));h.innerHTML=`<div class="gain-list">${top.map(x=>`<button data-open="${esc(x.r.id)}" class="gain-row"><span>${esc(x.label)}</span><div class="gain-axis"><i style="width:${Math.abs(x.raw)/max*100}%" class="${x.raw>=0?'positive':'negative'}"></i></div><strong>${x.raw>=0?'+':''}${x.raw}</strong></button>`).join('')}</div><p class="small muted">Första till sista observerade placering. Positivt = netto framåt.</p>`;bindResultLinks(h)}
+  function renderPlacementGain(){const h=$('#placement-gain');if(!h)return;const xs=S.filtered.map(r=>{const a=placements(r);return a.length>=2?{r,from:a[0],to:a.at(-1),delta:a[0].place-a.at(-1).place}:null}).filter(Boolean).sort((a,b)=>b.delta-a.delta);if(!xs.length){h.innerHTML=empty('Endast slutplacering är registrerad i den här upplagan. Placeringsförändring kräver minst två verkliga tidtagna placeringskontroller; se i stället topplistan över snabbaste målgångar.');return}const top=xs.slice(0,10).map(x=>({label:x.r.name,value:Math.max(0,x.delta),raw:x.delta,r:x.r}));const max=Math.max(1,...top.map(x=>Math.abs(x.raw)));h.innerHTML=`<div class="gain-list">${top.map(x=>`<button data-open="${esc(x.r.id)}" class="gain-row"><span>${esc(x.label)}</span><div class="gain-axis"><i style="width:${Math.abs(x.raw)/max*100}%" class="${x.raw>=0?'positive':'negative'}"></i></div><strong>${x.raw>=0?'+':''}${x.raw}</strong></button>`).join('')}</div><p class="small muted">Första till sista observerade placering. Positivt = netto framåt.</p>`;bindResultLinks(h)}
   function renderFinishProgress(){
     const h=$('#finish-progression');if(!h)return;
     const threshold=(S.race.nominal_km||0)*2/3;
@@ -1468,7 +1535,7 @@ window.SatilaExtras=(()=>{
     }).filter(Boolean).sort((a,b)=>b.delta-a.delta);
     const progression=vals.length?
       `<div class="finish-progress-list">${vals.slice(0,10).map((x,i)=>`<button class="mini-result" data-open="${esc(x.r.id)}"><span><b>${i+1}</b> ${esc(x.r.name)}</span><strong>${x.delta>=0?'+':''}${x.delta} platser</strong><small>${esc(x.from)} → ${esc(x.to)}</small></button>`).join('')}</div>`
-      :empty('Tillräckliga placeringsankare i sista tredjedelen saknas.');
+      :empty('För att analysera sista tredjedelen krävs en publicerad placering före mål och en vid mål. I den här upplagan finns endast målplaceringen – ingen placering före mål räknas fram.');
     h.innerHTML=progression+`<p class="small muted">Snabbaste avslutningen visas separat i nästa kort.</p>`;
     bindResultLinks(h);
   }

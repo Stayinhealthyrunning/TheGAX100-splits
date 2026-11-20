@@ -1,8 +1,8 @@
-# GAX100 Analys 1.0
+# Gax100 Splits – version 1.1
 
 Webbaserad analys av **The GAX 100 miles**, byggd på samma grund som Loppanalys.se:s Sätila-analys.
 
-**Öppna v1.0 för granskning:** https://stayinhealthyrunning.github.io/TheGAX100-splits/
+**Öppna publicerad version för granskning:** https://stayinhealthyrunning.github.io/TheGAX100-splits/
 
 ## Vad som är publicerat
 
@@ -32,8 +32,20 @@ Om ett framtida utvecklingsrepo saknar publiceringsmanifest byggs i stället en 
 
 ## Versionshistorik och omfattning
 
-Version **1.0 (20 november 2026)** sammanfattar den verkligt publicerade, filtrerade datamängden och de tidigare färdigbyggda funktionerna. Den kompletterar tidigare utveckling med särskild QA för skarpa data, enhetlig versions-/metodinformation och kontroll av att produktionsflödet inte oavsiktligt återgår till demonstration.
+Version **1.1 (20 november 2026)** sammanfattar den verkligt publicerade, filtrerade datamängden och de tidigare färdigbyggda funktionerna. Den kompletterar tidigare utveckling med särskild QA för skarpa data, enhetlig versions-/metodinformation och kontroll av att produktionsflödet inte oavsiktligt återgår till demonstration.
 
 GAX100 ligger tills vidare **utanför startsidans lopplista på Loppanalys.se** under granskningen. Det äldre `gax100-analys` bevaras för historik och separat GitHub Support-sanering; dess äldre persondatahistorik ska aldrig återintroduceras i detta rena repo.
 
 Mer detaljer: [Granskning och release](docs/REVIEW_AND_RELEASE.md) · [V1 release notes](docs/V1_RELEASE_NOTES.md).
+
+## Version 1.1 – förändringar och ljudstatus
+
+- Sidans publika namn är **Gax100 Splits**. Österlen- och Ystadprofilen använder egenillustrerad kust- och Ales stenar-grafik, utan tredjepartsbilder.
+- Arrangörens 2027-tävlingsinfo visar **Start (Ystad, 0 km, kl. 10:00)**, stationer och mål separat från äldre års publicerade passager.
+- Målgångar har **nominell snittfart på 100 miles (160,9344 km)**; den är inte ett GPS-verifierat kilometertempo för den historiska banan.
+- Knappt täckta år har tydligt Start → Mål-segment och förklarade tomlägen för mellantider och placeringsresor. Inga extra officiella passager har skapats.
+- Informationsrutornas avstånd och stationernas visuella tidslinje är förbättrade på mobil och dator.
+- Återanvändbar ljudkonfiguration finns i `docs/data/replay-audio.json`; **musikfilen kan ännu inte spelas i den publicerade versionen** eftersom den bifogade MP3-filen inte kunde överföras med den tillgängliga GitHub-anslutningen. En direkt återhämtning från upphovskällan prövades med exakt SHA-256-kontroll men källan avvisade nedladdningen. Webbspelaren visar detta utan att störa kartuppspelningen. Endast den identiska originalfilen accepteras på `docs/assets/audio/audioera-acoustic-guitar-happy-637709.mp3`.
+- Ingen Google Drive-lagring används i GAX100.
+
+Se [1.1-versionsanteckningar](docs/V1_1_RELEASE_NOTES.md) för all QA och den öppna ljudpunkten.

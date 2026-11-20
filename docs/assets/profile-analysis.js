@@ -83,7 +83,8 @@ function story(ctx,record,groupSet,segments){
   const placement=place?' som #'+place:'';
   let text='Loppet slutade på '+ctx.time(record.finish_seconds)+placement+'.';
   if(finite(field.percentile))text+=' Det var snabbare än '+field.percentile+' % av fullföljarna i samma upplaga.';
-  if(strongest)text+=' Starkaste observerade delsträckan relativt fältet var '+strongest.from.name+' → '+strongest.to.name+' ('+Math.round(strongest.relative)+' % av fältmedianens fartindex).';
+  if(segments.length>1&&strongest)text+=' Starkaste observerade delsträckan relativt fältet var '+strongest.from.name+' → '+strongest.to.name+' ('+Math.round(strongest.relative)+' % av fältmedianens fartindex).';
+  if(segments.length===1&&segments[0].from?.name==='Start'&&segments[0].to?.is_finish)text+=' Endast Start → Mål finns som verifierat helhetssegment för denna upplaga; inga historiska mellantider har lagts till.';
   return text;
 }
 function checkpointPoints(ctx,record,rows){
@@ -204,7 +205,7 @@ function passageTable(ctx,record){
   return '<details class="profile-source-passages"><summary>Verifierade passager och källstatus</summary><div class="table-scroll"><table><thead><tr><th>Kontroll</th><th>km*</th><th>Ack. tid</th><th>Sedan föregående verifierade</th><th>Publicerad plats</th><th>Datakälla</th></tr></thead><tbody><tr><td>Start</td><td>0</td><td>0:00</td><td>—</td><td>—</td><td>Tidsnoll</td></tr>'+rows+'</tbody></table></div></details>';
 }
 function segmentTable(ctx,record,segments){
-  if(!segments.length)return '<p class="empty">Inga kompletta observerade delsträckor finns för löparen.</p>';
+  if(!segments.length)return '<p class="empty">Inga kompletta observerade kontrollpar finns för denna löpare. Endast registrerade tider kan visas som delsträckor.</p>';
   const rows=segments.map(item=>{
     const ack=ctx.observed(record,item.to)?.elapsed_seconds;
     const movement=finite(item.placeFrom)&&finite(item.placeTo)?Number(item.placeFrom)-Number(item.placeTo):null;
@@ -275,7 +276,7 @@ function renderJourney(record){
   if(!options.some(option=>option.id===current.referenceMode&&option.group.rows.length>=5))current.referenceMode='field';
   const selected=options.find(option=>option.id===current.referenceMode)||options[0],points=checkpointPoints(ctx,record,selected.group.rows),segments=segmentData(ctx,record,selected.group.rows);
   const placementValues=points.map(point=>point.place).filter(finite);
-  const placementSummary=placementValues.length>=2?'Från #'+placementValues[0]+' till #'+placementValues.at(-1)+' · '+((placementValues[0]-placementValues.at(-1))>=0?'+':'')+(placementValues[0]-placementValues.at(-1))+' platser.':'Publicerade placeringsankare saknas.';
+  const placementSummary=placementValues.length>=2?'Från #'+placementValues[0]+' till #'+placementValues.at(-1)+' · '+((placementValues[0]-placementValues.at(-1))>=0?'+':'')+(placementValues[0]-placementValues.at(-1))+' platser.':placementValues.length===1?'Endast målplacering finns – ingen historisk placeringsförändring kan beräknas.':'Publicerade placeringsankare saknas.';
   const host=document.querySelector('#profile-journey');
   if(host)host.innerHTML='<section class="profile-journey"><header class="profile-journey-head"><div><p class="eyebrow">LOPPETS UTVECKLING</p><h3>När förändrades loppet?</h3><p>Se när tidslucka, placering och segmentstyrka förändrades. Saknade passager fylls inte ut i analysen.</p></div><div class="profile-reference" role="group" aria-label="Jämför med"><span>Jämför med</span>'+options.map(option=>'<button type="button" data-profile-reference="'+option.id+'" aria-pressed="'+String(option.id===selected.id)+'" '+(option.group.rows.length>=5?'':'disabled')+'>'+ctx.html(option.label)+' <small>n='+option.group.rows.length+(option.group.rows.length<5?' · för litet underlag':'')+'</small></button>').join('')+'</div></header><div class="profile-journey-grid"><article class="profile-journey-card"><div class="profile-section-head compact"><div><p class="eyebrow">GAPGRAF</p><h4>Tidslucka genom loppet</h4></div><span class="profile-pill">'+ctx.html(selected.label)+' · n='+selected.group.rows.length+'</span></div><p class="muted small">Positivt är före referensmedianen, negativt är efter.</p><div class="profile-chart-scroll">'+gapChart(ctx,points)+'</div><small class="profile-trust">Endast verkliga arrangörens officiella resultat-passager används som punkter. Referensmedianen kräver minst fem observationer vid kontrollen.</small></article><article class="profile-journey-card"><div class="profile-section-head compact"><div><p class="eyebrow">PLACERINGSRESA</p><h4>Publicerad totalplacering</h4></div></div><div class="profile-chart-scroll">'+placementChart(ctx,points)+'</div><small class="profile-trust">'+ctx.html(placementSummary)+' Saknad publicerad placering bryter linjen.</small></article></div><article class="profile-journey-card profile-journey-pacing"><div class="profile-section-head compact"><div><p class="eyebrow">PACING-FINGERAVTRYCK</p><h4>Segment för segment</h4></div><span class="profile-pill">'+ctx.html(selected.label)+' · n='+selected.group.rows.length+'</span></div>'+pacingRibbon(ctx,segments,selected.label)+'<small class="profile-trust">100 % motsvarar referensgruppens median på exakt samma observerade delsträcka. Över 100 % är snabbare.</small></article><details class="profile-method"><summary>Så räknas det</summary><p>Analysen använder publicerade arrangörens officiella resultat-passager. Segmentjämförelser kräver två verkliga ändankare för både löparen och referensfältet. Ingen uppskattad Replay-position används som tävlingsresultat.</p></details></section>';
   const relative=document.querySelector('#profile-relative');
@@ -309,14 +310,14 @@ function bindShell(record){
 }
 function render(record,ctx){
   const same=current&&String(current.record.id)===String(record.id);
-  const groupSet=groups(ctx,record),fieldSegments=segmentData(ctx,record,groupSet.field.rows),cover=coverage(ctx,record),paceKm=ctx.wholeCoursePaceKm(ctx.S.race),field=groupSet.field,classInfo=groupSet.class,sexInfo=groupSet.sex;
+  const groupSet=groups(ctx,record),fieldSegments=segmentData(ctx,record,groupSet.field.rows),cover=coverage(ctx,record),paceKm=ctx.finish(record)&&ctx.S.race?.family==='gax100'&&!ctx.S.race?.demo_only?160.9344:ctx.wholeCoursePaceKm(ctx.S.race),field=groupSet.field,classInfo=groupSet.class,sexInfo=groupSet.sex;
   current={record,ctx,groupSet,referenceMode:same?current.referenceMode:'field',replay:replayState(ctx,record,groupSet)};
   const facts=[
     ['Sluttid',ctx.time(record.finish_seconds),record.status],
     ['Placering',record.place?'#'+record.place:(field.place?'#'+field.place:'—'),'total'],
     ['Klassplats',classInfo.place?'#'+classInfo.place:'—',record.class_name||'saknas'],
     ['Könsplats',sexInfo.place?'#'+sexInfo.place:'—',ctx.sexLabel(record)],
-    ['Snittfart',finite(paceKm)?ctx.pace(record.finish_seconds,paceKm,ctx.S.unit):'—',finite(paceKm)?ctx.fmtKm(paceKm)+' km':'fysisk distans ej verifierad'],
+    ['Snittfart',finite(paceKm)?ctx.pace(record.finish_seconds,paceKm,ctx.S.unit):'—',finite(paceKm)&&ctx.S.race?.family==='gax100'&&!ctx.S.race?.demo_only?'nominell 100 miles · ej GPX-mätt':finite(paceKm)?ctx.fmtKm(paceKm)+' km':'fysisk distans ej verifierad'],
     ['Snabbare än fältet',pct(field.percentile),'n='+field.n],
     ['Checkpointtäckning',cover.observed+'/'+cover.total,cover.observed===cover.total?'komplett':'partiell']
   ];
