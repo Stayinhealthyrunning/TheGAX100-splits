@@ -275,7 +275,12 @@ function referenceAnchors(ctx,record,rows){
   const routeEnd=ctx.routePoints().at(-1)?.[0]||Number(ctx.S.race.nominal_km)||1;
   const nominal=Number(ctx.S.race.nominal_km)||routeEnd;
   const points=[{km:0,t:0,name:'Start',n:rows.length}];
-  ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0).forEach(point=>{
+  // Group median route anchors require actual recorded intermediate times.
+  // The km axis may be estimated from earlier editions; the TIME median is not.
+  // For finish-only years no intermediate reference animation is inferred.
+  const controls=window.GaxCheckpointView?.replayStations?.(ctx.S.race)||
+    ctx.boundaries().filter(point=>point.uid!=='start'&&!point.is_finish&&finite(point.km)&&point.km>0);
+  controls.forEach(point=>{
     const values=rows.map(row=>ctx.observed(row,point)?.elapsed_seconds).filter(finite);
     if(values.length<5)return;
     const km=replayRouteKm(ctx,point.km,routeEnd,nominal),t=median(values),last=points.at(-1);
@@ -299,7 +304,9 @@ function interpolate(anchors,distance){
 function replayState(ctx,record,groupSet){
   const routeEnd=ctx.routePoints().at(-1)?.[0]||Number(ctx.S.race.nominal_km)||1;
   const nominal=Number(ctx.S.race.nominal_km)||routeEnd;
-  const places=ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0).map(point=>({
+  const controls=window.GaxCheckpointView?.replayStations?.(ctx.S.race)||
+    ctx.boundaries().filter(point=>point.uid!=='start'&&!point.is_finish&&finite(point.km)&&point.km>0);
+  const places=controls.map(point=>({
     km:replayRouteKm(ctx,point.km,routeEnd,nominal),
     name:point.name,
     observation:ctx.observed(record,point)
