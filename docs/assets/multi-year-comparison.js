@@ -110,7 +110,24 @@ function create(){
       }catch{return unavailable;}
     }));
     if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
-    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc:null,storagePrefix:'gax100-no-music'});
+    // Use the same explicitly configurable soundtrack as Replay and Kartduell.
+    // A missing public asset never prevents multi-year comparison playback.
+    let musicSrc=null,musicCredit='';
+    try{
+      const conf=await fetch('data/replay-audio.json').then(r=>r.ok?r.json():null);
+      if(conf?.src&&conf.enabled){
+        const response=await fetch(conf.src,{method:'HEAD'});
+        if(response.ok){musicSrc=conf.src;musicCredit=conf.credit||'';}
+      }
+    }catch{}
+    if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
+    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc,storagePrefix:'loppanalys-replay-audio'});
+    if(musicSrc&&musicCredit){
+      const credit=document.createElement('p');
+      credit.className='replay-music-credit';
+      credit.textContent=musicCredit+' (Pixabay)';
+      body.querySelector('#multi-year-map-root')?.appendChild(credit);
+    }
   }
   async function restore(){
     if(restoredFamily===family)return;const params=new URLSearchParams(location.search);if(params.get('myFamily')!==family){restoredFamily=family;return}
