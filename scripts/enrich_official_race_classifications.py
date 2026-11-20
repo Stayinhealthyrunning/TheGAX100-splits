@@ -67,15 +67,21 @@ def parse_public_duv(data):
         first=value[0] if value else ""
         try:rank=int(first.strip())
         except (ValueError,TypeError):rank=None
-        found.append((name,sexes[0],sec,rank))
+        sex_col=next((i for i,v in enumerate(value) if v==sexes[0]),None)
+        sex_rank=None
+        if sex_col is not None and sex_col+1<len(value):
+            try: sex_rank=int(value[sex_col+1].strip())
+            except (ValueError,TypeError): pass
+        found.append((name,sexes[0],sec,rank,sex_rank))
     # De-duplicate any nested table or duplicated HTML markup row.
     result={}
-    for name,sex,sec,rank in found:
+    for name,sex,sec,rank,sex_rank in found:
         key=(norm(name),sec)
-        if key in result and result[key]!=(sex,rank):
+        if key in result and result[key]!=(sex,rank,sex_rank):
             raise ValueError("Conflicting DUV source classifications")
-        result[key]=(sex,rank)
-    return [(name,sex,sec,rank) for name,sex,sec,rank in found if result.get((norm(name),sec))==(sex,rank)]
+        result[key]=(sex,rank,sex_rank)
+    return [(name,sex,sec,rank,sex_rank) for name,sex,sec,rank,sex_rank in found
+            if result.get((norm(name),sec))==(sex,rank,sex_rank)]
 def duv_page(event_id):
     url=f"https://statistik.d-u-v.org/getresultevent.php?event={event_id}"
     request=Request(url,headers={"User-Agent":"Mozilla/5.0 (compatible; GAX100-results-quality/1.0; public source verification)"})
@@ -92,14 +98,14 @@ def enrich_year(key, event_id):
     source=parse_public_duv(duv_page(event_id))
     seen=set()
     entries=[]
-    for source_name,sex,sec,rank in source:
+    for source_name,sex,sec,rank,sex_rank in source:
         row=find_unique_match(race,source_name,sec)
         if not row:continue
         if row["id"] in seen:raise ValueError("Duplicate public result match")
         seen.add(row["id"])
         if row.get("sex") in ("M","F") and row["sex"]!=sex:
             raise ValueError("Source sex discrepancy; review before publication")
-        entries.append(dict(result_id=row["id"],sex=sex,finish_seconds=sec,overall_rank=rank))
+        entries.append(dict(result_id=row["id"],sex=sex,finish_seconds=sec,overall_rank=rank,sex_class_rank=sex_rank))
     return entries,len(source),len([r for r in race["results"] if r["status"]=="FINISHED"])
 def main():
     old=json.loads(OUTPUT.read_text(encoding="utf-8"))
