@@ -1,14 +1,15 @@
 /* Gax100 Splits: public-result classification and ranking integrity.
-   This module NEVER guesses sex from a name, and NEVER adds new runners.
-   Verified classes are joined ONLY to already privacy-released result IDs.
-   Original race JSON and SHA-256 release manifest stay immutable.
+   Verified class M/F is sourced from organizer/DUV. Separately labeled
+   first-name STATISTICAL ESTIMATES may be shown for unclassified rows.
+   No estimate is a person's confirmed sex or official race class.
+   Original privacy-released files and SHA-256 manifest stay immutable.
 */
 (()=>{'use strict';
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const positiveInt=v=>Number.isInteger(v)&&v>0;
 const sexOf=r=>r?.sex==='F'||r?.sex==='M'?r.sex:null;
 const finish=r=>r?.status==='FINISHED'&&finite(r.finish_seconds)&&r.finish_seconds>0;
-function reconcile(race,doc){
+function reconcile(race,doc,nameDoc){
  if(!race||!Array.isArray(race.results)||race.demo_only||race.release_state==='PRIVATE_DATA_WITHHELD')
    return{race_key:race?.race_key,applied:0,finish:0};
  const publishedFinishers=race.results.filter(finish);
@@ -39,6 +40,23 @@ function reconcile(race,doc){
      throw Error('GAX 2024 requires the complete verified DUV class list');
  }
  const lookup=new Map(updates.map(({row,match})=>[String(row.id),match]));
+ const nameEstimates=nameDoc?.schema==='gax100-first-name-statistical-estimate-1'
+   ?nameDoc.editions?.[race.race_key]:null;
+ const estimateLookup=new Map(),allPublic=new Map(race.results.map(r=>[String(r.id),r]));
+ for(const estimate of Array.isArray(nameEstimates)?nameEstimates:[]){
+   const key=String(estimate.result_id),row=allPublic.get(key);
+   if(!row||estimateLookup.has(key)||lookup.has(key)||sexOf(row)||
+     estimate.status!==row.status||!['M','F'].includes(estimate.estimated_sex))
+     throw Error('GAX estimated name class is invalid or overrides official evidence');
+   const fromApi=estimate.method==='genderize_first_name_SE'&&
+     typeof estimate.probability==='number'&&estimate.probability>=0.99&&
+     Number.isInteger(estimate.evidence_count)&&estimate.evidence_count>=50;
+   const fromCohort=estimate.method==='verified_cohort_first_name_consensus'&&
+     Number.isInteger(estimate.evidence_count)&&estimate.evidence_count>=4&&
+     estimate.probability==null;
+   if(!fromApi&&!fromCohort)throw Error('GAX first-name estimate lacks required supporting statistics');
+   estimateLookup.set(key,estimate);
+ }
  for(const row of race.results){
    row.source_reported_place=positiveInt(row.place)?row.place:null;
    if(!finish(row)){
@@ -57,6 +75,15 @@ function reconcile(race,doc){
  // Derive real, comparable TOTAL ranking from each finisher's observed
  // official finish_seconds. A source-provided overall rank is kept where
  // it is internally plausible; duplicates at a tied second are permitted.
+ // Optional estimation is DISPLAY-ONLY, never the official sex or class rank.
+ for(const row of race.results){
+   const estimate=estimateLookup.get(String(row.id));
+   if(!estimate||sexOf(row))continue;
+   row.name_based_sex=estimate.estimated_sex;
+   row.name_based_method=estimate.method;
+   row.name_based_evidence_count=estimate.evidence_count;
+   row.name_based_probability=estimate.probability??null;
+ }
  const sorted=publishedFinishers.slice().sort((a,b)=>
    a.finish_seconds-b.finish_seconds||String(a.id).localeCompare(String(b.id)));
  for(let i=0;i<sorted.length;i++){
@@ -93,6 +120,7 @@ function reconcile(race,doc){
  }
  return{race_key:race.race_key,applied:updates.length,finish:publishedFinishers.length,
    classified:publishedFinishers.filter(r=>sexOf(r)).length,
+   estimated:estimateLookup.size,
    derivedOverall:publishedFinishers.filter(r=>r.place_provenance==='computed_from_official_finish_time').length,
    sourceOverall:publishedFinishers.filter(r=>r.place_provenance!=='computed_from_official_finish_time').length};
 }
