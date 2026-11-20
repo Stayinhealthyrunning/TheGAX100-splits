@@ -35,6 +35,12 @@ def check(site: Path):
             assert page.locator(".gax-preview-note").is_hidden()
             assert page.locator(".gax-production-copy").first.is_visible()
             assert "DESIGNDEMO" not in page.locator("#source-indicator").inner_text()
+            assert page.locator(".gax-demo-copy").first.is_hidden()
+            page.locator("#method > .gax-added-info").click()
+            help_text = page.locator("#help-content").inner_text().lower()
+            assert "officiella tävlingsresultat" in help_text
+            assert "påhittade" not in help_text, "The release must not present real runners as fictional"
+            page.locator("#help-dialog [data-close='help-dialog']").click()
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2"), "Mobile overflow"
             # Select the official 2023 table where multiple source checkpoints exist.
             page.select_option("#year-select","2023-gax100")
