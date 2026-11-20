@@ -1,0 +1,341 @@
+{
+  "schema": "gax100-confirmed-race-classification-1",
+  "policy": "Only explicit official race sex-classification, matched by published result name and finish time; NEVER infer sex from names. Overlay is restricted to IDs already published through the privacy gate. The original 16-file release manifest remains immutable.",
+  "source": {
+    "event": "The Gax 100 miles 2024",
+    "organizer_url": "https://gax100.se/resultat/resultat-2024/",
+    "source_url": "https://statistik.d-u-v.org/getresultevent.php?event=104698",
+    "source_label": "Organizer official female/male result sections; DUV published result sex category and total rank",
+    "verified_finishers": 54,
+    "verified_F": 18,
+    "verified_M": 36
+  },
+  "editions": {
+    "2024-gax100": [
+      {
+        "result_id": "259c747a92d5136d457188fb",
+        "sex": "F",
+        "finish_seconds": 58860,
+        "overall_rank": 1
+      },
+      {
+        "result_id": "dfda4d9d4e0897fd3d1a5a19",
+        "sex": "M",
+        "finish_seconds": 60660,
+        "overall_rank": 2
+      },
+      {
+        "result_id": "dca4df9da0e80ccb88cfce2c",
+        "sex": "M",
+        "finish_seconds": 62400,
+        "overall_rank": 3
+      },
+      {
+        "result_id": "0280ec939d64b5c7a0384f37",
+        "sex": "M",
+        "finish_seconds": 63480,
+        "overall_rank": 4
+      },
+      {
+        "result_id": "0456d64ffe8e1058059972ba",
+        "sex": "F",
+        "finish_seconds": 64500,
+        "overall_rank": 5
+      },
+      {
+        "result_id": "9df2eba30a38449e883b9738",
+        "sex": "M",
+        "finish_seconds": 66900,
+        "overall_rank": 6
+      },
+      {
+        "result_id": "7b9a5ad048711b3d7d829924",
+        "sex": "F",
+        "finish_seconds": 72300,
+        "overall_rank": 7
+      },
+      {
+        "result_id": "4174388fc194a86220479384",
+        "sex": "M",
+        "finish_seconds": 72300,
+        "overall_rank": 8
+      },
+      {
+        "result_id": "505123bbd0450a60b05f9e64",
+        "sex": "M",
+        "finish_seconds": 73560,
+        "overall_rank": 9
+      },
+      {
+        "result_id": "e5737d21fbbdd7ba29c72a78",
+        "sex": "M",
+        "finish_seconds": 73620,
+        "overall_rank": 10
+      },
+      {
+        "result_id": "3b1853ee91273d29b376fbb3",
+        "sex": "F",
+        "finish_seconds": 74340,
+        "overall_rank": 11
+      },
+      {
+        "result_id": "df3be9119a15d9b5ce68a349",
+        "sex": "M",
+        "finish_seconds": 74880,
+        "overall_rank": 12
+      },
+      {
+        "result_id": "612515a5aeed8885d87b36f0",
+        "sex": "M",
+        "finish_seconds": 74940,
+        "overall_rank": 13
+      },
+      {
+        "result_id": "ad9bd1a6e002371217b6507f",
+        "sex": "M",
+        "finish_seconds": 76320,
+        "overall_rank": 14
+      },
+      {
+        "result_id": "7cdf89f8e98286e32f8a048c",
+        "sex": "M",
+        "finish_seconds": 81180,
+        "overall_rank": 15
+      },
+      {
+        "result_id": "d793b1f7c9fe44763c431261",
+        "sex": "M",
+        "finish_seconds": 81180,
+        "overall_rank": 16
+      },
+      {
+        "result_id": "64da4f617c64bb41726ef6ce",
+        "sex": "M",
+        "finish_seconds": 83580,
+        "overall_rank": 17
+      },
+      {
+        "result_id": "2b4b44ceeff9659edcbe8cfb",
+        "sex": "M",
+        "finish_seconds": 83640,
+        "overall_rank": 18
+      },
+      {
+        "result_id": "cae40314e18c0ec364552db4",
+        "sex": "M",
+        "finish_seconds": 85980,
+        "overall_rank": 19
+      },
+      {
+        "result_id": "0ad8faa4a4fb2783dcf9286d",
+        "sex": "F",
+        "finish_seconds": 87660,
+        "overall_rank": 20
+      },
+      {
+        "result_id": "6abcc4ebd76902cd3abcb4ef",
+        "sex": "M",
+        "finish_seconds": 88200,
+        "overall_rank": 21
+      },
+      {
+        "result_id": "a32b791b2d824df092e11cdf",
+        "sex": "M",
+        "finish_seconds": 88560,
+        "overall_rank": 22
+      },
+      {
+        "result_id": "4bbb99f9e26f8ff2ef05df60",
+        "sex": "M",
+        "finish_seconds": 88620,
+        "overall_rank": 23
+      },
+      {
+        "result_id": "9905e23c981f6b648fa7fb1e",
+        "sex": "F",
+        "finish_seconds": 90000,
+        "overall_rank": 24
+      },
+      {
+        "result_id": "9d27438992f8455205a9de82",
+        "sex": "F",
+        "finish_seconds": 90000,
+        "overall_rank": 25
+      },
+      {
+        "result_id": "556fb71c366e0e782b9fe00e",
+        "sex": "M",
+        "finish_seconds": 90060,
+        "overall_rank": 26
+      },
+      {
+        "result_id": "25b8f954d36cfa2a480e4cea",
+        "sex": "F",
+        "finish_seconds": 91080,
+        "overall_rank": 27
+      },
+      {
+        "result_id": "bcf8fc223e845f3bb8389aa1",
+        "sex": "F",
+        "finish_seconds": 91620,
+        "overall_rank": 28
+      },
+      {
+        "result_id": "0428fa6ec7e41e457fa2186c",
+        "sex": "M",
+        "finish_seconds": 93540,
+        "overall_rank": 29
+      },
+      {
+        "result_id": "b1e0bb4eae166910e0cb7f4d",
+        "sex": "M",
+        "finish_seconds": 93540,
+        "overall_rank": 30
+      },
+      {
+        "result_id": "84cde0ecb8fa0b3e10876cdf",
+        "sex": "M",
+        "finish_seconds": 94440,
+        "overall_rank": 31
+      },
+      {
+        "result_id": "9aeba3460aa9d7b5b8cad2a3",
+        "sex": "M",
+        "finish_seconds": 95340,
+        "overall_rank": 32
+      },
+      {
+        "result_id": "4364a0222ba27e9ac510e190",
+        "sex": "M",
+        "finish_seconds": 95640,
+        "overall_rank": 33
+      },
+      {
+        "result_id": "c536ec65e69fabbc9ca86f58",
+        "sex": "M",
+        "finish_seconds": 95760,
+        "overall_rank": 34
+      },
+      {
+        "result_id": "2a0c2c015ab19b0ab359b915",
+        "sex": "M",
+        "finish_seconds": 97800,
+        "overall_rank": 35
+      },
+      {
+        "result_id": "9cc8ef68df6dca4b18ff138c",
+        "sex": "M",
+        "finish_seconds": 99180,
+        "overall_rank": 36
+      },
+      {
+        "result_id": "0f34a2d547fbe953c6badd91",
+        "sex": "M",
+        "finish_seconds": 100440,
+        "overall_rank": 37
+      },
+      {
+        "result_id": "26ee0b29f9f8cde93a4a87ac",
+        "sex": "M",
+        "finish_seconds": 101880,
+        "overall_rank": 38
+      },
+      {
+        "result_id": "9a8abf48de0f6c631c8090fb",
+        "sex": "F",
+        "finish_seconds": 102540,
+        "overall_rank": 39
+      },
+      {
+        "result_id": "f70ecee9750e763323f0aaf0",
+        "sex": "M",
+        "finish_seconds": 104820,
+        "overall_rank": 40
+      },
+      {
+        "result_id": "00747809c591d600494024fa",
+        "sex": "F",
+        "finish_seconds": 105840,
+        "overall_rank": 41
+      },
+      {
+        "result_id": "a642205f641118d9954e6d4a",
+        "sex": "F",
+        "finish_seconds": 105840,
+        "overall_rank": 42
+      },
+      {
+        "result_id": "b904353ab9f308cb621c6274",
+        "sex": "F",
+        "finish_seconds": 106140,
+        "overall_rank": 43
+      },
+      {
+        "result_id": "47a5f1c7c2593082aca45342",
+        "sex": "M",
+        "finish_seconds": 106260,
+        "overall_rank": 44
+      },
+      {
+        "result_id": "3165e6fb95e25227fa3832bc",
+        "sex": "M",
+        "finish_seconds": 106380,
+        "overall_rank": 45
+      },
+      {
+        "result_id": "86a8a1f22060d3d7d134002d",
+        "sex": "M",
+        "finish_seconds": 106380,
+        "overall_rank": 46
+      },
+      {
+        "result_id": "dd1cb7c556773790cc449357",
+        "sex": "F",
+        "finish_seconds": 108000,
+        "overall_rank": 47
+      },
+      {
+        "result_id": "e7af6f63b203ba20c724a17a",
+        "sex": "F",
+        "finish_seconds": 108000,
+        "overall_rank": 48
+      },
+      {
+        "result_id": "0e9626a8580f3afef588d185",
+        "sex": "F",
+        "finish_seconds": 111960,
+        "overall_rank": 49
+      },
+      {
+        "result_id": "5588344ad5de744690c31b99",
+        "sex": "M",
+        "finish_seconds": 111960,
+        "overall_rank": 50
+      },
+      {
+        "result_id": "6de4bb37f9b0fc80c4c855a4",
+        "sex": "M",
+        "finish_seconds": 112860,
+        "overall_rank": 51
+      },
+      {
+        "result_id": "51c7605ff4c6ac6e4b1e97b2",
+        "sex": "F",
+        "finish_seconds": 114060,
+        "overall_rank": 52
+      },
+      {
+        "result_id": "e763e8dcd58d286e0bb9c0c2",
+        "sex": "M",
+        "finish_seconds": 114060,
+        "overall_rank": 53
+      },
+      {
+        "result_id": "cde06103ef332c45880d902c",
+        "sex": "F",
+        "finish_seconds": 114780,
+        "overall_rank": 54
+      }
+    ]
+  }
+}
