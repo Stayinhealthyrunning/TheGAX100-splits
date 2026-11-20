@@ -138,7 +138,7 @@ function create(){
     explainer.className='gax-timing-note';
     explainer.textContent=hasCheckpoints?
       'Varje års markörer styrs av verkliga registrerade passagetider. Kontrollernas kilometer kan vara årskontrollerade eller uppskattade; rörelsen mellan tider är en modell, inte deltagar-GPS. Olika år är inte en officiell tävling mot varandra.':
-      'Minst en vald löpare saknar mellantider. Den löparens bana visas statiskt utan animerad markör eller påhittade mellanpositioner; officiella sluttider kan fortfarande jämföras.';
+      'Minst en vald löpare saknar verkliga mellantider. Kartan visar då enbart statiska referensbanor. Uppspelad relativ löparposition kan inte beräknas; officiella sluttider kan fortfarande jämföras.';
     body.querySelector('#multi-year-map-root')?.before(explainer);
     // Use the same explicitly configurable soundtrack as Replay and Kartduell.
     // A missing public asset never prevents multi-year comparison playback.
@@ -151,8 +151,8 @@ function create(){
       }
     }catch{}
     if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
-    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc,storagePrefix:'loppanalys-replay-audio'});
-    if(musicSrc&&musicCredit){
+    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc:hasCheckpoints?musicSrc:null,staticOnly:!hasCheckpoints,storagePrefix:'loppanalys-replay-audio'});
+    if(hasCheckpoints&&musicSrc&&musicCredit){
       const credit=document.createElement('p');
       credit.className='replay-music-credit';
       credit.textContent=musicCredit+' (Pixabay)';
