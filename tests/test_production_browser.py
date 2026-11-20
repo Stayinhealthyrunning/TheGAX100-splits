@@ -31,6 +31,12 @@ def check(site: Path):
             page.goto(f"http://127.0.0.1:{server.server_port}/", wait_until="domcontentloaded")
             page.wait_for_function("() => document.querySelector('#source-indicator')?.textContent.includes('Officiella GAX100-källor')",timeout=30000)
             assert page.locator("html.gax-production").count()==1
+            assert page.locator("#gax-title").inner_text().strip().lower() == "gax100 splits"
+            assert page.locator(".gax-station-point.gax-station-terminal").count() == 2
+            assert page.locator(".gax-cutoffs tbody tr").count() >= 9
+            config = page.evaluate("() => fetch('data/replay-audio.json').then(r => r.json())")
+            assert config["src"].startswith("assets/audio/")
+            assert "AudioERA" in config["credit"]
             assert page.locator("#year-select option").count()==14
             assert page.locator(".gax-preview-note").is_hidden()
             assert page.locator(".gax-production-copy").first.is_visible()
@@ -73,6 +79,19 @@ def check(site: Path):
                 assert "Officiella GAX100-källor" in page.locator("#source-indicator").inner_text()
                 result = page.evaluate("(key) => fetch('data/races/'+key+'.json').then(r=>r.json()).then(j=>j.stations.length)",key)
                 assert result==1, "A finish-only year acquired fictitious checkpoints"
+                assert page.locator("#gax-controls-content .gax-start-control").count()==1
+                assert "Endast Start" in page.locator("#standouts").inner_text()
+                # Open a real, source-FINISHED profile and verify nominal pace.
+                page.locator("#results-table [data-open]").first.click()
+                assert page.locator("#profile-dialog").evaluate("(el) => el.open")
+                facts=page.locator(".profile2-facts").inner_text()
+                assert "Snittfart" in facts
+                assert "nominell 100 miles" in facts
+                assert "min/km" in facts or "/km" in facts
+                assert page.locator("#gax-runner-checkpoints .gax-start-control").count()==1
+                assert page.locator("#gax-runner-checkpoints tbody tr").count()==2
+                assert "bara officiell målpassage" in page.locator("#gax-runner-checkpoints").inner_text()
+                page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
             assert not errors, f"Browser JavaScript error types: {errors}"
             browser.close()
     finally:
