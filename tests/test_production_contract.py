@@ -207,6 +207,16 @@ class ProductionContract(unittest.TestCase):
         # Deliberately unidentifiable historical source row must stay unknown.
         self.assertEqual(still_unknown,[("2019-gax100","N N")])
 
+    def test_historical_plan_is_source_based_and_deployed(self):
+        engine=(ROOT / "docs" / "assets" / "plan-history.js").read_text(encoding="utf-8")
+        html=(ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('data/historical-checkpoint-km.json', engine)
+        self.assertIn('data/races/', engine)
+        self.assertIn('finish_seconds', engine)
+        self.assertIn('Math.sqrt(Math.min(25,group.ratios.length))', engine)
+        self.assertIn('assets/plan-history.js', html)
+        self.assertIn('id="plan-table"', html)
+
     def test_page_metadata_and_privacy_contract(self):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
