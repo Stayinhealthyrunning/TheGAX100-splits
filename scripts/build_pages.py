@@ -132,7 +132,44 @@ def stage(docs, output):
                 check(len(entries)==54 and sum(e["sex"]=="F" for e in entries)==18
                       and sum(e["sex"]=="M" for e in entries)==36,
                       "2024 podium source coverage must be complete (18 F, 36 M)")
-        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json"}
+        # Statistical first-name estimates are never official sex assignments.
+        # Ship a separate clearly documented overlay, keyed only to already
+        # privacy-released result IDs and never to full names or DUV identifiers.
+        estimates=load(data/"name-based-classification.json")
+        check(estimates.get("schema")=="gax100-first-name-statistical-estimate-1",
+              "Missing estimate-only source schema")
+        entries_by_year=estimates.get("editions",{})
+        expected_keys={e["race_key"] for e in load(data/"bootstrap.json")["editions"]}
+        check(set(entries_by_year)==expected_keys,
+              "Every edition must have an estimate table, even if empty")
+        for edition_key,entries in entries_by_year.items():
+            original=load(data/"races"/(edition_key+".json"))
+            allowed={str(row["id"]):row for row in original["results"]}
+            confirmed={str(x["result_id"]) for x in source_classes.get("editions",{}).get(edition_key,[])}
+            seen=set()
+            for estimate in entries:
+                check(set(estimate)=={"result_id","status","estimated_sex","method","probability","evidence_count"},
+                      "Unapproved field in estimated class data")
+                token=str(estimate["result_id"])
+                check(token not in seen and token not in confirmed,
+                      "Estimate duplicates or overrides verified class")
+                seen.add(token)
+                row=allowed.get(token)
+                check(row is not None and row["status"]==estimate["status"] and
+                      row.get("sex") not in ("F","M") and estimate["estimated_sex"] in ("F","M"),
+                      "Estimate does not match a currently unclassified published result")
+                method=estimate["method"]
+                if method=="genderize_first_name_SE":
+                    check(isinstance(estimate["probability"],(int,float)) and
+                          estimate["probability"]>=0.99 and
+                          isinstance(estimate["evidence_count"],int) and
+                          estimate["evidence_count"]>=50,"Weak statistical name evidence")
+                elif method=="verified_cohort_first_name_consensus":
+                    check(estimate["probability"] is None and
+                          isinstance(estimate["evidence_count"],int) and
+                          estimate["evidence_count"]>=4,"Weak source-cohort name evidence")
+                else:check(False,"Unknown name-estimate method")
+        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json", "name-based-classification.json"}
         for name in files:
             target = output / "data" / name
             target.parent.mkdir(parents=True, exist_ok=True)
