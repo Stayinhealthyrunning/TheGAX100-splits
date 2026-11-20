@@ -1723,7 +1723,7 @@ window.SatilaExtras=(()=>{
     }).catch(()=>null);
     return coveragePromise;
   }
-  async async function renderSexHistory(){
+  async function renderSexHistory(){
     const host=$('#history-sex');if(!host)return;
     const family=S.family;
     host.innerHTML='<p class="muted small">Beräknar könsfördelning från offentliga resultat och märkta namnuppskattningar…</p>';
