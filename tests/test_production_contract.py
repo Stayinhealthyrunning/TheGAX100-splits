@@ -171,6 +171,42 @@ class ProductionContract(unittest.TestCase):
         self.assertEqual(sum(x["sex"]=="F" for x in official["editions"]["2024-gax100"]),18)
         self.assertEqual(sum(x["sex"]=="M" for x in official["editions"]["2024-gax100"]),36)
 
+    def test_unverified_manual_groups_do_not_override_sources(self):
+        bootstrap=json.loads((DATA / "bootstrap.json").read_text(encoding="utf-8"))
+        manual=json.loads((DATA / "manual-result-classification.json").read_text(encoding="utf-8"))
+        official=json.loads((DATA / "official-result-classification.json").read_text(encoding="utf-8"))
+        estimated=json.loads((DATA / "name-based-classification.json").read_text(encoding="utf-8"))
+        keys={ed["race_key"] for ed in bootstrap["editions"]}
+        self.assertEqual(manual["schema"], "gax100-manual-analytical-group-1")
+        self.assertEqual(manual["source"], "site_owner_supplied_in_chat_2026-11-20")
+        self.assertEqual(set(manual["editions"]), keys)
+        counts=Counter()
+        still_unknown=[]
+        for key in keys:
+            race=json.loads((DATA / "races" / (key + ".json")).read_text(encoding="utf-8"))
+            by_id={str(r["id"]):r for r in race["results"]}
+            official_ids={str(v["result_id"]) for v in official["editions"].get(key,[])}
+            estimate_ids={str(v["result_id"]) for v in estimated["editions"][key]}
+            manual_ids=set()
+            for v in manual["editions"][key]:
+                self.assertEqual(set(v), {"result_id","status","group_sex","method"})
+                self.assertEqual(v["method"], "user_manual_unverified_2026_11_20")
+                token=str(v["result_id"])
+                self.assertIn(token,by_id)
+                self.assertNotIn(token,official_ids|estimate_ids|manual_ids)
+                manual_ids.add(token)
+                self.assertIsNone(by_id[token]["sex"])
+                self.assertEqual(by_id[token]["status"],v["status"])
+                self.assertIn(v["group_sex"],("M","F"))
+                counts[v["group_sex"]]+=1
+            for row in race["results"]:
+                if row.get("sex") in ("F","M") or str(row["id"]) in official_ids|estimate_ids|manual_ids:
+                    continue
+                still_unknown.append((key,row["name"]))
+        self.assertEqual(counts,Counter(M=15,F=3))
+        # Deliberately unidentifiable historical source row must stay unknown.
+        self.assertEqual(still_unknown,[("2019-gax100","N N")])
+
     def test_page_metadata_and_privacy_contract(self):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
