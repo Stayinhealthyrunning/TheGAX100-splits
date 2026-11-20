@@ -101,10 +101,17 @@ class ProductionContract(unittest.TestCase):
                 source = values[canonical]
                 if source["mode"] == "year_verified":
                     self.assertEqual(st["km"],source["km"],key)
-                elif source["mode"] in ("adjacent_reference","conflicting_source"):
+                elif source["mode"] in ("historical_estimate","conflicting_source"):
                     self.assertIsNone(st["km"],key)
                     self.assertIsNone(source["km"],key)
                     self.assertTrue(source["source"].startswith("https://gax100.se/"),key)
+                    if source["mode"]=="historical_estimate":
+                        self.assertEqual(source["reference_km"],
+                                         {"Magleberg":44,"Haväng":80,"Sandhammaren":130}[canonical],key)
+                        self.assertGreaterEqual(len(source["estimate_basis_years"]),2,key)
+        for key in ("2020-gax100","2024-gax100"):
+            self.assertEqual({v["mode"] for v in km["editions"][key]["stations"].values()},
+                             {"historical_estimate"})
         for key in ("2025-gax100","2026-gax100"):
             self.assertFalse(km["editions"][key]["stations"])
         for key in ("2019-gax100","2021-a-gax100","2021-b-gax100"):
@@ -116,7 +123,7 @@ class ProductionContract(unittest.TestCase):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
         self.assertIn("https://www.loppanalys.se/integritet/", html)
-        self.assertIn("GAX100 Analys 1.2", html)
+        self.assertIn("GAX100 Analys 1.3", html)
         self.assertIn("gax-production-copy", html)
         self.assertNotIn("design-demo med fiktiva deltagare", html)
 
