@@ -32,11 +32,20 @@ def check(site: Path):
             page.wait_for_function("() => document.querySelector('#source-indicator')?.textContent.includes('Officiella GAX100-källor')",timeout=30000)
             assert page.locator("html.gax-production").count()==1
             assert page.locator("#gax-title").inner_text().strip().lower() == "gax100 splits"
+            page.wait_for_function("() => {const x=document.querySelector('.gax-hero-image');return x?.complete && x.naturalWidth >= 1100;}",timeout=16000)
+            assert page.locator(".gax-hero-image").get_attribute("src")=="assets/hero-ales-stenar-trail-runners.webp"
+            assert "GAX100 Analys 1.2" in page.title()
             assert page.locator(".gax-station-point.gax-station-terminal").count() == 2
             assert page.locator(".gax-cutoffs tbody tr").count() >= 9
             config = page.evaluate("() => fetch('data/replay-audio.json').then(r => r.json())")
             assert config["src"].startswith("assets/audio/")
             assert "AudioERA" in config["credit"]
+            sound=page.request.head(f"http://127.0.0.1:{server.server_port}/"+config["src"])
+            assert sound.status==200, "Original soundtrack must be deployed with the release"
+            assert "audio/" in sound.headers.get("content-type","")
+            provenance=page.request.get(f"http://127.0.0.1:{server.server_port}/data/historical-checkpoint-km.json")
+            assert provenance.status==200
+            assert len(provenance.json()["editions"])==14
             assert page.locator("#year-select option").count()==14
             assert page.locator(".gax-preview-note").is_hidden()
             assert page.locator(".gax-production-copy").first.is_visible()
@@ -53,10 +62,14 @@ def check(site: Path):
             page.wait_for_function("() => document.querySelector('#scope-status')?.textContent.includes('90')",timeout=20000)
             assert "Officiella GAX100-källor" in page.locator("#source-indicator").inner_text()
             assert page.locator("#results-table tbody tr").count()>1
+            page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('44 km (årsresultat)')",timeout=12000)
             page.locator("#results-table [data-open]").first.click()
             assert page.locator("#profile-dialog").evaluate("(el) => el.open")
             assert page.locator("#gax-runner-checkpoints tbody tr").count() >= 2
             assert "Officiella" in page.locator("#gax-runner-checkpoints h3").inner_text()
+            if page.locator("#profile-dialog [data-replay-music]").count():
+                page.wait_for_function("() => !document.querySelector('#profile-dialog [data-replay-music]').disabled",timeout=18000)
+                assert "AudioERA" in page.locator("#profile-dialog .replay-music-credit").inner_text()
             page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
             page.set_viewport_size({"width":1440,"height":900})
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2"), "Desktop overflow"
@@ -72,6 +85,13 @@ def check(site: Path):
             assert page.locator("#gax-direct-controls tbody tr").count()>=2
             assert "officiella" in page.locator("#gax-direct-controls h3").inner_text().lower()
             page.locator("#compare-dialog [data-close='compare-dialog']").first.click()
+            # 2019: year source has class-conflicting km and must not collapse it.
+            page.select_option("#year-select","2019-gax100")
+            page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('källkonflikt')",timeout=20000)
+            assert "43–44 km" in page.locator("#gax-controls-content").inner_text()
+            # 2024: current organizer reference may be shown but not claimed for 2024.
+            page.select_option("#year-select","2024-gax100")
+            page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('referens, ej årsverifierat')",timeout=20000)
             # Finish-only source years must remain finish-only, not invent checkpoints.
             for key, total in [("2025-gax100",119),("2026-gax100",110)]:
                 page.select_option("#year-select",key)
@@ -80,7 +100,11 @@ def check(site: Path):
                 result = page.evaluate("(key) => fetch('data/races/'+key+'.json').then(r=>r.json()).then(j=>j.stations.length)",key)
                 assert result==1, "A finish-only year acquired fictitious checkpoints"
                 assert page.locator("#gax-controls-content .gax-start-control").count()==1
-                assert "Endast Start" in page.locator("#standouts").inner_text()
+                page.wait_for_function("() => document.querySelector('#extra-dynamics')?.hidden === true",timeout=15000)
+                assert page.locator("#extra-dynamics").is_hidden()
+                assert page.locator("#extra-segments").is_hidden()
+                assert page.locator("#standouts").locator("xpath=ancestor::article[1]").is_hidden()
+                assert page.locator("#extra-overview #age-chart").locator("xpath=ancestor::article[1]").is_hidden()
                 # Open a real, source-FINISHED profile and verify nominal pace.
                 page.locator("#results-table [data-open]").first.click()
                 assert page.locator("#profile-dialog").evaluate("(el) => el.open")
@@ -98,7 +122,7 @@ def check(site: Path):
         server.shutdown()
         server.server_close()
         thread.join(timeout=3)
-    print("GAX100_V1_PRODUCTION_BROWSER_PASS: 14 editions, real-source display, profiles, comparisons, mobile/desktop, finish-only safeguards")
+    print("GAX100_V1_2_BROWSER_PASS: original imagery and audio, 14 source years, km provenance conflicts, responsive data hiding, real profiles/comparisons")
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
