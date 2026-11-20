@@ -59,25 +59,44 @@ function displayKm(st,race){
    return values.map(kms).join('–')+' km (källkonflikt)';
  }
  if(valid(st.km))return kms(st.km)+' km (årsresultat)';
- if(entry?.mode==='adjacent_reference'&&valid(entry.reference_km))
-   return '≈'+kms(entry.reference_km)+' km (referens, ej årsverifierat)';
+ if(['historical_estimate','adjacent_reference'].includes(entry?.mode)&&valid(entry.reference_km))
+   return '≈'+kms(entry.reference_km)+' km (uppskattat, ej årsmätt)';
  return '— (km ej fastställda)';
 }
 const kmStatus=(race,st)=>{
  if(st.is_finish)return 'Nominell 100 miles, inte GPX-mätt';
  const entry=sourceEntry(race,st);
  if(entry?.mode==='conflicting_source')return 'Årslistans klassrubriker skiljer; endast tidsanalys';
- if(entry?.mode==='adjacent_reference')return 'Referens från annan upplaga – ej årsverifierat';
+ if(['historical_estimate','adjacent_reference'].includes(entry?.mode))return 'UPPSKATTAT från andra upplagors årssiffror; inte uppmätt denna tävlingsdag';
  if(entry?.mode==='year_verified'||valid(st.km))return 'Publicerad årskilometer, inte GPX-mätning';
  return 'Årskilometer saknas i verifierad källa';
 };
+// The replay requires two independent truths: an observed station TIME and
+// an explicit annual or estimated kilometre along the reference route.
+// Missing TIME never becomes an observed or estimated passage at that station.
+const ESTIMATE_KM={Magleberg:44,'Haväng':80,Sandhammaren:130};
+function replayStations(race){
+ return stations(race).filter(st=>!st.is_finish&&st.n>0).map(st=>{
+   const entry=sourceEntry(race,st),name=stationName(st);
+   const verified=valid(st.km)&&st.km>0;
+   const estimatedKm=entry?.mode==='historical_estimate'&&valid(entry.reference_km)?
+     entry.reference_km:entry?.mode==='conflicting_source'?ESTIMATE_KM[name]:
+     entry?.mode==='adjacent_reference'&&valid(entry.reference_km)?entry.reference_km:null;
+   const km=verified?st.km:estimatedKm;
+   return {...st,km:valid(km)?km:null,
+      km_mode:verified?'annual_verified':estimatedKm!==null?'estimated_reference':'missing',
+      km_note:entry?.notes||null};
+ }).filter(st=>valid(st.km)&&st.km>0).sort((a,b)=>a.km-b.km);
+}
+let resolveReference;
+const referenceReady=new Promise(resolve=>{resolveReference=resolve;});
 fetch('data/historical-checkpoint-km.json').then(r=>r.ok?r.json():null).then(data=>{
  if(!data||data.schema!=='gax100-historical-station-distance-provenance-1')return;
  kmReference=data;
  if(renderedRace)render(renderedRace);
  if(openedRunner&&renderedRace&&document.querySelector('#profile-dialog')?.open)
   renderProfile(renderedRace,openedRunner);
-}).catch(()=>{});
+}).catch(()=>{}).finally(()=>resolveReference());
 
 function ensureOverview(){
  let panel=$('#gax-controls-panel');
@@ -154,6 +173,13 @@ function renderComparison(race,a,b){
  :'<p class="muted">Inga gemensamma, registrerade kontrollpassager utöver sluttiderna.</p>');
  content.appendChild(panel);
 }
-window.GaxCheckpointView={render,renderProfile,renderComparison,
- _test:{median,observed,stations}};
+window.GaxCheckpointView={
+ render,renderProfile,renderComparison,
+ // Canonical source-timed station sequence and display-only historical km.
+ // Neither API transforms result rows or creates geographical positions.
+ sourceStations:race=>stations(race).filter(st=>st.n>0),
+ replayStations,ready:referenceReady,
+ formatKm:(race,station)=>displayKm(station,race),
+ _test:{median,observed,stations}
+};
 })();

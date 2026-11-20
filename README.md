@@ -1,4 +1,4 @@
-# Gax100 Splits – version 1.2
+# Gax100 Splits – version 1.3
 
 Webbaserad analys av **The GAX 100 miles**, byggd på samma grund som Loppanalys.se:s Sätila-analys.
 
@@ -32,11 +32,23 @@ Om ett framtida utvecklingsrepo saknar publiceringsmanifest byggs i stället en 
 
 ## Versionshistorik och omfattning
 
-Version **1.2 (20 november 2026)** sammanfattar den verkligt publicerade, filtrerade datamängden och de tidigare färdigbyggda funktionerna. Den kompletterar tidigare utveckling med särskild QA för skarpa data, enhetlig versions-/metodinformation och kontroll av att produktionsflödet inte oavsiktligt återgår till demonstration.
+Version **1.3 (20 november 2026)** sammanfattar den verkligt publicerade, filtrerade datamängden och de tidigare färdigbyggda funktionerna. Den kompletterar tidigare utveckling med särskild QA för skarpa data, enhetlig versions-/metodinformation och kontroll av att produktionsflödet inte oavsiktligt återgår till demonstration.
 
 GAX100 ligger tills vidare **utanför startsidans lopplista på Loppanalys.se** under granskningen. Det äldre `gax100-analys` bevaras för historik och separat GitHub Support-sanering; dess äldre persondatahistorik ska aldrig återintroduceras i detta rena repo.
 
 Mer detaljer: [Granskning och release](docs/REVIEW_AND_RELEASE.md) · [V1 release notes](docs/V1_RELEASE_NOTES.md).
+
+## Version 1.3 – fasta klockpassager i Replay och Kartduell
+
+- **Kontrollens faktiska registrerade passertid är det fasta ankaret** för respektive löpare i individuell Replay, två-löparjämförelse, Kartduell 2–5 deltagare och korsårsreplay.
+- Kontrollens kilometerposition hämtas från den aktuella upplagans årsverifierade km, eller **uppskattas till Magleberg 44, Haväng 80 och Sandhammaren 130 km** när årsvärdet saknas. 2019/2021 har olika km i arrangörens klassrubriker; kartan använder samma tydligt uppskattade 44/80/130 som gemensam visualiseringsaxel, medan källkonflikten visas i tabellerna.
+- **En uppskattad kilometer är inte en uppskattad passertid.** Utan verklig tid för en löpare vid en kontroll skapas inget kontrollankare. Mellan den löparens två närmaste verkliga passager visas enbart beräknad position på referensbanan.
+- Om året eller löparen endast har Start och Mål visas en **statisk referensbana och verkliga sluttider**, utan animerad deltagarposition eller påhittad mellanplacering. Detta gäller både individuell Replay, Kartduell och jämförelser mellan år.
+- Den tidigare koden i `gax100-analys` användes som metodreferens för att återskapa riktiga mellantider även när kilometerfältet är tomt. Detta korrigerar den regressionsbugg som dolde tre kontrollpassager i exempelvis 2024.
+- Inga resultatposter, privata register, källpassertider eller insamlade GPS-spår har ändrats. Den nya logiken är beräknings- och presentationskod ovanpå de redan godkända offentliga filerna.
+- Originalbilden och den originalverifierade AudioERA/Pixabay-MP3:n från 1.2 fortsätter att användas oförändrade.
+
+Se [metod- och versionsanteckning 1.3](docs/V1_3_RELEASE_NOTES.md) för kontrollankare, motstridiga km, villkoren för interpolation och kvalitetstester.
 
 ## Version 1.2 – bild, datatäckning, källkilometer och musik
 

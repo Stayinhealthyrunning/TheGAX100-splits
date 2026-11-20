@@ -1,7 +1,7 @@
 {
   "schema": "gax100-historical-station-distance-provenance-1",
   "generated_for": "Gax100 Splits v1.2",
-  "policy": "Historical km must not be inferred from GPS, adjacent races or modern cutoff table. Conflicts and references are labeled, never substituted as verified.",
+  "policy": "Årsverifierade officiella kilometer används som källuppgift. Där årsresultatet saknar kontrollkilometer men passertiden finns används 44/80/130 km som UPPSKATTAT från flera andra upplagor. Källkonflikter 2019/2021 visas som spann, inte som en enda säker distans. Uppskattningarna får aldrig bli officiellt verifierad km, kart-GPS eller faktisk fysisk segmentfart.",
   "editions": {
     "2014-gax100": {
       "stations": {
@@ -186,25 +186,52 @@
           "km": null,
           "reference_km": 44,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/resultat/resultat-2019/",
-          "notes": "Referens från närliggande dokumenterad upplaga, INTE fastställd km för 2020."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från återkommande historiska kontroll-km 44/80/130; årsspecifikt avstånd har inte hittats. Detta är inte officiell avståndsmätning för 2020.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         },
         "Haväng": {
           "km": null,
           "reference_km": 80,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/resultat/resultat-2019/",
-          "notes": "Referens från närliggande dokumenterad upplaga, INTE fastställd km för 2020."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från återkommande historiska kontroll-km 44/80/130; årsspecifikt avstånd har inte hittats. Detta är inte officiell avståndsmätning för 2020.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         },
         "Sandhammaren": {
           "km": null,
           "reference_km": 130,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/resultat/resultat-2019/",
-          "notes": "Referens från närliggande dokumenterad upplaga, INTE fastställd km för 2020."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från återkommande historiska kontroll-km 44/80/130; årsspecifikt avstånd har inte hittats. Detta är inte officiell avståndsmätning för 2020.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         }
       }
     },
@@ -344,25 +371,52 @@
           "km": null,
           "reference_km": 44,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/information/",
-          "notes": "Nutida arrangörsstationer är bara geografi-/planeringsreferens, INTE verifierad 2024-kilometer."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från historiska resultat med samma stationsnamn (44/80/130 km), ej uppmätt eller årsspecifikt verifierat för 2024. Arrangören uppger dessutom banändring från 2024; verklig kontroll-km kan därför avvika.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         },
         "Haväng": {
           "km": null,
-          "reference_km": 79,
+          "reference_km": 80,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/information/",
-          "notes": "Nutida arrangörsstationer är bara geografi-/planeringsreferens, INTE verifierad 2024-kilometer."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från historiska resultat med samma stationsnamn (44/80/130 km), ej uppmätt eller årsspecifikt verifierat för 2024. Arrangören uppger dessutom banändring från 2024; verklig kontroll-km kan därför avvika.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         },
         "Sandhammaren": {
           "km": null,
-          "reference_km": 131,
+          "reference_km": 130,
           "alternatives_km": [],
-          "mode": "adjacent_reference",
-          "source": "https://gax100.se/information/",
-          "notes": "Nutida arrangörsstationer är bara geografi-/planeringsreferens, INTE verifierad 2024-kilometer."
+          "mode": "historical_estimate",
+          "source": "https://gax100.se/resultat/resultat-2023/",
+          "notes": "UPPSKATTAT från historiska resultat med samma stationsnamn (44/80/130 km), ej uppmätt eller årsspecifikt verifierat för 2024. Arrangören uppger dessutom banändring från 2024; verklig kontroll-km kan därför avvika.",
+          "estimate_basis_years": [
+            2014,
+            2015,
+            2016,
+            2017,
+            2018,
+            2022,
+            2023
+          ]
         }
       }
     },

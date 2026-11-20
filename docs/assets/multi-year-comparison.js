@@ -80,18 +80,41 @@ function create(){
     if(selected.length>=2){url.searchParams.set('myFamily',family);for(const item of selected)url.searchParams.append('myResult',item.token)}return url.href;
   }
   function observedAnchors(item,route){
-    const length=Number(route.geometry_length_km)||Number(route.points?.at(-1)?.[0])||0;
-    const nominal=Number(item.edition.nominal_km||item.race.nominal_km)||0;
-    if(length<=0||nominal<=0||['DNS','UNKNOWN'].includes(item.record.status))return[];
-    const stations=new Map((item.race.stations||[]).map(st=>[String(st.uid),st]));
-    const rows=(item.race.splits||[]).filter(row=>String(row.result_id)===String(item.record.id)).map(row=>({row,st:stations.get(String(row.station_uid))})).filter(x=>x.st&&finite(x.row.elapsed_seconds)&&finite(x.st.km)&&Number(x.st.km)>0&&Number(x.st.km)<=nominal+.1&&(!x.st.is_finish||finish(item.record))).sort((a,b)=>Number(a.st.km)-Number(b.st.km));
-    const anchors=[{time:0,distance:0}];let latest=anchors[0];
-    for(const {row,st} of rows){const time=Number(row.elapsed_seconds),distance=Math.min(length,Number(st.km)*length/nominal);if(time>latest.time&&distance>latest.distance){latest={time,distance};anchors.push(latest);}}
-    if(finish(item.record)&&Number(item.record.finish_seconds)>latest.time&&length>latest.distance)anchors.push({time:Number(item.record.finish_seconds),distance:length});
+    const length=Number(route.geometry_length_km)||Number(route.points?.at(-1)?.[0])||0,
+      nominal=Number(item.edition.nominal_km||item.race.nominal_km)||0;
+    if(length<=0||nominal<=0||['DNS','UNKNOWN'].includes(item.record.status))return [];
+    const controls=globalThis.GaxCheckpointView?.replayStations?.(item.race)||
+      (item.race.stations||[]).filter(st=>!st.is_finish&&finite(st.km));
+    const controlByUid=new Map(controls.map(st=>[String(st.uid),st]));
+    const rows=(item.race.splits||[])
+      .filter(row=>String(row.result_id)===String(item.record.id))
+      .map(row=>({row,st:controlByUid.get(String(row.station_uid))}))
+      // A real published passage is required. Never infer intermediate times
+      // merely because the historical km is 44/80/130 (estimated for some years).
+      .filter(x=>x.st&&finite(x.row.elapsed_seconds)&&Number(x.row.elapsed_seconds)>0&&
+        finite(x.st.km)&&Number(x.st.km)>0&&Number(x.st.km)<nominal)
+      .sort((a,b)=>Number(a.st.km)-Number(b.st.km));
+    const anchors=[{time:0,distance:0,mode:'observed_start'}];let latest=anchors[0];
+    for(const {row,st} of rows){
+      const time=Number(row.elapsed_seconds),distance=Math.min(length,Number(st.km)*length/nominal);
+      if(time>latest.time&&distance>latest.distance){
+        latest={time,distance,mode:'observed_checkpoint',station:st.name,km_mode:st.km_mode};
+        anchors.push(latest);
+      }
+    }
+    // Cross-year timing animation is allowed only when the individual has
+    // an actual intermediate EQ TIME. Finish-only results keep a static route
+    // and their real finish facts; they never receive a synthetic marker.
+    if(!anchors.some(point=>point.mode==='observed_checkpoint'))return [];
+    if(finish(item.record)&&Number(item.record.finish_seconds)>latest.time&&length>latest.distance)
+      anchors.push({time:Number(item.record.finish_seconds),distance:length,mode:'observed_finish'});
     return anchors;
   }
   async function openComparison(){
     if(selected.length<2||selected.length>5)return;
+    // The historical estimated-km matrix must be loaded before we construct
+    // independent-year reference animations. This does not alter race data.
+    await globalThis.GaxCheckpointView?.ready;
     mapController?.destroy?.();mapController=null;
     const detail=selected.length===2?render(model(selected[0],selected[1])):'<section class="multi-year-section"><h3>Valda år och prestation mot respektive fält</h3><div class="table-scroll"><table><thead><tr><th>År</th><th>Deltagare</th><th>Status</th><th>Sluttid</th><th>Plats</th><th>Fältindex</th></tr></thead><tbody>'+selected.map(x=>'<tr><td>'+esc(x.edition.year)+'</td><th>'+esc(x.record.name)+'</th><td>'+esc(x.record.status)+'</td><td>'+formatTime(x.record.finish_seconds)+'</td><td>'+esc(x.record.place??'—')+'</td><td>'+index(fieldMetrics(x.race,x.record).index)+'</td></tr>').join('')+'</tbody></table></div><p class="muted small">Olika banor ger ingen gemensam totalplacering och ingen direkt tidsgapstävling. Varje års fältindex är separat.</p></section>';
     body.innerHTML='<section id="multi-year-map-root" class="multi-year-map-card"><p class="muted small">Laddar årsbanor…</p></section>'+detail;
@@ -110,6 +133,13 @@ function create(){
       }catch{return unavailable;}
     }));
     if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
+    const hasCheckpoints=items.every(item=>item.anchors.some(a=>a.mode==='observed_checkpoint'));
+    const explainer=document.createElement('p');
+    explainer.className='gax-timing-note';
+    explainer.textContent=hasCheckpoints?
+      'Varje års markörer styrs av verkliga registrerade passagetider. Kontrollernas kilometer kan vara årskontrollerade eller uppskattade; rörelsen mellan tider är en modell, inte deltagar-GPS. Olika år är inte en officiell tävling mot varandra.':
+      'Minst en vald löpare saknar verkliga mellantider. Kartan visar då enbart statiska referensbanor. Uppspelad relativ löparposition kan inte beräknas; officiella sluttider kan fortfarande jämföras.';
+    body.querySelector('#multi-year-map-root')?.before(explainer);
     // Use the same explicitly configurable soundtrack as Replay and Kartduell.
     // A missing public asset never prevents multi-year comparison playback.
     let musicSrc=null,musicCredit='';
@@ -121,8 +151,8 @@ function create(){
       }
     }catch{}
     if(!dialog.open||selected.map(x=>x.token).join('|')!==token)return;
-    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc,storagePrefix:'loppanalys-replay-audio'});
-    if(musicSrc&&musicCredit){
+    mapController=globalThis.LoppMultiYearRouteMap?.mount(body.querySelector('#multi-year-map-root'),items,{musicSrc:hasCheckpoints?musicSrc:null,staticOnly:!hasCheckpoints,storagePrefix:'loppanalys-replay-audio'});
+    if(hasCheckpoints&&musicSrc&&musicCredit){
       const credit=document.createElement('p');
       credit.className='replay-music-credit';
       credit.textContent=musicCredit+' (Pixabay)';

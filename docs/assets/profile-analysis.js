@@ -43,11 +43,53 @@ function groups(ctx,record){
     sex:{id:'sex',label:sex==='F'?'Kvinnor':sex==='M'?'Män':'Kön',rows:sexRows,...rankInfo(ctx,record,sexRows)}
   };
 }
+// Public TIME checkpoints must survive an unknown or conflicting historical
+// distance. This is the original GAX100 approach in the older web/plan.js:
+// distance_km=null blocks physical pace, NEVER source-backed passage times.
+function sourceTimingPoints(ctx){
+  const source=window.GaxCheckpointView?.sourceStations?.(ctx.S.race);
+  if(source)return source;
+  const stations=ctx.S.race.stations||[],splits=ctx.S.race.splits||[];
+  const times=st=>splits.filter(p=>String(p.station_uid)===String(st.uid)&&finite(p.elapsed_seconds)&&Number(p.elapsed_seconds)>0)
+    .map(p=>Number(p.elapsed_seconds));
+  return stations.map(st=>({...st,sourceMedian:median(times(st)),sourceN:times(st).length}))
+    .filter(st=>st.sourceN>0)
+    .sort((a,b)=>a.is_finish!==b.is_finish?(a.is_finish?1:-1):
+      a.sourceMedian-b.sourceMedian||String(a.name).localeCompare(String(b.name),'sv'));
+}
+function labelHistoricalKm(ctx,station){
+  const value=window.GaxCheckpointView?.formatKm?.(ctx.S.race,station);
+  return typeof value==='string'&&value.trim()?value:
+    (finite(station.km)?ctx.fmtKm(station.km)+' km (årsresultat)':'— (årskm ej verifierade)');
+}
 function coverage(ctx,record){
-  const points=ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0);
+  const points=sourceTimingPoints(ctx);
   return {observed:points.filter(point=>ctx.observed(record,point)).length,total:points.length};
 }
+function sourceTimedSegments(ctx,record,rows,points){
+  const order=[{uid:'start',name:'Start',km:0},...points];
+  const pass=(runner,station)=>station.uid==='start'?{elapsed_seconds:0,place:null}:ctx.observed(runner,station);
+  return order.slice(1).map((to,i)=>{
+    const from=order[i],start=pass(record,from),end=pass(record,to);
+    if(!start||!end||!finite(start.elapsed_seconds)||!finite(end.elapsed_seconds)||
+      Number(end.elapsed_seconds)<=Number(start.elapsed_seconds))return null;
+    const samples=rows.map(r=>{
+      const a=pass(r,from),b=pass(r,to);
+      return a&&b&&finite(a.elapsed_seconds)&&finite(b.elapsed_seconds)&&
+        Number(b.elapsed_seconds)>Number(a.elapsed_seconds)?Number(b.elapsed_seconds)-Number(a.elapsed_seconds):null;
+    }).filter(finite);
+    const n=samples.length,ref=n>=5?median(samples):null,seconds=Number(end.elapsed_seconds)-Number(start.elapsed_seconds);
+    const km=finite(from.km)&&finite(to.km)&&Number(to.km)>Number(from.km)?Number(to.km)-Number(from.km):null;
+    return {index:i,from,to,km,seconds,placeFrom:start.place,placeTo:end.place,
+      stat:{index:i,n,median:ref},relative:finite(ref)&&seconds>0?100*ref/seconds:null};
+  }).filter(Boolean);
+}
 function segmentData(ctx,record,rows){
+  const points=sourceTimingPoints(ctx);
+  // For years with unknown station-km keep the exact timing segments separate
+  // from metric/GPS-speed analysis. Only *adjacent* actual TIME pairs qualify.
+  if(points.some(point=>!finite(point.km)))
+    return sourceTimedSegments(ctx,record,rows,points);
   const stats=ctx.segmentStats(rows),parts=ctx.pairs(record);
   return parts.map(part=>{
     const stat=stats.find(item=>item.index===part.index);
@@ -88,13 +130,13 @@ function story(ctx,record,groupSet,segments){
   return text;
 }
 function checkpointPoints(ctx,record,rows){
-  return ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0).map(point=>{
+  return sourceTimingPoints(ctx).map(point=>{
     const own=ctx.observed(record,point);
     const cohort=rows.map(row=>ctx.observed(row,point)?.elapsed_seconds).filter(finite);
     const reference=cohort.length>=5?median(cohort):null;
     return {
       name:point.name,
-      km:Number(point.km),
+      km:finite(point.km)?Number(point.km):null,
       own:own&&finite(own.elapsed_seconds)?Number(own.elapsed_seconds):null,
       place:own&&finite(own.place)?Number(own.place):null,
       reference,
@@ -194,22 +236,33 @@ function pacingRibbon(ctx,segments,label){
 }
 function passageTable(ctx,record){
   let previous={name:'Start',seconds:0};
-  const rows=ctx.S.race.stations.filter(st=>st.is_analysis_boundary&&finite(st.km)&&st.km>0).sort((a,b)=>a.sort-b.sort||a.km-b.km).map(st=>{
+  const points=sourceTimingPoints(ctx),observedIntermediates=points.filter(st=>!st.is_finish&&ctx.observed(record,st)).length;
+  const rows=points.map(st=>{
     const observation=ctx.observed(record,st),elapsed=observation?.elapsed_seconds;
-    const valid=finite(elapsed)&&Number(elapsed)>previous.seconds;
-    const split=valid?ctx.time(Number(elapsed)-previous.seconds):'—';
-    const from=valid?previous.name:'—';
-    if(valid)previous={name:st.name,seconds:Number(elapsed)};
-    return '<tr><td>'+ctx.html(st.name)+'</td><td>'+ctx.fmtKm(st.km)+'</td><td>'+ctx.time(elapsed)+'</td><td>'+split+(valid?' <small>från '+ctx.html(from)+'</small>':'')+'</td><td>'+(observation?.place??'—')+'</td><td>'+(observation?'Observerad EQ TIME':'Passage saknas')+'</td></tr>';
+    const verified=finite(elapsed)&&Number(elapsed)>previous.seconds;
+    const split=verified?ctx.time(Number(elapsed)-previous.seconds):'—';
+    const from=verified?previous.name:'—';
+    if(verified)previous={name:st.name,seconds:Number(elapsed)};
+    return '<tr><td>'+ctx.html(st.name)+'</td><td>'+ctx.html(labelHistoricalKm(ctx,st))+'</td>'+
+      '<td>'+ctx.time(elapsed)+'</td><td>'+split+(verified?' <small>från '+ctx.html(from)+'</small>':'')+
+      '</td><td>'+(observation?.place??'—')+'</td><td>'+(observation?'Observerad EQ TIME':'Passage saknas')+'</td></tr>';
   }).join('');
-  return '<details class="profile-source-passages"><summary>Verifierade passager och källstatus</summary><div class="table-scroll"><table><thead><tr><th>Kontroll</th><th>km*</th><th>Ack. tid</th><th>Sedan föregående verifierade</th><th>Publicerad plats</th><th>Datakälla</th></tr></thead><tbody><tr><td>Start</td><td>0</td><td>0:00</td><td>—</td><td>—</td><td>Tidsnoll</td></tr>'+rows+'</tbody></table></div></details>';
+  const caption=observedIntermediates?
+    '<p class="muted small">Mellantiderna är verkligt registrerade. Kilometer kommer från historiska resultatkolumner där sådana finns; markerade referenser och källkonflikter används aldrig för fysisk segmentfart.</p>':
+    '<p class="muted small">Denna löpare saknar publicerade mellankontroller. Endast officiella observerade passager och Startens tidsnoll visas.</p>';
+  return '<details class="profile-source-passages" '+(observedIntermediates?'open':'')+
+    '><summary>Verifierade passager och källstatus</summary>'+caption+
+    '<div class="table-scroll"><table><thead><tr><th>Kontroll</th><th>Km · källstatus</th><th>Ack. tid</th>'+
+    '<th>Sedan föregående verifierade</th><th>Publicerad plats</th><th>Datakälla</th></tr></thead><tbody>'+
+    '<tr><td>Start</td><td>0</td><td>0:00</td><td>—</td><td>—</td><td>Tidsnoll</td></tr>'+rows+
+    '</tbody></table></div></details>';
 }
 function segmentTable(ctx,record,segments){
   if(!segments.length)return '<p class="empty">Inga kompletta observerade kontrollpar finns för denna löpare. Endast registrerade tider kan visas som delsträckor.</p>';
   const rows=segments.map(item=>{
     const ack=ctx.observed(record,item.to)?.elapsed_seconds;
     const movement=finite(item.placeFrom)&&finite(item.placeTo)?Number(item.placeFrom)-Number(item.placeTo):null;
-    return '<tr><td><strong>'+ctx.html(item.from.name+' → '+item.to.name)+'</strong><small>'+ctx.fmtKm(item.km)+' timing-km</small></td><td>'+ctx.time(ack)+'</td><td>'+ctx.time(item.seconds)+'</td><td>'+(ctx.paceDistanceSupported(item)?ctx.pace(item.seconds,item.km,ctx.S.unit):'Distans ej verifierad')+'</td><td>'+(item.placeTo?'#'+item.placeTo:'—')+'</td><td>'+(finite(movement)?(movement>0?'+':'')+Math.round(movement):'—')+'</td><td>'+ctx.time(item.stat?.median)+'</td><td>'+(finite(item.stat?.median)?signedTime(item.stat.median-item.seconds,ctx.time):'—')+'</td><td>'+(item.stat?.n??0)+'</td></tr>';
+    return '<tr><td><strong>'+ctx.html(item.from.name+' → '+item.to.name)+'</strong><small>'+(finite(item.km)?ctx.fmtKm(item.km)+' km (källaxel)':'km ej årsverifierade')+'</small></td><td>'+ctx.time(ack)+'</td><td>'+ctx.time(item.seconds)+'</td><td>'+(ctx.paceDistanceSupported(item)?ctx.pace(item.seconds,item.km,ctx.S.unit):'Distans ej verifierad')+'</td><td>'+(item.placeTo?'#'+item.placeTo:'—')+'</td><td>'+(finite(movement)?(movement>0?'+':'')+Math.round(movement):'—')+'</td><td>'+ctx.time(item.stat?.median)+'</td><td>'+(finite(item.stat?.median)?signedTime(item.stat.median-item.seconds,ctx.time):'—')+'</td><td>'+(item.stat?.n??0)+'</td></tr>';
   }).join('');
   return '<section class="profile-split-section" id="profile-splits"><div class="profile-section-head"><div><p class="eyebrow">MELLANTIDER · ANALYTISKA DELSTRÄCKOR</p><h3>Från analysgräns till analysgräns</h3></div><span class="profile-pill">exakta ackumulerade tider</span></div><div class="table-scroll"><table class="profile-split-table"><thead><tr><th>Delsträcka</th><th>Ack. tid</th><th>Delsträckstid</th><th>Tempo</th><th>Plats</th><th>Förändring</th><th>Fältmedian*</th><th>Mot median</th><th>n</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="muted small">* Fältmedianen använder endast fullföljare med två verkliga passager på samma segment och kräver minst fem observationer. Tempo döljs där timingdistansen inte kan användas som fysisk distans.</p></section>';
 }
@@ -222,7 +275,12 @@ function referenceAnchors(ctx,record,rows){
   const routeEnd=ctx.routePoints().at(-1)?.[0]||Number(ctx.S.race.nominal_km)||1;
   const nominal=Number(ctx.S.race.nominal_km)||routeEnd;
   const points=[{km:0,t:0,name:'Start',n:rows.length}];
-  ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0).forEach(point=>{
+  // Group median route anchors require actual recorded intermediate times.
+  // The km axis may be estimated from earlier editions; the TIME median is not.
+  // For finish-only years no intermediate reference animation is inferred.
+  const controls=window.GaxCheckpointView?.replayStations?.(ctx.S.race)||
+    ctx.boundaries().filter(point=>point.uid!=='start'&&!point.is_finish&&finite(point.km)&&point.km>0);
+  controls.forEach(point=>{
     const values=rows.map(row=>ctx.observed(row,point)?.elapsed_seconds).filter(finite);
     if(values.length<5)return;
     const km=replayRouteKm(ctx,point.km,routeEnd,nominal),t=median(values),last=points.at(-1);
@@ -246,7 +304,9 @@ function interpolate(anchors,distance){
 function replayState(ctx,record,groupSet){
   const routeEnd=ctx.routePoints().at(-1)?.[0]||Number(ctx.S.race.nominal_km)||1;
   const nominal=Number(ctx.S.race.nominal_km)||routeEnd;
-  const places=ctx.boundaries().filter(point=>finite(point.km)&&Number(point.km)>0).map(point=>({
+  const controls=window.GaxCheckpointView?.replayStations?.(ctx.S.race)||
+    ctx.boundaries().filter(point=>point.uid!=='start'&&!point.is_finish&&finite(point.km)&&point.km>0);
+  const places=controls.map(point=>({
     km:replayRouteKm(ctx,point.km,routeEnd,nominal),
     name:point.name,
     observation:ctx.observed(record,point)
