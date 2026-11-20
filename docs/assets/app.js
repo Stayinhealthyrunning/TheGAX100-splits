@@ -1305,9 +1305,9 @@ function drawCompareMap(x,y,d,clock){
   }
   const indicator=$('#duel-progress-chart [data-compare-clock-cursor]');
   if(indicator){const cx=32+t/Math.max(1,xa.at(-1).t,ya.at(-1).t)*(750-64);indicator.setAttribute('x1',cx);indicator.setAttribute('x2',cx)}
-  const lead=aKm-bKm;
+  const lead=aKm-bKm,sourceAnchored=xa.method==='source_checkpoints'&&ya.method==='source_checkpoints';
   const exactA=lastObservedAnchor(xa,t)?.name||'Start',exactB=lastObservedAnchor(ya,t)?.name||'Start';
-  $('#duel-readout').innerHTML=`<strong>Gemensam tävlingsklocka ${time(t)}</strong> · <span style="color:#315f41">A ${html(x.name)} är cirka ${fmtKm(aKm)} km in i loppet</span> · <span style="color:#a47b37">B ${html(y.name)} befinner sig vid cirka ${fmtKm(bKm)} km på banan</span> · <strong>Positionsskillnad A−B: ${lead>=0?'+':''}${lead.toFixed(1)} km</strong><br>Vid A:s position cirka ${fmtKm(aKm)} km in på visningsrutten: beräknad passagetid A ${time(a)}, B ${time(b)} · Lucka B−A: ${signed(gap)} (${!num(gap)||gap===0?'lika':gap>0?'A före':'B före'}). A:s senaste verifierade passage: ${html(exactA)}. B:s senaste verifierade passage: ${html(exactB)}. Mellan passagerna är båda positionerna illustrativa. ${t>xa.at(-1).t||t>ya.at(-1).t?'Löpare utan senare TIME-ankare fryser vid sista observerade position.':''}`;
+  $('#duel-readout').innerHTML=`<strong>Gemensam tävlingsklocka ${time(t)}</strong> · <span style="color:#315f41">A ${html(x.name)} är cirka ${fmtKm(aKm)} km in i loppet</span> · <span style="color:#a47b37">B ${html(y.name)} befinner sig vid cirka ${fmtKm(bKm)} km på banan</span> · <strong>${sourceAnchored?'Modellerad positionsskillnad A−B: '+(lead>=0?'+':'')+lead.toFixed(1)+' km':'Ingen verifierbar positionsskillnad före mål – endast Start–Mål-illustration'}</strong><br>Vid A:s position cirka ${fmtKm(aKm)} km in på visningsrutten: beräknad passagetid A ${time(a)}, B ${time(b)} · Lucka B−A: ${signed(gap)} (${!num(gap)||gap===0?'lika':gap>0?'A före':'B före'}). A:s senaste verifierade passage: ${html(exactA)}. B:s senaste verifierade passage: ${html(exactB)}. Mellan passagerna är båda positionerna illustrativa. ${t>xa.at(-1).t||t>ya.at(-1).t?'Löpare utan senare TIME-ankare fryser vid sista observerade position.':''}`;
 }
 function renderCumulativeFinish(){
   const host=$('#percentile-chart'),finishers=S.filtered.filter(finish);
@@ -1451,8 +1451,10 @@ function openMapDuel(){
       const target=estimatedAt(data[0].anchors,km);
       if(num(target)){stop();draw(target)}
     });
-    $('#map-duel-readout').textContent=`Tävlingsklocka ${time(clock)} · längst fram just nu: ${leader.runner.name}, som är cirka ${fmtKm(leader.km)} km in på visningsrutten. Positioner mellan kontroller är beräknade.`;
-    $('#map-duel-leaderboard').innerHTML=`<div class="table-scroll"><table><thead><tr><th>Ordning*</th><th>Löpare</th><th>Status</th><th>Position på visningsrutt</th><th>Senast verifierad kontroll</th></tr></thead><tbody>${positions.sort((a,b)=>b.km-a.km).map((item,i)=>`<tr><td>${i+1}</td><td><i class="duel-color" style="background:${item.color}"></i>${html(item.runner.name)}</td><td>${html(item.runner.status)}</td><td>Cirka ${fmtKm(item.km)} km in</td><td>${html(lastObservedAnchor(item.anchors,clock)?.name||'Start')}</td></tr>`).join('')}</tbody></table></div><p class="small muted">* Ordningen är en illustrativ interpolation mellan registrerade kontroller, inte en officiell mellanplacering.</p>`;
+    $('#map-duel-readout').textContent=hasSourceCheckpoints?
+      `Tävlingsklocka ${time(clock)} · modellerad ledare just nu: ${leader.runner.name}, cirka ${fmtKm(leader.km)} km på visningsrutten. Kartpositioner mellan faktiska källkontroller är beräknade.`:
+      `Tävlingsklocka ${time(clock)} · minst en löpare saknar mellantider. Ingen verifierad positionsordning före mål kan visas; Start–Mål-markörer är illustrativa.`;
+    $('#map-duel-leaderboard').innerHTML=`<div class="table-scroll"><table><thead><tr><th>${hasSourceCheckpoints?'Illustrativ ordning*':'Ordning ej verifierad'}</th><th>Löpare</th><th>Status</th><th>Position på visningsrutt</th><th>Senast verifierad kontroll</th></tr></thead><tbody>${positions.sort((a,b)=>b.km-a.km).map((item,i)=>`<tr><td>${hasSourceCheckpoints?i+1:'—'}</td><td><i class="duel-color" style="background:${item.color}"></i>${html(item.runner.name)}</td><td>${html(item.runner.status)}</td><td>Cirka ${fmtKm(item.km)} km in</td><td>${html(lastObservedAnchor(item.anchors,clock)?.name||'Start')}</td></tr>`).join('')}</tbody></table></div><p class="small muted">${hasSourceCheckpoints?'* Ordningen interpoleras mellan källregistrerade kontrolltider, inte en officiell mellanplacering.':'Ingen positionsrangordning före mål när checkpoint-tider saknas.'}</p>`;
   }
   function frame(now){
     if(!playing)return;
