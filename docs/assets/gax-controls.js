@@ -154,6 +154,12 @@ function renderComparison(race,a,b){
  :'<p class="muted">Inga gemensamma, registrerade kontrollpassager utöver sluttiderna.</p>');
  content.appendChild(panel);
 }
-window.GaxCheckpointView={render,renderProfile,renderComparison,
- _test:{median,observed,stations}};
+window.GaxCheckpointView={
+ render,renderProfile,renderComparison,
+ // Canonical source-timed station sequence and display-only historical km.
+ // Neither API transforms result rows or creates geographical positions.
+ sourceStations:race=>stations(race).filter(st=>st.n>0),
+ formatKm:(race,station)=>displayKm(station,race),
+ _test:{median,observed,stations}
+};
 })();
