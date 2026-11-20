@@ -168,6 +168,12 @@ def stage(docs, output):
                     check(estimate["probability"] is None and
                           isinstance(estimate["evidence_count"],int) and
                           estimate["evidence_count"]>=4,"Weak source-cohort name evidence")
+                elif method in {"scb_tilltalsnamn_population_2022","scb_fornamn_population_2022"}:
+                    check(isinstance(estimate["probability"],(int,float)) and
+                          0.98<=estimate["probability"]<=1.0 and
+                          isinstance(estimate["evidence_count"],int) and
+                          estimate["evidence_count"]>=30,
+                          "Weak SCB 2022 sex-separated name prevalence evidence")
                 else:check(False,"Unknown name-estimate method")
         files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json", "name-based-classification.json"}
         for name in files:
