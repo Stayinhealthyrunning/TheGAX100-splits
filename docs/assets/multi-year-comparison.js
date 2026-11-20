@@ -102,6 +102,10 @@ function create(){
         anchors.push(latest);
       }
     }
+    // Cross-year timing animation is allowed only when the individual has
+    // an actual intermediate EQ TIME. Finish-only results keep a static route
+    // and their real finish facts; they never receive a synthetic marker.
+    if(!anchors.some(point=>point.mode==='observed_checkpoint'))return [];
     if(finish(item.record)&&Number(item.record.finish_seconds)>latest.time&&length>latest.distance)
       anchors.push({time:Number(item.record.finish_seconds),distance:length,mode:'observed_finish'});
     return anchors;
@@ -134,7 +138,7 @@ function create(){
     explainer.className='gax-timing-note';
     explainer.textContent=hasCheckpoints?
       'Varje års markörer styrs av verkliga registrerade passagetider. Kontrollernas kilometer kan vara årskontrollerade eller uppskattade; rörelsen mellan tider är en modell, inte deltagar-GPS. Olika år är inte en officiell tävling mot varandra.':
-      'Minst en vald löpare saknar mellantider. Då kan ingen checkpointförankrad rörelse jämföras för den löparen; Start–Mål visas enbart illustrativt.';
+      'Minst en vald löpare saknar mellantider. Den löparens bana visas statiskt utan animerad markör eller påhittade mellanpositioner; officiella sluttider kan fortfarande jämföras.';
     body.querySelector('#multi-year-map-root')?.before(explainer);
     // Use the same explicitly configurable soundtrack as Replay and Kartduell.
     // A missing public asset never prevents multi-year comparison playback.
