@@ -1,0 +1,30 @@
+name: GAX100 official SCB full-name aggregate inspection
+on:
+  push:
+    branches: [data/gax-scb-name-statistics-2026-11-20]
+    paths:
+      - .github/workflows/scb-name-aggregate.yml
+      - scripts/inspect_scb_workbook.py
+permissions:
+  contents: read
+jobs:
+  scb-aggregate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download official SCB 2022 final full-name aggregate workbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --retry-delay 2 --max-time 90 \
+             --user-agent 'Mozilla/5.0 GAX100 Research (public aggregate names)' \
+             'https://www.scb.se/contentassets/9fe7dbb460994c72b835163dbc491ef9/namn-med-minst-tva-barare-31-december-2022.xlsx' \
+             -o /tmp/scb_names_2022.xlsx
+          test "$(stat -c %s /tmp/scb_names_2022.xlsx)" -gt 10000
+          file /tmp/scb_names_2022.xlsx
+      - name: Inspect headers and sex-separated public aggregate sheet names only
+        run: python3 -B scripts/inspect_scb_workbook.py /tmp/scb_names_2022.xlsx
