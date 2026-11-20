@@ -306,11 +306,7 @@ a{transition:color .16s}
  .gax-mode-switch button{font-size:11px;padding:10px 13px}
 }
 
-.gax-group-details{margin:12px 0 0;border:1px solid #dfe4d8;background:#fcfcf6;border-radius:8px;overflow:hidden}
-.gax-group-details summary{cursor:pointer;padding:9px 13px;font-size:11px;font-weight:800;color:#365b4d}
-.gax-group-details[open] summary{border-bottom:1px solid #e6e7dd;background:#f4f5ec}
-.gax-group-details #group-table{padding:12px}
-.gax-group-details #group-table table{font-size:11px}
+#gax-personal-plan-panel #target-time-hint{display:block;margin-top:7px;font-size:.78rem;line-height:1.45;color:#62766d}
 
 #race-context .context-main>.gax-added-info{flex:0 0 27px;width:27px;height:27px;padding:0;margin:0 0 0 5px}
 #method{position:relative}
