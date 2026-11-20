@@ -942,6 +942,7 @@ function renderProfileReplay(r){
     return;
   }
   const pts=routePoints(),anchors=runnerAnchors(r),maxDistance=anchors.at(-1)?.km||0;
+  const timingCaption=sourceAnchorCaption(anchors);
   if(anchors.length<2||maxDistance<=0){
     // Source geometry still belongs in the personal popup. Only the runner
     // animation is disabled where the participant has no usable TIME after Start.
@@ -954,7 +955,7 @@ function renderProfileReplay(r){
   }
   let d=0,playing=false,startedAt=0,startedKm=0;
   S.profileFollow=false;
-  host.innerHTML=`<div class="panel-heading"><div><p class="eyebrow">BERÄKNAD POSITION MELLAN KONTROLLER</p><h3>Personlig Replay · bana och höjd</h3><p class="muted small">${html(replayMapSource())}</p></div></div><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><div class="replay-controls"><button type="button" class="btn green" id="profile-replay-play">Spela</button><button type="button" class="btn text-btn" id="profile-replay-reset">Börja om</button><label>Uppspelningstid<select id="profile-replay-duration"><option value="30">30 s</option><option value="60">60 s</option><option value="120" selected>120 s</option><option value="180">180 s</option></select></label><button type="button" class="btn text-btn" id="profile-replay-follow" aria-pressed="false">Följ löpare</button><button type="button" class="btn text-btn" id="profile-replay-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Position längs visningsrutten<input class="duel-scrubber" id="profile-replay-range" type="range" min="0" max="${maxDistance}" step="0.1" value="0" aria-label="Spola genom löparens lopp"/></label><p class="muted small" id="profile-replay-readout"></p>`;
+  host.innerHTML=`<div class="panel-heading"><div><p class="eyebrow">${anchors.method==='source_checkpoints'?'VERIFIERADE TIDSANKARE · BERÄKNAD RÖRELSE':'ENDAST START OCH MÅL · ILLUSTRATIV RÖRELSE'}</p><h3>Personlig Replay · bana och höjd</h3><p class="muted small">${html(timingCaption)} ${html(replayMapSource())}</p></div></div><div class="course-map" id="profile-mini-map"></div><div class="course-elevation" id="profile-mini-elev"></div><div class="replay-controls"><button type="button" class="btn green" id="profile-replay-play">Spela</button><button type="button" class="btn text-btn" id="profile-replay-reset">Börja om</button><label>Uppspelningstid<select id="profile-replay-duration"><option value="30">30 s</option><option value="60">60 s</option><option value="120" selected>120 s</option><option value="180">180 s</option></select></label><button type="button" class="btn text-btn" id="profile-replay-follow" aria-pressed="false">Följ löpare</button><button type="button" class="btn text-btn" id="profile-replay-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Position längs visningsrutten<input class="duel-scrubber" id="profile-replay-range" type="range" min="0" max="${maxDistance}" step="0.1" value="0" aria-label="Spola genom löparens lopp"/></label><p class="muted small" id="profile-replay-readout"></p>`;
   const map=$('#profile-mini-map'),elev=$('#profile-mini-elev'),range=$('#profile-replay-range'),playButton=$('#profile-replay-play');
   replaySoundtrack.bind(host);
   const stop=(pauseMusic=true)=>{playing=false;cancelAnimationFrame(S._replayFrame);playButton.textContent='Spela';if(pauseMusic)replaySoundtrack.pause()};
@@ -964,7 +965,7 @@ function renderProfileReplay(r){
     const elapsed=estimatedAt(anchors,d);
     drawSimpleRoute(map,pts,d);
     updateReplayElevation(elev,pts,d,draw);
-    $('#profile-replay-readout').textContent=`${fmtKm(d)} km på visningsrutten · ${num(elapsed)?'Beräknad tävlingstid '+time(elapsed):'Ingen säker interpolation'} · Sista exakta ankare: ${anchors.at(-1).name}. Positionen är illustrativ, inte uppmätt GPS.`;
+    $('#profile-replay-readout').textContent=`${fmtKm(d)} km på visningsrutten · ${num(elapsed)?'Beräknad tävlingstid '+time(elapsed):'Ingen säker interpolation'} · Sista verifierade ankare: ${lastObservedAnchor(anchors,elapsed)?.name||'Start'}. Positionen är illustrativ, inte uppmätt GPS.`;
     window.SatilaProfile?.onReplayPosition?.({runnerId:r.id,distance:d,elapsed,anchors,maxDistance});
   }
   function frame(now){
@@ -998,71 +999,42 @@ function renderProfileReplay(r){
 
 // Replay-only model. All returned synthetic anchors remain local to animation;
  // they are never written to EQ observations, results, journey or segment statistics.
+// GAX100 1.3: source-anchored clock model. Kilometer may be an explicitly
+// estimated control location (44/80/130), but elapsed TIME is always from
+// the original privacy-filtered EQ result. Never fabricate missing passages.
+// A finish-only record has a visibly different linear model.
 function runnerAnchors(r){
   const endKm=routePoints().at(-1)?.[0]||S.race.nominal_km;
-  const factor=endKm/S.race.nominal_km;
-  const stations=S.race.stations.filter(st=>st.is_analysis_boundary&&num(st.km)&&st.km>0&&st.km<=S.race.nominal_km).sort((a,b)=>a.km-b.km);
-  const raw=[{km:0,t:0,name:'Start',mode:'observed',station:null}];
+  const fallback=S.race.stations.filter(st=>!st.is_finish&&num(st.km)&&st.km>0);
+  const stations=(window.GaxCheckpointView?.replayStations?.(S.race)??fallback)
+    .filter(st=>num(st.km)&&st.km>0&&st.km<S.race.nominal_km)
+    .sort((a,b)=>a.km-b.km);
+  const anchors=[{km:0,t:0,name:'Start',mode:'observed_start',station:null}];
   for(const st of stations){
-    const obs=observed(r,st),last=raw.at(-1),km=timingToRouteKm(st.km);
-    if(obs&&num(obs.elapsed_seconds)&&obs.elapsed_seconds>last.t&&km>last.km+1e-6)
-      raw.push({km,t:obs.elapsed_seconds,name:st.name,mode:'observed',station:st});
+    const source=observed(r,st),last=anchors.at(-1);
+    const km=timingToRouteKm(st.km);
+    if(source&&num(source.elapsed_seconds)&&source.elapsed_seconds>last.t&&km>last.km+1e-6)
+      anchors.push({km,t:source.elapsed_seconds,name:st.name,mode:'observed_checkpoint',
+                    station:st,km_mode:st.km_mode||'annual_verified'});
   }
-  // An official FINISHED result supplies the observed terminal TIME even if the
-  // source bundle has no separately linked public finish passage.
-  if(finish(r)&&num(r.finish_seconds)&&r.finish_seconds>raw.at(-1).t)
-    raw.push({km:endKm,t:r.finish_seconds,name:'Mål',mode:'observed',station:null});
-  if(raw.length<2)return raw;
-  const all=[raw[0]];
-  for(let i=1;i<raw.length;i++){
-    const from=raw[i-1],to=raw[i];
-    const missing=stations.filter(st=>timingToRouteKm(st.km)>from.km+1e-5&&timingToRouteKm(st.km)<to.km-1e-5);
-    if(!missing.length){all.push(to);continue}
-    const boundaries=[from,...missing.map(st=>({km:timingToRouteKm(st.km),station:st,name:st.name})),to];
-    const peers=[];
-    for(const peer of records().filter(finish)){
-      if(peer.id===r.id)continue;
-      const times=boundaries.map((p,j)=>j===0&&p.station===null?0:observed(peer,p.station)?.elapsed_seconds);
-      if(times.some(t=>!num(t)))continue;
-      const durations=times.slice(1).map((t,j)=>t-times[j]);
-      if(durations.some(t=>t<=0))continue;
-      const span=times.at(-1)-times[0];
-      // Select peers by observed elapsed duration over this same bounding interval,
-      // not by an unrelated split or the participant's nominal pace.
-      peers.push({durations,span,closeness:Math.abs(Math.log(span/(to.t-from.t)))});
-    }
-    peers.sort((a,b)=>a.closeness-b.closeness);
-    const cohort=peers.slice(0,30);
-    if(cohort.length<5){all.push(to);continue} // explicit linear fallback
-    const median=values=>{const v=values.slice().sort((a,b)=>a-b);return (v[Math.floor((v.length-1)/2)]+v[Math.floor(v.length/2)])/2};
-    const shares=missing.map((_,j)=>median(cohort.map(p=>p.durations[j]/p.span)));
-    shares.push(median(cohort.map(p=>p.durations[missing.length]/p.span)));
-    const total=shares.reduce((a,b)=>a+b,0);
-    if(!(total>0)||shares.some(v=>!(v>0))){all.push(to);continue}
-    let elapsed=from.t;
-    for(let j=0;j<missing.length;j++){
-      elapsed+=(to.t-from.t)*shares[j]/total;
-      all.push({km:timingToRouteKm(missing[j].km),t:elapsed,name:missing[j].name,mode:'cohort_estimate',referenceCount:cohort.length});
-    }
-    all.push(to); // exact observed endpoint preserved, with no drift
-  }
-  const aid=ultraAidStations();
-  if(!aid.length)return all;
-  // Unmeasured depots are visual-only checkpoints. Their illustrative
-  // playback time is never emitted as a source observation or statistic.
-  const display=[all[0]];
-  for(let i=1;i<all.length;i++){
-    const from=all[i-1],to=all[i];
-    for(const stop of aid){
-      if(stop.route_km>from.km+1e-5&&stop.route_km<to.km-1e-5){
-        const f=(stop.route_km-from.km)/(to.km-from.km);
-        display.push({km:stop.route_km,t:from.t+(to.t-from.t)*f,name:stop.name,mode:'illustrative_aid_position',station:null});
-      }
-    }
-    const match=aid.find(stop=>num(stop.timing_km)&&Math.abs(timingToRouteKm(stop.timing_km)-to.km)<1e-5);
-    display.push(match?{...to,name:match.name}:to);
-  }
-  return display;
+  // FINISHED supplies an actual official endpoint even if the result format
+  // has no separate linked finish split row.
+  if(finish(r)&&num(r.finish_seconds)&&r.finish_seconds>anchors.at(-1).t)
+    anchors.push({km:endKm,t:r.finish_seconds,name:'Mål',mode:'observed_finish',station:null});
+  // No source checkpoints: keep a distinct, explicitly labeled Start->Finish
+  // illustration; there are no intermediate time anchors to compare.
+  anchors.method=anchors.some(a=>a.mode==='observed_checkpoint')?
+    'source_checkpoints':'finish_only';
+  anchors.sourceCount=anchors.filter(a=>a.mode==='observed_checkpoint').length;
+  return anchors;
+}
+function lastObservedAnchor(anchors,elapsed){
+  return anchors.filter(a=>a.t<=elapsed+1e-7).at(-1)||anchors[0]||null;
+}
+function sourceAnchorCaption(anchors){
+  return anchors.method==='source_checkpoints'
+   ?anchors.sourceCount+' verifierade mellanpassager som fasta tidsankare. Km är årsverifierade eller tydligt uppskattade efter andra upplagor; mellan dem visas modellerad rörelse, aldrig deltagar-GPS.'
+   :'Inga mellantider finns för löparen. Kartposition mellan Start och Mål är en separat jämn illustration från sluttiden – INTE checkpointförankrad rörelse eller officiell mellanplacering.';
 }
 function estimatedAt(anchors,d){if(!anchors?.length)return null;d=Math.max(0,d);if(d>anchors.at(-1).km+1e-6)return null;for(let i=1;i<anchors.length;i++){let a=anchors[i-1],b=anchors[i];if(d>=a.km&&d<=b.km){let f=(d-a.km)/Math.max(1e-6,b.km-a.km);return a.t+(b.t-a.t)*f}}return d===0?0:null}
 function drawSimpleRoute(host,pts,d,markers=null,cameraDistance=d){
@@ -1401,9 +1373,10 @@ function openMapDuel(){
   // The map remains available when timing coverage is sparse. Each runner
   // freezes at their last actual TIME; without one they stay at Start.
   const pts=routePoints(),maxClock=Math.ceil(Math.max(0,...data.map(item=>item.anchors.at(-1).t)));
+  const hasSourceCheckpoints=data.every(item=>item.anchors.method==='source_checkpoints');
   let clock=0,playing=false,startedAt=0,startedClock=0;
   S.mapDuelCamera='full';
-  host.innerHTML=`<p class="muted small">${S.route?.display?html(replayMapSource()):'Gemensam tävlingsklocka. Markörerna följer verifierade kontrollpassager; mellan dem beräknas illustrativa positioner. Vid saknade passager används en robust referensprofil där den har tillräckligt underlag. Detta är inte uppmätta GPS-positioner.'}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>Position och ordning vid vald tid</h3><div id="map-duel-leaderboard"></div>`;
+  host.innerHTML=`<p class="muted small">${html(hasSourceCheckpoints?'Jämförelsen följer varje löpares officiella passertider vid fasta kontrollpunkter. Kilometer utan årsunderlag är UPPSKATTADE. Mellan kontrollerna är kartpositionerna interpolerade, inte GPS.':'Minst en löpare saknar mellantider. Start–Mål-rörelsen är därför endast en illustration från sluttiden, inte verifierad relativa positioner längs banan.')} ${html(replayMapSource())}</p><div class="compare-dashboard"><div id="map-duel-map" class="duel-map"></div><div id="map-duel-elevation" class="duel-elevation"></div></div><div class="map-duel-playback"><button type="button" class="btn green" id="map-duel-play">Spela</button><button type="button" class="btn text-btn" id="map-duel-reset">Börja om</button><label>Hastighet<select id="map-duel-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label>Kamera<select id="map-duel-camera"><option value="full">Hela banan</option><option value="leader">Följ ledaren</option></select></label><button type="button" class="btn text-btn" id="map-duel-fit">Visa hela banan</button><button type="button" class="btn text-btn replay-music-toggle" data-replay-music aria-label="Slå av eller på musik" aria-pressed="true">♫ Musik</button><label class="replay-music-volume">Volym <input data-replay-volume type="range" min="0" max="1" step="0.05" value="0.3" aria-label="Musikvolym"></label><span data-replay-audio-note class="muted small" role="status" hidden></span></div><label>Delad tävlingsklocka<input id="map-duel-clock" type="range" min="0" max="${maxClock}" step="1" value="0" aria-label="Sök i kartduellens tävlingsklocka"/></label><p id="map-duel-readout" class="duel-readout"></p><h3>${hasSourceCheckpoints?'Modellerad position vid verifierade tidsankare':'Illustration – inga verifierade mellanplaceringar'}</h3><div id="map-duel-leaderboard"></div>`;
   dialog.showModal();
   const map=$('#map-duel-map'),elev=$('#map-duel-elevation'),play=$('#map-duel-play'),range=$('#map-duel-clock');
   replaySoundtrack.bind(host);
@@ -1418,7 +1391,7 @@ function openMapDuel(){
       if(num(target)){stop();draw(target)}
     });
     $('#map-duel-readout').textContent=`Tävlingsklocka ${time(clock)} · längst fram just nu: ${leader.runner.name}, som är cirka ${fmtKm(leader.km)} km in på visningsrutten. Positioner mellan kontroller är beräknade.`;
-    $('#map-duel-leaderboard').innerHTML=`<div class="table-scroll"><table><thead><tr><th>Ordning*</th><th>Löpare</th><th>Status</th><th>Position på visningsrutt</th><th>Sista exakta kontroll</th></tr></thead><tbody>${positions.sort((a,b)=>b.km-a.km).map((item,i)=>`<tr><td>${i+1}</td><td><i class="duel-color" style="background:${item.color}"></i>${html(item.runner.name)}</td><td>${html(item.runner.status)}</td><td>Cirka ${fmtKm(item.km)} km in</td><td>${html(item.anchors.at(-1).name)}</td></tr>`).join('')}</tbody></table></div><p class="small muted">* Ordningen är en illustrativ interpolation mellan registrerade kontroller, inte en officiell mellanplacering.</p>`;
+    $('#map-duel-leaderboard').innerHTML=`<div class="table-scroll"><table><thead><tr><th>Ordning*</th><th>Löpare</th><th>Status</th><th>Position på visningsrutt</th><th>Senast verifierad kontroll</th></tr></thead><tbody>${positions.sort((a,b)=>b.km-a.km).map((item,i)=>`<tr><td>${i+1}</td><td><i class="duel-color" style="background:${item.color}"></i>${html(item.runner.name)}</td><td>${html(item.runner.status)}</td><td>Cirka ${fmtKm(item.km)} km in</td><td>${html(lastObservedAnchor(item.anchors,clock)?.name||'Start')}</td></tr>`).join('')}</tbody></table></div><p class="small muted">* Ordningen är en illustrativ interpolation mellan registrerade kontroller, inte en officiell mellanplacering.</p>`;
   }
   function frame(now){
     if(!playing)return;
