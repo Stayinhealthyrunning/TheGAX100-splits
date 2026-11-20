@@ -30,17 +30,22 @@ def request(url):
         return response.read()
 
 def candidate_links(page, url):
-    # Look up official Pixabay CDN audio URLs, never third-party assets.
-    source=html.unescape(page.decode("utf-8","replace")).replace("\\\\/", "/")
+    # Parse only official CDN URLs (the exact uploaded checksum still gates import).
+    source=html.unescape(page.decode("utf-8","replace")).replace(chr(92)+"/", "/")
     found=[]
-    for match in re.finditer(r"https?://cdn\\.pixabay\\.com/",source,re.IGNORECASE):
-        tail=source[match.start():]
-        i=0
-        while i<len(tail) and tail[i] not in ('"', "'", "<", ">", " ", "\\t", "\\r", "\\n", "\\\\"):
-            i+=1
-        link=tail[:i]
-        if urlsplit(link).hostname=="cdn.pixabay.com" and ".mp3" in urlsplit(link).path and link not in found:
-            found.append(link)
+    for marker in ("https://cdn.pixabay.com/", "http://cdn.pixabay.com/"):
+        offset=0
+        while True:
+            start=source.find(marker,offset)
+            if start<0:
+                break
+            offset=start+len(marker)
+            end=start
+            while end<len(source) and not source[end].isspace() and source[end] not in [chr(34),chr(39),chr(60),chr(62),chr(92)]:
+                end+=1
+            link=source[start:end]
+            if urlsplit(link).hostname=="cdn.pixabay.com" and ".mp3" in urlsplit(link).path and link not in found:
+                found.append(link)
     return found
 
 def main():
