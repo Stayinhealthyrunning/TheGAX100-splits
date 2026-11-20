@@ -1,10 +1,10 @@
 {
   "schema": "gax100-first-name-statistical-estimate-1",
-  "method": "First-name frequency, not actual sex/gender identity or official race class.",
-  "disclaimer_sv": "UPPSKATTAT från namnets statistiska förekomst, inte verifierad uppgift om personen eller officiell tävlingsklass. Tvetydiga namn lämnas utan uppskattning.",
+  "method": "Official SCB name population statistics, conservative missing-category counts; anonymous name-level frequency only. NOT an individual sex, gender, or official race class.",
+  "disclaimer_sv": "UPPSKATTAT från förnamnets förekomst hos SCB:s folkbokförda kvinnor och män 2022, INTE verifierad uppgift om löparen eller officiell tävlingsklass. Namn med svag eller motstridig fördelning lämnas okända.",
   "min_probability": 0.99,
   "min_count": 50,
-  "source_url": "https://genderize.io/documentation/api/reference",
+  "source_url": "https://www.scb.se/contentassets/9fe7dbb460994c72b835163dbc491ef9/namn-med-minst-tva-barare-31-december-2022.xlsx",
   "country_id": "SE",
   "editions": {
     "2026-gax100": [],
@@ -13,350 +13,790 @@
         "result_id": "0091b919b70d9b81104cb7f0",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999573,
+        "evidence_count": 18721
+      },
+      {
+        "result_id": "089f8bcc9ff7e4d08bd1d642",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999811,
+        "evidence_count": 31698
       },
       {
         "result_id": "0b8e619a1f1a1bff92ad386f",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999835,
+        "evidence_count": 30315
       },
       {
         "result_id": "0d146423f3ae04330155673b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "0d443542e534ba0b0b4734c9",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99965,
+        "evidence_count": 19987
       },
       {
         "result_id": "0fa10719805d9f95fefa3068",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999898,
+        "evidence_count": 39090
       },
       {
         "result_id": "1195ddb0d8fa980f5ec16125",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999935,
+        "evidence_count": 30716
       },
       {
         "result_id": "137d826f085cee0c1e7290ce",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
       },
       {
         "result_id": "159632f8d20650f6275dae0e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 9
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999804,
+        "evidence_count": 56026
+      },
+      {
+        "result_id": "15f00c51ca35c923fb1f094e",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999872,
+        "evidence_count": 7834
       },
       {
         "result_id": "161c7ef1419a3f76ab2788e8",
         "status": "DNS",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
       },
       {
         "result_id": "1a9725860162b7b932cd266c",
         "status": "DNF",
         "estimated_sex": "F",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999895,
+        "evidence_count": 38250
+      },
+      {
+        "result_id": "3732cc3fbb2361a1aa020287",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99962,
+        "evidence_count": 13137
       },
       {
         "result_id": "3b7f3e261d4c99d29f55c9cc",
         "status": "DNS",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 9
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999804,
+        "evidence_count": 56026
+      },
+      {
+        "result_id": "45ca5c37c6697ec80243dd04",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.995477,
+        "evidence_count": 6383
+      },
+      {
+        "result_id": "463eb74a7a86178c7dcb0ab0",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999771,
+        "evidence_count": 21791
       },
       {
         "result_id": "46b87ae67cc45450e35fa1ae",
         "status": "DNS",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
+      },
+      {
+        "result_id": "46f9d4c3a89b483eb6615cc5",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999938,
+        "evidence_count": 16124
       },
       {
         "result_id": "49d19d9f7732370911d4f08a",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 98375
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999987,
+        "evidence_count": 75818
+      },
+      {
+        "result_id": "4b68f0fa04a22af0a73a649c",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999841,
+        "evidence_count": 12579
+      },
+      {
+        "result_id": "65e5220fd7743ce48ece9044",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997243,
+        "evidence_count": 1447
+      },
+      {
+        "result_id": "691a558a8f06d1855f2430ab",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999811,
+        "evidence_count": 31698
+      },
+      {
+        "result_id": "7dd588c56012cf198c0fbb49",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99947,
+        "evidence_count": 20747
+      },
+      {
+        "result_id": "7f32579bdeaafbe5a1096bed",
+        "status": "DNS",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998847,
+        "evidence_count": 28580
       },
       {
         "result_id": "8456f8f576968a7714815faf",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
       },
       {
         "result_id": "84b42aff50e2d0f14ffeb4b8",
         "status": "DNS",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99894,
+        "evidence_count": 31091
+      },
+      {
+        "result_id": "8e74ded5bebb39726f2de6d5",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999753,
+        "evidence_count": 16215
       },
       {
         "result_id": "907acfc4876b013f824d5e0b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "9111f685c13029564e0bb756",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999383,
+        "evidence_count": 17804
       },
       {
         "result_id": "9624383f48c9ef9f30d0ae3e",
         "status": "DNS",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 341520
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999977,
+        "evidence_count": 43957
       },
       {
         "result_id": "96a270107b3ea05083a61215",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
+      },
+      {
+        "result_id": "9a4ffb1b3fc8ed5bff628d13",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.996403,
+        "evidence_count": 277
+      },
+      {
+        "result_id": "9ce6311c4569176adea38839",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999565,
+        "evidence_count": 20677
+      },
+      {
+        "result_id": "9d2e5ab6d83109dbb998a5e3",
+        "status": "DNS",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999834,
+        "evidence_count": 6040
       },
       {
         "result_id": "a615d4154cb75fce4ba2223e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
+      },
+      {
+        "result_id": "aa982e1a8c553cda3164dbd6",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999825,
+        "evidence_count": 5714
       },
       {
         "result_id": "b00be7cfe189591820e1c84b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999898,
+        "evidence_count": 39090
       },
       {
         "result_id": "b267889894b5f08961b7be9b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 645315
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998547,
+        "evidence_count": 39873
+      },
+      {
+        "result_id": "b577174a636da9c14d2d466a",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999368,
+        "evidence_count": 11073
+      },
+      {
+        "result_id": "b5dd78b6b34c5ddfd6b43018",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997391,
+        "evidence_count": 2676
+      },
+      {
+        "result_id": "b80d30b899a329a1e67554f2",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999962,
+        "evidence_count": 26267
+      },
+      {
+        "result_id": "c949afb1fa085ab819c254f8",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999837,
+        "evidence_count": 12273
+      },
+      {
+        "result_id": "cfd5f145c17f67d94831f1f7",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998697,
+        "evidence_count": 6133
+      },
+      {
+        "result_id": "dde6f7d31f579eb0a079b073",
+        "status": "DNS",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.989783,
+        "evidence_count": 1550
       },
       {
         "result_id": "ec2117d6226e51d7305b9e85",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999835,
+        "evidence_count": 30315
+      },
+      {
+        "result_id": "f1f345778335b3fcedf43711",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999466,
+        "evidence_count": 20600
       },
       {
         "result_id": "f33da1e4193767e9562b466e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99977,
+        "evidence_count": 17425
       }
     ],
     "2024-gax100": [
       {
+        "result_id": "0dad3c7be310af5830859cb6",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998513,
+        "evidence_count": 12757
+      },
+      {
+        "result_id": "16f883b914b21e63fc9027dd",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999681,
+        "evidence_count": 21939
+      },
+      {
         "result_id": "216025d84901d4734cd73879",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 341520
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999977,
+        "evidence_count": 43957
       },
       {
         "result_id": "236f302dc856080927eee61d",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
+      },
+      {
+        "result_id": "267fee8091bfed6ce20a908d",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99986,
+        "evidence_count": 7154
       },
       {
         "result_id": "3510d801971433c203c3cff8",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999596,
+        "evidence_count": 9888
       },
       {
         "result_id": "416a9982985db7c336988871",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999935,
+        "evidence_count": 30716
       },
       {
         "result_id": "485d27e64f00b211947c3b0a",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
       },
       {
         "result_id": "63ed0de1fd37e2a3ccbcde2c",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999567,
+        "evidence_count": 23059
+      },
+      {
+        "result_id": "68228d2e4ca9d2ebe00b8b87",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999544,
+        "evidence_count": 19730
+      },
+      {
+        "result_id": "6e867655c63bcda2c5be6e37",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.995763,
+        "evidence_count": 235
+      },
+      {
+        "result_id": "6ee6649e15f32bd81358d252",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999539,
+        "evidence_count": 2170
+      },
+      {
+        "result_id": "6eeb9fb1c1edd7fd4fe27d33",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997802,
+        "evidence_count": 908
+      },
+      {
+        "result_id": "6f383e73bd6d156850032175",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999959,
+        "evidence_count": 24347
+      },
+      {
+        "result_id": "75fbf385af97aff4eaa3a7e6",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997391,
+        "evidence_count": 2676
       },
       {
         "result_id": "87560080af5a93dbdcfa22ee",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999925,
+        "evidence_count": 40226
       },
       {
         "result_id": "8c263c457d33444c2d8d9b53",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999927,
+        "evidence_count": 27214
       },
       {
         "result_id": "9178be137479148fe4f9105c",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 10
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999854,
+        "evidence_count": 54860
       },
       {
         "result_id": "92d18f794f4f4c45d2664830",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 0.99,
-        "evidence_count": 1711651
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999525,
+        "evidence_count": 2105
+      },
+      {
+        "result_id": "9503fc34feb876b6c4b40119",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.990909,
+        "evidence_count": 109
       },
       {
         "result_id": "98b2dfd44ba5fe0e114bee5e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999567,
+        "evidence_count": 23059
+      },
+      {
+        "result_id": "b37f895bbbeeeb9e98ef8289",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998736,
+        "evidence_count": 790
+      },
+      {
+        "result_id": "bdcd04db67f23285dcfc0774",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998883,
+        "evidence_count": 22348
+      },
+      {
+        "result_id": "ca41277db2d9481b779e7bfb",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.996375,
+        "evidence_count": 14841
       },
       {
         "result_id": "cba224c4c36f13bc0bb5198d",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 0.99,
-        "evidence_count": 837770
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998722,
+        "evidence_count": 25791
+      },
+      {
+        "result_id": "db702fec1a5d8197d693fd56",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999918,
+        "evidence_count": 12194
       },
       {
         "result_id": "e47091b0ec04d1fb88945b5e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
+      },
+      {
+        "result_id": "e719f26e5f8c8a5257677340",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.988691,
+        "evidence_count": 8917
       },
       {
         "result_id": "f65a1aba57ccb4dbe886029b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
       },
       {
         "result_id": "fae2cd6069c601282e81e56e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99977,
+        "evidence_count": 17425
+      },
+      {
+        "result_id": "fe83aa6964a5eb7bfcdbbf29",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99976,
+        "evidence_count": 25042
       }
     ],
     "2023-gax100": [],
     "2022-gax100": [
       {
+        "result_id": "00e532cf134870c846813168",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.995238,
+        "evidence_count": 209
+      },
+      {
+        "result_id": "13cf934eb0f9fbc0b3214810",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999837,
+        "evidence_count": 12273
+      },
+      {
         "result_id": "1413f2bd14a851df87244428",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998978,
+        "evidence_count": 977
+      },
+      {
+        "result_id": "14e022e3d759e84932cf1ee3",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999604,
+        "evidence_count": 15136
       },
       {
         "result_id": "17206a540e63cf3d8fad43d9",
         "status": "DNF",
         "estimated_sex": "F",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999928,
+        "evidence_count": 55493
       },
       {
         "result_id": "1e1e44d1bb2fa3da005fd8da",
         "status": "DNF",
         "estimated_sex": "F",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 1674217
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999927,
+        "evidence_count": 96428
+      },
+      {
+        "result_id": "5f521e66b484a3ad3217e5a7",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999825,
+        "evidence_count": 5714
+      },
+      {
+        "result_id": "5f5486a615190ed63cea0cdb",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999662,
+        "evidence_count": 14776
+      },
+      {
+        "result_id": "6372b19e7cb29ae96de838c2",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.984472,
+        "evidence_count": 317
+      },
+      {
+        "result_id": "6ecf959f7bd60685ef2a4131",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999298,
+        "evidence_count": 1423
+      },
+      {
+        "result_id": "901bdc7265ca706b427a472e",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999792,
+        "evidence_count": 28825
+      },
+      {
+        "result_id": "92b1ed730e12b44d05340967",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999439,
+        "evidence_count": 1782
       },
       {
         "result_id": "9afcd1baf3e0b3f821749c92",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
       },
       {
         "result_id": "a621d36622c58cbf331751bc",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999898,
+        "evidence_count": 39090
+      },
+      {
+        "result_id": "aa83b04fc19fc62a57d3d1fc",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999918,
+        "evidence_count": 12194
+      },
+      {
+        "result_id": "cba54a5e6cb4b602df98d7cc",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999929,
+        "evidence_count": 14110
+      },
+      {
+        "result_id": "ce7181a7f853627b6ee8f1bb",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99323,
+        "evidence_count": 11444
       },
       {
         "result_id": "ce9e6987e0a5e44b43b27a08",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999567,
+        "evidence_count": 23059
+      },
+      {
+        "result_id": "e0b330ae04b9b3e1d43fa5db",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999811,
+        "evidence_count": 5293
+      },
+      {
+        "result_id": "ea810fdeed73cd107163798c",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999834,
+        "evidence_count": 6040
       }
     ],
     "2021-b-gax100": [],
@@ -366,33 +806,65 @@
         "result_id": "21062b52fe901de0bf6c08c0",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999814,
+        "evidence_count": 37703
+      },
+      {
+        "result_id": "37541065f90933663448af01",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997462,
+        "evidence_count": 393
+      },
+      {
+        "result_id": "5231ebd25fd634a95e29c077",
+        "status": "FINISHED",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999363,
+        "evidence_count": 9410
       },
       {
         "result_id": "acccccd5a6b9421c06c11ee2",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
       },
       {
         "result_id": "ae39578bceec9a4c922c3d23",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999942,
+        "evidence_count": 34329
       },
       {
         "result_id": "d6c3281006b8c37e7baf7da6",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999596,
+        "evidence_count": 9888
+      },
+      {
+        "result_id": "dcd94d56363d512e68fa0250",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997674,
+        "evidence_count": 3432
+      },
+      {
+        "result_id": "e5bc2aa6cd422cafc07b21ed",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999594,
+        "evidence_count": 2463
       }
     ],
     "2019-gax100": [
@@ -400,121 +872,153 @@
         "result_id": "0225dd39eff6f785ae7cbeee",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
       },
       {
         "result_id": "0ff37d2ddb5c378740d7dfea",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999942,
+        "evidence_count": 34329
       },
       {
         "result_id": "118b10ac9bf7e7ccbae8f992",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
       },
       {
         "result_id": "19647902e3e82f80a3fa1c59",
         "status": "DNF",
         "estimated_sex": "F",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 52257
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999935,
+        "evidence_count": 30745
       },
       {
         "result_id": "282931a980129a335c353611",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999697,
+        "evidence_count": 33006
       },
       {
         "result_id": "42678e20df82c702a921fd1f",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
       },
       {
         "result_id": "454fc76fc79557aeb980537a",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999596,
+        "evidence_count": 9888
+      },
+      {
+        "result_id": "776a80833988a2273c224f57",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999961,
+        "evidence_count": 25427
       },
       {
         "result_id": "7c14a22741f45a46eb8336e8",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 10
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999854,
+        "evidence_count": 54860
       },
       {
         "result_id": "83ba5007d46b1c52079f692b",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "87ea3dd16cfcfdc31a25c7df",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999368,
+        "evidence_count": 11073
+      },
+      {
+        "result_id": "b80a5320411117a6388472a1",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999834,
+        "evidence_count": 6030
+      },
+      {
+        "result_id": "b9806b102e7e03a519d5851c",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_fornamn_population_2022",
+        "probability": 0.982417,
+        "evidence_count": 20673
       },
       {
         "result_id": "c70f57322d8cf76a87ecca03",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 9
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999804,
+        "evidence_count": 56026
       },
       {
         "result_id": "d07182ee9bbf65a4a02c2f08",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
       },
       {
         "result_id": "d34902cfc6d34d2e4879bb0a",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
       },
       {
         "result_id": "d78f80bbea48f13f97b43c6a",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 33259
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99859,
+        "evidence_count": 708
       },
       {
         "result_id": "e7c30c8b5c0121cba6214e40",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
       },
       {
         "result_id": "f51258ab539ca317bde0cefd",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 18357
       }
     ],
     "2018-gax100": [
@@ -522,123 +1026,267 @@
         "result_id": "09945c15a294974b54ffb552",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99894,
+        "evidence_count": 31091
       },
       {
         "result_id": "144f46bd8e0072613749ea39",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999835,
+        "evidence_count": 30315
+      },
+      {
+        "result_id": "23b0d0c40bb9eab764bc62e0",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99976,
+        "evidence_count": 25042
       },
       {
         "result_id": "3346e1a40cd231a9f5d8902f",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999942,
+        "evidence_count": 34329
       },
       {
         "result_id": "48e372c214904dc55d250fb9",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99977,
+        "evidence_count": 17425
+      },
+      {
+        "result_id": "4b75954d539ef9b95dc1d0a7",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999561,
+        "evidence_count": 2278
+      },
+      {
+        "result_id": "606dc69179e881ee37980174",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999968,
+        "evidence_count": 31491
       },
       {
         "result_id": "63fe31beb9cce33ad24a092e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 10
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999854,
+        "evidence_count": 54860
       },
       {
         "result_id": "9101d54351f56022e4503cde",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999927,
+        "evidence_count": 27214
+      },
+      {
+        "result_id": "920c649b5098c3567c5cd9bf",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998629,
+        "evidence_count": 11652
       },
       {
         "result_id": "a50b9f86ef5dfc8912791c60",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999835,
+        "evidence_count": 30315
+      },
+      {
+        "result_id": "ae9a8307a6730ae8c296584a",
+        "status": "DNF",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999823,
+        "evidence_count": 45140
+      },
+      {
+        "result_id": "bb0c677187f43e818df36a3d",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999805,
+        "evidence_count": 5122
       },
       {
         "result_id": "c7d2127191257da8f611aabb",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
+      },
+      {
+        "result_id": "df74fa9d1dac119b448bc4c9",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998984,
+        "evidence_count": 983
+      },
+      {
+        "result_id": "fff8004bce4a0ea17475760f",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.984472,
+        "evidence_count": 317
       }
     ],
     "2017-gax100": [
       {
+        "result_id": "13182cf5ab698e37402c5cc7",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999635,
+        "evidence_count": 2736
+      },
+      {
         "result_id": "1494202c4a122a531ae2635e",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999596,
+        "evidence_count": 9888
       },
       {
         "result_id": "37ee408f167d9628ae6d3c2b",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999697,
+        "evidence_count": 33006
+      },
+      {
+        "result_id": "514ce42c74f4032290636d35",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997984,
+        "evidence_count": 495
       },
       {
         "result_id": "58a97f426055dfafc6ed79a6",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "5ad18e1e3218dc03cdbea298",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999853,
+        "evidence_count": 6788
       },
       {
         "result_id": "628eab38cfdb451aac11503b",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
       },
       {
         "result_id": "7cc667e5de305e22ec100d33",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999982,
+        "evidence_count": 54996
+      },
+      {
+        "result_id": "7f114544c8a836a0e7ad0710",
+        "status": "UNKNOWN",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99976,
+        "evidence_count": 25042
+      },
+      {
+        "result_id": "8ba7cfccc597ebd3340fb36e",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999805,
+        "evidence_count": 5122
       },
       {
         "result_id": "8dda80cf02223d366198fbae",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999898,
+        "evidence_count": 39090
+      },
+      {
+        "result_id": "9f43eb1ebab066947f3e9a4d",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998441,
+        "evidence_count": 12172
       },
       {
         "result_id": "b06bc1265b2d73442caca0a4",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 20
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999946,
+        "evidence_count": 73561
+      },
+      {
+        "result_id": "b1738f3f1bd0ca1738b9696c",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.995756,
+        "evidence_count": 4458
+      },
+      {
+        "result_id": "b41c8d9d0291908b30f2d4cd",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999594,
+        "evidence_count": 2463
+      },
+      {
+        "result_id": "d7673223b75bf06821236af5",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999893,
+        "evidence_count": 9369
+      },
+      {
+        "result_id": "dd41571de554fe7e060a92b9",
+        "status": "FINISHED",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999916,
+        "evidence_count": 82976
       }
     ],
     "2016-gax100": [
@@ -646,262 +1294,498 @@
         "result_id": "02b4a758efa90e2a27368438",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "23f5e3ddbde6254a7aac0de6",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999852,
+        "evidence_count": 6757
+      },
+      {
+        "result_id": "38612a9e662a2185759f5b2f",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999594,
+        "evidence_count": 2463
       },
       {
         "result_id": "43ee49739350f0b3f810d41e",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
+      },
+      {
+        "result_id": "4e2ebeef9853e6fa9cef0b9f",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.993671,
+        "evidence_count": 157
+      },
+      {
+        "result_id": "644ac75080184e57960ee928",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999673,
+        "evidence_count": 3058
       },
       {
         "result_id": "69c3e72c9b78c8127e9943e5",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 341520
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999977,
+        "evidence_count": 43957
+      },
+      {
+        "result_id": "73fb9070cfae3ee1f26b0f77",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999929,
+        "evidence_count": 14110
       },
       {
         "result_id": "883c8ccfc4a93a089c9c4118",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
+      },
+      {
+        "result_id": "9ee00042ac1646b04c835bc1",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_fornamn_population_2022",
+        "probability": 0.982417,
+        "evidence_count": 20673
       },
       {
         "result_id": "a8154ac4ba72b7ac8c6399a9",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
+      },
+      {
+        "result_id": "b1006a89e83252f5d6e9c8ac",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998697,
+        "evidence_count": 6133
       },
       {
         "result_id": "b64ea0e34cb7376e217c0f9d",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "baac1b8a7adc7b623a322e72",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99323,
+        "evidence_count": 11444
       },
       {
         "result_id": "c4f60a69d2d1ea64fd405746",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999977,
+        "evidence_count": 43660
+      },
+      {
+        "result_id": "cd364be49cedfeaeb75166ae",
+        "status": "DNF",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998234,
+        "evidence_count": 23180
       },
       {
         "result_id": "ce58d64704292ff6d717738c",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 10
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999854,
+        "evidence_count": 54860
       },
       {
         "result_id": "cff152a8909df1a780b62f1e",
         "status": "DNF",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 5
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99977,
+        "evidence_count": 17425
       }
     ],
     "2015-gax100": [
       {
+        "result_id": "014ea964a9e5c7bb37c7ad9f",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.998062,
+        "evidence_count": 515
+      },
+      {
         "result_id": "186bc5892aaa4fdd9b2335b3",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999781,
+        "evidence_count": 9146
       },
       {
         "result_id": "1b3b75c9a7782df218943901",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
       },
       {
         "result_id": "2503ca1a0ab759eccd3e79d3",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 10
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999854,
+        "evidence_count": 54860
       },
       {
         "result_id": "25b4ea64c04073b0dbd123e8",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
       },
       {
         "result_id": "2d8828ad8a6c6a2716080e4f",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999697,
+        "evidence_count": 33006
+      },
+      {
+        "result_id": "33405f392d59d63a01d7ae01",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.997984,
+        "evidence_count": 495
       },
       {
         "result_id": "33d4429d4e0607ac4dbeea7b",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999982,
+        "evidence_count": 54996
       },
       {
         "result_id": "3e52ece9c2d0ef58474edc75",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99435,
+        "evidence_count": 176
       },
       {
         "result_id": "4eb86d6a3cd43ba07f495c27",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "76958b6f3bed8cf25d9b27a8",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.995756,
+        "evidence_count": 4458
+      },
+      {
+        "result_id": "80abc09ec50c23126f2aa0d2",
+        "status": "FINISHED",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999841,
+        "evidence_count": 12579
       },
       {
         "result_id": "866d625da90414abf82032e8",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 32109
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.990291,
+        "evidence_count": 102
       },
       {
-        "result_id": "9617e4d81e2d025e421c8923",
+        "result_id": "8b290cba532ddfea49e6b5ac",
         "status": "UNKNOWN",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.996587,
+        "evidence_count": 292
+      },
+      {
+        "result_id": "9d657f6b00bfbb381deab35b",
+        "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "genderize_first_name_SE",
-        "probability": 1.0,
-        "evidence_count": 701
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999833,
+        "evidence_count": 23998
       },
       {
         "result_id": "b8edcd2fbbd0fac8883c2acb",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
+      },
+      {
+        "result_id": "bcd494363fd545123c7a2db5",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999841,
+        "evidence_count": 12579
       },
       {
         "result_id": "bd013a648695c91621801391",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
+      },
+      {
+        "result_id": "ca3c75887a43ddf231ef8cb3",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99,
+        "evidence_count": 99
       },
       {
         "result_id": "cecbf821c4f395c0f6c58abf",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999808,
+        "evidence_count": 57195
+      },
+      {
+        "result_id": "d3f97100af09a69b105c89d2",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999853,
+        "evidence_count": 6788
       },
       {
         "result_id": "dbdb57ac13307eb592bd58c2",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
+      },
+      {
+        "result_id": "ddfc35338e09170456055775",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999805,
+        "evidence_count": 5126
+      },
+      {
+        "result_id": "e17b141562ff30a790597a2d",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999841,
+        "evidence_count": 12579
+      },
+      {
+        "result_id": "f14a4b00ae2781f818bf2cb1",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999886,
+        "evidence_count": 26231
+      },
+      {
+        "result_id": "f45ac4df742085e45741ede3",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999771,
+        "evidence_count": 21791
       }
     ],
     "2014-gax100": [
       {
+        "result_id": "01da63798488fa992d4a66f4",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999964,
+        "evidence_count": 27941
+      },
+      {
+        "result_id": "3d1df9feb8d3ba1441939331",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999673,
+        "evidence_count": 3058
+      },
+      {
         "result_id": "41650adb9d6f26ac78c92410",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 11
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999898,
+        "evidence_count": 39090
+      },
+      {
+        "result_id": "4b613657d93b66e7e7da3d18",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999485,
+        "evidence_count": 1939
       },
       {
         "result_id": "53c1f5d6f3e3255b3c70a8fb",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999935,
+        "evidence_count": 30716
       },
       {
         "result_id": "5c081d44d27d00f03635f0fe",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999935,
+        "evidence_count": 30716
       },
       {
         "result_id": "744d153dbbf739514a438c81",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 6
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999663,
+        "evidence_count": 29661
       },
       {
         "result_id": "775a31edd6de7fb5efa0d20e",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 4
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.99894,
+        "evidence_count": 31091
+      },
+      {
+        "result_id": "7facb41ad5ef6723bd75c96d",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999595,
+        "evidence_count": 14799
       },
       {
         "result_id": "89d781c003a688cfe92b1781",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 7
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999911,
+        "evidence_count": 22418
+      },
+      {
+        "result_id": "98c5f31dd32f1717ebe8c8fd",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999368,
+        "evidence_count": 11073
       },
       {
         "result_id": "9c10a2fec0c3c3b4b08e8155",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
       },
       {
         "result_id": "b8ce35bf30c7c62bffbf5899",
         "status": "FINISHED",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 16
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999981,
+        "evidence_count": 51830
+      },
+      {
+        "result_id": "c62040e8d3ccf81d38204a80",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999841,
+        "evidence_count": 12579
+      },
+      {
+        "result_id": "de7f7e2e8de281291c197343",
+        "status": "UNKNOWN",
+        "estimated_sex": "M",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999911,
+        "evidence_count": 11297
+      },
+      {
+        "result_id": "e362ff7e95011f0511a7ea7c",
+        "status": "UNKNOWN",
+        "estimated_sex": "F",
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999966,
+        "evidence_count": 29474
       },
       {
         "result_id": "e951b08439ef6266123dfe26",
         "status": "UNKNOWN",
         "estimated_sex": "M",
-        "method": "verified_cohort_first_name_consensus",
-        "probability": null,
-        "evidence_count": 12
+        "method": "scb_tilltalsnamn_population_2022",
+        "probability": 0.999984,
+        "evidence_count": 61581
       }
     ]
-  }
+  },
+  "scb_source_year": 2022,
+  "scb_workbook_sha256": "b099822f53baf393fc0dba8b2c8665b7475c3b2001b6efbbe1d96525709792e4",
+  "scb_min_dominant_count": 30,
+  "scb_min_conservative_probability": 0.98
 }
