@@ -108,7 +108,7 @@ def check(site: Path):
             # Earlier comparison selections intentionally promote to the
             # cross-edition picker. Reopen a clean current-year session before
             # testing SAME-YEAR Kartduell: do not mistake that mode for an error.
-            page.reload(wait_until="domcontentloaded")
+            page.goto(f"http://127.0.0.1:{server.server_port}/",wait_until="domcontentloaded")
             page.wait_for_function("() => document.querySelector('#source-indicator')?.textContent.includes('Officiella GAX100-källor')",timeout=30000)
             # 2024: current organizer reference may be shown but not claimed for 2024.
             page.select_option("#year-select","2024-gax100")
@@ -133,6 +133,7 @@ def check(site: Path):
               return {names:runners.map(r=>r.name),clock:passage?.elapsed_seconds};
             }""")
             assert len(probe["names"])==2 and probe["clock"]>0
+            page.wait_for_function("() => document.querySelector('#duel-current-picker')?.hidden === false",timeout=15000)
             for name in probe["names"]:
                 page.locator("#map-duel-search").fill(name)
                 page.locator("[data-map-duel-id]").first.click()
