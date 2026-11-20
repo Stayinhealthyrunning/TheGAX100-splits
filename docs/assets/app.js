@@ -93,8 +93,18 @@ const wholeCoursePaceKm=r=>r?.family==='gax100'&&!r?.demo_only?160.9344:r?.dista
 const editionDistanceLabel=r=>num(r?.organizer_advertised_km)&&r.organizer_advertised_km!==eqTimingKm(r)?`${fmtKm(r.organizer_advertised_km)} km annonserat · GAX100-arrangörens ${fmtKm(eqTimingKm(r))} km`:`${fmtKm(eqTimingKm(r))} km`;
 const finish=r=>r.status==='FINISHED'&&num(r.finish_seconds)&&r.finish_seconds>0;
 const explicitClassSex=r=>{const value=String(r?.class_name||'').trim().toLocaleLowerCase('sv');return /^(kvinna|kvinnor|dam)(\b|\s|$)/.test(value)?'F':/^(man|män|herr)(\b|\s|$)/.test(value)?'M':null};
-const analyticalSex=r=>{const source=r?.sex==='F'||r?.sex==='M'?r.sex:null,fromClass=explicitClassSex(r);return source&&fromClass&&source!==fromClass?null:source};
-const sexLabel=r=>analyticalSex(r)==='F'?'Kvinna':analyticalSex(r)==='M'?'Man':'Okänt/inkonsekvent';
+const analyticalSex=r=>{
+  const source=r?.sex==='F'||r?.sex==='M'?r.sex:null,fromClass=explicitClassSex(r);
+  if(source&&fromClass&&source!==fromClass)return null;
+  if(source)return source;
+  // Explicit lower-trust category; never write it back to the official race sex.
+  const estimate=r?.name_based_sex==='F'||r?.name_based_sex==='M'?r.name_based_sex:null;
+  return !fromClass||fromClass===estimate?estimate:null;
+};
+const sexLabel=r=>{
+  const sex=analyticalSex(r),label=sex==='F'?'Kvinna':sex==='M'?'Man':'Okänt/inkonsekvent';
+  return r?.name_based_sex&&r?.sex!=='F'&&r?.sex!=='M'?label+' (namnstatistiskt uppskattat)':label;
+};
 function records(){return S.race?.results||[]}
 function splitsFor(id){return (S._splits||(S._splits=new Map())).get(id)||[]}
 function buildSplitIndex(){S._splits=new Map();S._observedStations=new Set();for(const v of S.race.splits){S._observedStations.add(v.station_uid);if(!S._splits.has(v.result_id))S._splits.set(v.result_id,[]);S._splits.get(v.result_id).push(v)}const order=new Map(S.race.stations.map((v,i)=>[v.uid,i]));for(const values of S._splits.values())values.sort((a,b)=>(order.get(a.station_uid)??999)-(order.get(b.station_uid)??999));}
@@ -189,15 +199,16 @@ function subset(){let list=records().filter(r=>(S.sex==='all'||analyticalSex(r)=
 function updateQuery(mode='replace'){let hash=new URLSearchParams(location.hash.includes('=')?location.hash.slice(1):'');hash.set('family',S.family);hash.set('year',S.year);if(S.editionKey)hash.set('edition',S.editionKey);if(mode==='push')for(const key of ['compareA','compareB','compareTime','compareSegment','mapDuel','mapDuelTime'])hash.delete(key);let target='#'+hash.toString();if(location.hash===target)return;if(mode==='push')history.pushState(null,'',target);else if(mode==='replace')history.replaceState(null,'',target);}
 function requestedEdition(){const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));return {family:hash.get('family')||query.get('family'),year:Number(hash.get('year')||query.get('year'))||null,edition:hash.get('edition')||query.get('edition')||null}}
 function parseQuery(){const requested=requestedEdition(),family=requested.family;if(family==='gax100')S.family=family;const year=requested.year;if(year&&S.boot.editions.some(e=>e.family===S.family&&e.year===year))S.year=year;if(requested.edition&&S.boot.editions.some(e=>e.race_key===requested.edition)){S.editionKey=requested.edition;S.year=S.boot.editions.find(e=>e.race_key===requested.edition).year;}}
-async function init(){try{[S.boot,S.courseDisplay,S.verifiedClassifications]=await Promise.all([
+async function init(){try{[S.boot,S.courseDisplay,S.verifiedClassifications,S.nameEstimates]=await Promise.all([
   fetch('data/bootstrap.json').then(r=>{if(!r.ok)throw Error('Katalogen kunde inte läsas ('+r.status+')');return r.json()}),
   fetch('data/course-display.json').then(r=>r.ok?r.json():[]).catch(()=>[]),
-  fetch('data/official-result-classification.json').then(r=>r.ok?r.json():null).catch(()=>null)
+  fetch('data/official-result-classification.json').then(r=>r.ok?r.json():null).catch(()=>null),
+  fetch('data/name-based-classification.json').then(r=>r.ok?r.json():null).catch(()=>null)
 ]);window.SatilaMultiYearComparison?.init?.({boot:S.boot,getRoute:gaxReplayRoute,getCurrentSelection:()=>({edition:S.boot?.editions?.find(e=>e.race_key===S.race?.race_key),race:S.race,ids:[...S.mapDuel]})});parseQuery();if(!S.year)S.year=Math.max(...S.boot.editions.filter(e=>e.family===S.family).map(e=>e.year));ensureMapDuelControls();bind();await loadRace();const initialHash=new URLSearchParams(location.hash.slice(1)),requestedRunner=initialHash.get('runner')||new URLSearchParams(location.search).get('runner');if(requestedRunner){const runner=findRecord(requestedRunner)||records().find(row=>String(row.bib)===String(requestedRunner));if(runner)openProfile(runner.id)}else if(!restoreMapDuelFromUrl(initialHash))restoreComparisonFromUrl(initialHash);const nextHash=initialHash.get('section');if(nextHash)document.getElementById(nextHash)?.scrollIntoView();else if(!location.hash)scrollTo(0,0);}catch(err){$('#race-title').textContent='Källmaterialet kunde inte laddas';$('#race-subtitle').textContent=err.message;console.error(err);}}
 async function loadRace(historyMode='replace'){window.SatilaMultiYearComparison?.captureCurrentSelection?.();let id=++S.loading;let ed=S.boot.editions.find(e=>e.race_key===S.editionKey)||S.boot.editions.find(e=>e.family===S.family&&e.year===S.year);if(!ed)return;S.editionKey=ed.race_key;S.year=ed.year;$('#race-title').textContent=`${famLabel(S.family)} · ${ed.edition_label||S.year}`;$('#race-subtitle').textContent=ed.date?ed.label+' · '+ed.date:ed.label;$('#source-indicator').textContent='Hämtar publicerade resultatdata…';let race;try{let req=await fetch(`data/races/${encodeURIComponent(ed.race_key)}.json`);if(!req.ok)throw Error('Detta lopp saknar datafil ('+req.status+')');race=await req.json();}catch(err){if(id!==S.loading)return;S.race=null;S.route=null;$('#source-indicator').textContent='Kunde inte hämta tävlingsdata: '+err.message;$('#source-indicator').setAttribute('role','alert');$('#race-subtitle').textContent='Upplagan kan inte visas just nu. Välj ett annat år eller försök igen.';$('#segment-table tbody').innerHTML='';$('#results-table tbody').innerHTML='';return;}if(id!==S.loading)return;$('#source-indicator').removeAttribute('role');
 try{
   if(!race.demo_only&&race.release_state!=='PRIVATE_DATA_WITHHELD'&&S.verifiedClassifications?.schema!=='gax100-confirmed-race-classification-1')throw Error('Verifierade klassuppgifter saknas i offentlig produktionsutgåva');
-  S.resultAudit=window.GaxResultIntegrity?.reconcile(race,S.verifiedClassifications);
+  S.resultAudit=window.GaxResultIntegrity?.reconcile(race,S.verifiedClassifications,S.nameEstimates);
 }catch(error){
   S.race=null;S.route=null;
   $('#source-indicator').textContent='Resultatkontroll misslyckades – osäkra klass-/placeringsuppgifter visas inte';
@@ -249,7 +260,7 @@ function empty(why='Tillräckligt källunderlag saknas för denna analys.'){retu
 function renderOverview(){let fs=S.filtered.filter(finish);$('#finish-series').innerHTML=[['F','Kvinnor',SEX_COLORS.F],['M','Män',SEX_COLORS.M]].map(([key,label,c])=>`<label><input type="checkbox" data-finish-sex="${key}" ${S.finishSex.has(key)?'checked':''}/> <i style="display:inline-block;width:10px;height:10px;background:${c};border-radius:3px"></i>${label}</label>`).join('');$$('[data-finish-sex]').forEach(el=>el.addEventListener('change',e=>{if(e.target.checked)S.finishSex.add(e.target.dataset.finishSex);else S.finishSex.delete(e.target.dataset.finishSex);renderFinishChart()}));renderFinishChart();let pcts=[.1,.25,.5,.75,.9];
   const groups=[{label:'Kvinnor',color:SEX_COLORS.F,rows:fs.filter(r=>analyticalSex(r)==='F')},{label:'Män',color:SEX_COLORS.M,rows:fs.filter(r=>analyticalSex(r)==='M')}];
   const unknown=fs.filter(r=>!analyticalSex(r)).length;
-  $('#percentile-chart').innerHTML=fs.length>=5?`<div class="sex-percentile-grid">${groups.map(g=>`<section class="sex-percentile-card"><h4><i style="background:${g.color}"></i>${g.label} <small>n=${g.rows.length}</small></h4>${g.rows.length>=5?`<div class="bars">${pcts.map(p=>{const v=quant(g.rows.map(r=>r.finish_seconds),p);return `<div class="barline" style="grid-template-columns:38px 1fr 64px"><strong>P${p*100}</strong><div class="bar-track"><div class="bar-fill" style="width:${p*100}%;background:${g.color}"></div></div><strong>${time(v)}</strong></div>`}).join('')}</div>`:'<p class="small muted">Minst fem fullföljare krävs för percentiler.</p>'}</section>`).join('')}</div><p class="muted small">Könsuppdelade sluttidspercentiler i aktuellt urval · ${unknown} med saknad könsuppgift redovisas inte i delserierna.</p>`:empty();
+  $('#percentile-chart').innerHTML=fs.length>=5?`<div class="sex-percentile-grid">${groups.map(g=>`<section class="sex-percentile-card"><h4><i style="background:${g.color}"></i>${g.label} <small>n=${g.rows.length}</small></h4>${g.rows.length>=5?`<div class="bars">${pcts.map(p=>{const v=quant(g.rows.map(r=>r.finish_seconds),p);return `<div class="barline" style="grid-template-columns:38px 1fr 64px"><strong>P${p*100}</strong><div class="bar-track"><div class="bar-fill" style="width:${p*100}%;background:${g.color}"></div></div><strong>${time(v)}</strong></div>`}).join('')}</div>`:'<p class="small muted">Minst fem fullföljare krävs för percentiler.</p>'}</section>`).join('')}</div><p class="muted small">Könsuppdelade sluttidspercentiler · ${unknown} utan könsuppgift redovisas inte i delserierna · ${fs.filter(r=>r.name_based_sex&&!['F','M'].includes(r.sex)).length} namnstatistiskt UPPSKATTADE (inte officiella klassuppgifter).</p>`:empty();
   $('#overall-podium').innerHTML=podiumPair(fs.filter(r=>r.place!=null).sort((a,b)=>a.place-b.place).map(r=>({r,value:time(r.finish_seconds)})));let counts=collections(fs.map(r=>r.class_name||'Ingen uppgift'));let max=Math.max(1,...Object.values(counts));$('#group-bars').innerHTML=`<div class="bars">${Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([label,n])=>{const rows=fs.filter(r=>(r.class_name||'Ingen uppgift')===label),women=rows.filter(r=>analyticalSex(r)==='F').length,men=rows.filter(r=>analyticalSex(r)==='M').length,unknown=rows.length-women-men;return `<button class="barline" style="border:0;background:transparent;text-align:left;cursor:pointer" data-class-pick="${html(label)}"><span>${html(label)}</span><span class="bar-track" style="display:flex;overflow:hidden"><span style="display:block;width:${women/max*100}%;background:${SEX_COLORS.F}" title="Kvinnor: ${women}"></span><span style="display:block;width:${men/max*100}%;background:${SEX_COLORS.M}" title="Män: ${men}"></span><span style="display:block;width:${unknown/max*100}%;background:${SEX_COLORS.unknown}" title="Okänt/inkonsekvent: ${unknown}"></span></span><strong>${n} <small style="display:block;font-weight:500">K ${women} · M ${men}${unknown?' · ? '+unknown:''}</small></strong></button>`}).join('')}</div><p class="small muted">Kvinnor (rosa) · män (blått) · okänt eller källinkonsekvent kön (grått). Antal fullföljare per klass.</p>`;$$('[data-class-pick]').forEach(b=>b.addEventListener('click',()=>{let k=b.dataset.classPick;if(![...$('#class-filter').options].some(o=>o.value===k))return;S.className=k;$('#class-filter').value=k;rerenderFilter()}));bindResultLinks($('#overall-podium'));}
 function collections(arr){let c={};for(let x of arr)c[x]=(c[x]||0)+1;return c}
 // Shared analytical palette: women pink, men blue; neutral/unknown remains grey.
@@ -283,12 +294,13 @@ function renderFinishChart(){
 const initial=n=>String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 function podiumPair(objs,limit=3){
   const known=objs.filter(x=>analyticalSex(x.r));
+  const estimateCount=objs.filter(x=>x.r.name_based_sex&&!['F','M'].includes(x.r.sex)).length;
   const item=(o,i)=>`<button class="podium-row" type="button" data-open="${html(o.r.id)}"><span class="medal medal-${i+1}">${i+1}</span><span class="avatar" aria-hidden="true">${html(initial(o.r.name))}</span><span><strong>${html(o.r.name)}</strong><small>${html(o.r.class_name||'Klass saknas')} · ${o.r.place?'total #'+html(o.r.place):'klassplacering ej känd'}</small></span><span class="finish">${html(o.value)}</span></button>`;
   if(known.length<objs.length){
     // Never claim women's or men's podium for an incompletely sex-classified
     // public result population. Show valid overall ranking instead.
     return '<div class="podium-group podium-overall"><h4>SNABBASTE MÅLGÅNGAR · ALLA KLASSER <small>n='+objs.length+'</small></h4>'+
-      '<p class="muted small">Källverifierad könsklass saknas för '+(objs.length-known.length)+' av '+objs.length+' resultat i listan. Samlad prestation visas utan gissad klass.</p>'+
+      '<p class="muted small">Könsgrupp saknas eller är osäker för '+(objs.length-known.length)+' av '+objs.length+' resultat i listan. Samlad prestation visas utan påstådd könsklass.</p>'+
       objs.slice(0,limit).map(item).join('')+'</div>';
   }
   return ['F','M'].map(sex=>{
@@ -297,6 +309,7 @@ function podiumPair(objs,limit=3){
       (a.r.class_place??Infinity)-(b.r.class_place??Infinity)||
       a.r.finish_seconds-b.r.finish_seconds);
     return '<div class="podium-group"><h4>'+(sex==='F'?'KVINNOR':'MÄN')+' <small>n='+group.length+'</small></h4>'+
+      (estimateCount?'<p class="muted small">Könsgrupper inkluderar '+estimateCount+' namnstatistiskt UPPSKATTADE uppgifter i aktuellt fält. Dessa är inte officiella könsklasser och kan vara fel.</p>':'')+
       ranked.slice(0,limit).map(item).join('')+
       (!group.length?'<p class="muted small">Ingen fullföljare i denna klass och detta urval.</p>':'')+'</div>';
   }).join('');
