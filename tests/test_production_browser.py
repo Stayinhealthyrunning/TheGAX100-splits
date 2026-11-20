@@ -105,6 +105,11 @@ def check(site: Path):
             page.select_option("#year-select","2019-gax100")
             page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('källkonflikt')",timeout=20000)
             assert "43–44 km" in page.locator("#gax-controls-content").inner_text()
+            # Earlier comparison selections intentionally promote to the
+            # cross-edition picker. Reopen a clean current-year session before
+            # testing SAME-YEAR Kartduell: do not mistake that mode for an error.
+            page.reload(wait_until="domcontentloaded")
+            page.wait_for_function("() => document.querySelector('#source-indicator')?.textContent.includes('Officiella GAX100-källor')",timeout=30000)
             # 2024: current organizer reference may be shown but not claimed for 2024.
             page.select_option("#year-select","2024-gax100")
             page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('uppskattat, ej årsmätt')",timeout=20000)
