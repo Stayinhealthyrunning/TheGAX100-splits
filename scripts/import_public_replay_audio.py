@@ -58,7 +58,7 @@ def main():
                 continue
             links=candidate_links(page,page_url)
             print(f"Page tested: {page_url}; candidate audio links: {len(links)}")
-            urls+=link for link in links if link not in urls
+            urls.extend(link for link in links if link not in urls)
         except Exception as error:
             print(f"Source query unavailable ({type(error).__name__})")
     for url in urls[:35]:
