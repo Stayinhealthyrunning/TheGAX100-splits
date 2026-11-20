@@ -42,7 +42,7 @@ function stations(race){
 }
 function displayKm(st){
  // Finish uses the nominal definition of 100 miles, not an observed source kilometre.
- if(st.is_finish)return '—';
+ if(st.is_finish)return '160,9 (nominellt)';
  return valid(st.km)?Number(st.km).toLocaleString('sv-SE',{maximumFractionDigits:2})+'*':'—';
 }
 function ensureOverview(){
@@ -53,7 +53,7 @@ function ensureOverview(){
  panel=document.createElement('article');
  panel.className='panel gax-controls-panel';
  panel.id='gax-controls-panel';
- panel.innerHTML='<div class="panel-heading"><h3>GAX · officiella kontrollpassager</h3></div><div id="gax-controls-content" aria-live="polite"></div>';
+ panel.innerHTML='<div class="panel-heading"><h3>Officiella kontrollpassager · Gax100 Splits</h3></div><div id="gax-controls-content" aria-live="polite"></div>';
  const heading=section.querySelector('.section-heading');
  if(heading)heading.insertAdjacentElement('afterend',panel);
  else section.prepend(panel);
@@ -68,7 +68,7 @@ function render(race){
  }
  const demo=Boolean(race.demo_only);
  const title=panel.querySelector('.panel-heading h3');
- if(title)title.textContent=demo?'GAX · simulerade kontrollpassager':'GAX · officiella kontrollpassager';
+ if(title)title.textContent=demo?'GAX · simulerade kontrollpassager':'Officiella kontrollpassager · Gax100 Splits';
  const rows=stations(race);
  if(!rows.length){
   content.innerHTML='<p class="muted">Ingen källverifierad kontrollpassage för vald upplaga. Sluttider kan fortfarande analyseras.</p>';
@@ -76,6 +76,7 @@ function render(race){
  }
  content.innerHTML=(demo?'<p class="muted small">Fiktiva passertider vid kontroller från arrangörens 2027-referensmodell, inte historiskt uppmätta kontrollpassager. Median kräver minst fem simulerade tider.</p>':'<p class="muted small">Varje rad motsvarar en faktisk kontroll i vald upplaga. Ordningen följer medianen av registrerade passertider, inte en antagen GPS-position. Median visas endast vid minst fem verkliga tider.</p>')
  +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>'+(demo?'Modell-km*':'Käll-km*')+'</th><th>'+(demo?'Simulerade tider (n)':'Observerade tider (n)')+'</th><th>Median passertid</th><th>Datastatus</th></tr></thead><tbody>'
+ +'<tr class="gax-start-control"><th scope="row">Start · Ystad</th><td>0</td><td>Startens tidsnoll</td><td>0:00</td><td>Beräkningsankare, ingen uppmätt passage</td></tr>'
  +rows.map(st=>'<tr><th scope="row">'+h(st.name)+'</th><td>'+h(displayKm(st))+'</td><td>'+st.n+'</td><td>'+time(st.med)+'</td><td>'+(demo?'Simulerad kontrollpassage':st.distance_conflict?'Km-konflikt – tidsanalys enbart':st.n?'Verifierad tidsobservation':'Ingen tidsobservation')+'</td></tr>').join('')
  +'</tbody></table></div>'+(demo?'<p class="muted small">* Kilometer och tider är en pedagogisk modell efter aktuella stationsuppgifter; alla individvärden är fiktiva. Segmentfart presenteras inte som verifierad GPX-fart.</p>':'<p class="muted small">* Källans kilometerangivelser är inte verifierad årsspecifik GPS-distans. Inga km/h- eller min/km-värden beräknas här. ”Mål” bygger på officiell sluttid och visas skilt från mellankontrollerna.</p>');
 }
@@ -96,7 +97,7 @@ function renderProfile(race,runner){
  }).join('');
  panel.innerHTML='<h3>'+(race.demo_only?'Simulerade kontrollpassager · GAX':'Officiella kontrollpassager · GAX')+'</h3>'
  +'<p class="muted small">'+(race.demo_only?'Samtliga tider är fiktiva och utgår från en modell av loppets aktuella kontroller. Segmenten beräknas mellan påhittade, men stigande passertider.':'Exakta källtider i medianbaserad visningsordning. ”Sedan föregående” beräknas bara när två faktiska klocktider är stigande; saknade passager fylls inte ut.')+'</p>'
- +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Ack. tid</th><th>Sedan föregående observerade</th><th>Käll-km*</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+ +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Ack. tid</th><th>Sedan föregående observerade</th><th>Käll-km*</th></tr></thead><tbody><tr class="gax-start-control"><th scope="row">Start · Ystad</th><td>0:00</td><td>—</td><td>0</td></tr>'+body+'</tbody></table></div>'+(!race.demo_only&&rows.length===1&&rows[0].is_finish?'<p class="gax-timing-note">Denna upplaga har bara officiell målpassage. Tiden Start → Mål är ett verkligt totalresultat; historiska mellankontroller saknas i den publicerade datakällan.</p>':'');
  content.appendChild(panel);
 }
 function renderComparison(race,a,b){
