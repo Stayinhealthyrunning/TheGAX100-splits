@@ -72,7 +72,13 @@ def stage(docs, output):
         check('<meta name="robots" content="noindex, nofollow">' in page, "Missing indexing policy")
         (output / "index.html").write_text(page.replace("<html ", '<html class="gax-production" ', 1),
                                            encoding="utf-8")
-        for pattern in ("*.js", "*.css"):
+        # Static photograph-style visual is an original generated asset whose exact
+        # bytes are release-pinned. No third-party runtime dependency or remote hotlink.
+        hero = docs / "assets" / "hero-ales-stenar-trail-runners.webp"
+        check(hero.exists() and hashlib.sha256(hero.read_bytes()).hexdigest() ==
+              "1df7031ed35634b7170a584d8bdc4c5e77958dceddfc451a830eecd3d9c73070",
+              "GAX100 v1.2 hero is missing or differs from approved original")
+        for pattern in ("*.js", "*.css", "*.webp"):
             for asset in (docs / "assets").glob(pattern):
                 target = output / "assets" / asset.name
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -100,7 +106,7 @@ def stage(docs, output):
                 shutil.copyfile(sound, dest)
             else:
                 print("Audio asset not yet present in GitHub; replay remains available without music")
-        files |= {"course-display.json", "route-candidates.json", "route-inventory.json"}
+        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json"}
         for name in files:
             target = output / "data" / name
             target.parent.mkdir(parents=True, exist_ok=True)

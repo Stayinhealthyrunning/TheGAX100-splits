@@ -1,0 +1,24 @@
+name: GAX100 Legends public source audit
+on:
+  push:
+    branches: [release/gax100-splits-v1-2-2026-11-20]
+    paths:
+      - tests/research_legends_public.py
+      - .github/workflows/gax-legends-source-audit.yml
+permissions:
+  contents: read
+jobs:
+  public-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated browser
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Examine organizer-linked Legends public checkpoint UI only
+        run: python3 -B tests/research_legends_public.py

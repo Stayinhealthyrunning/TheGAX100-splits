@@ -40,11 +40,45 @@ function stations(race){
     return a.orderMedian-b.orderMedian||String(a.name).localeCompare(String(b.name),'sv');
  });
 }
-function displayKm(st){
- // Finish uses the nominal definition of 100 miles, not an observed source kilometre.
- if(st.is_finish)return '160,9 (nominellt)';
- return valid(st.km)?Number(st.km).toLocaleString('sv-SE',{maximumFractionDigits:2})+'*':'—';
+// This display-only provenance never modifies public race JSON or the
+// numerical timing axis. Referenced km are not eligible for pace calculations.
+let kmReference=null,renderedRace=null,openedRunner=null;
+const stationName=st=>{
+ const name=String(st.name||'').toLowerCase();
+ for(const canonical of ['Magleberg','Haväng','Sandhammaren'])
+  if(name.includes(canonical.toLowerCase()))return canonical;
+ return null;
+};
+const sourceEntry=(race,st)=>kmReference?.editions?.[race?.race_key]?.stations?.[stationName(st)]||null;
+const kms=v=>Number(v).toLocaleString('sv-SE',{maximumFractionDigits:2});
+function displayKm(st,race){
+ if(st.is_finish)return '160,9 (nominell 100 miles)';
+ const entry=sourceEntry(race,st);
+ if(entry?.mode==='conflicting_source'&&entry.alternatives_km?.length){
+   const values=[...new Set(entry.alternatives_km)].sort((a,b)=>a-b);
+   return values.map(kms).join('–')+' km (källkonflikt)';
+ }
+ if(valid(st.km))return kms(st.km)+' km (årsresultat)';
+ if(entry?.mode==='adjacent_reference'&&valid(entry.reference_km))
+   return '≈'+kms(entry.reference_km)+' km (referens, ej årsverifierat)';
+ return '— (km ej fastställda)';
 }
+const kmStatus=(race,st)=>{
+ if(st.is_finish)return 'Nominell 100 miles, inte GPX-mätt';
+ const entry=sourceEntry(race,st);
+ if(entry?.mode==='conflicting_source')return 'Årslistans klassrubriker skiljer; endast tidsanalys';
+ if(entry?.mode==='adjacent_reference')return 'Referens från annan upplaga – ej årsverifierat';
+ if(entry?.mode==='year_verified'||valid(st.km))return 'Publicerad årskilometer, inte GPX-mätning';
+ return 'Årskilometer saknas i verifierad källa';
+};
+fetch('data/historical-checkpoint-km.json').then(r=>r.ok?r.json():null).then(data=>{
+ if(!data||data.schema!=='gax100-historical-station-distance-provenance-1')return;
+ kmReference=data;
+ if(renderedRace)render(renderedRace);
+ if(openedRunner&&renderedRace&&document.querySelector('#profile-dialog')?.open)
+  renderProfile(renderedRace,openedRunner);
+}).catch(()=>{});
+
 function ensureOverview(){
  let panel=$('#gax-controls-panel');
  if(panel)return panel;
@@ -60,6 +94,7 @@ function ensureOverview(){
  return panel;
 }
 function render(race){
+ renderedRace=race;
  const panel=ensureOverview(),content=$('#gax-controls-content');
  if(!panel||!content)return;
  if(!race||race.release_state==='PRIVATE_DATA_WITHHELD'){
@@ -77,10 +112,11 @@ function render(race){
  content.innerHTML=(demo?'<p class="muted small">Fiktiva passertider vid kontroller från arrangörens 2027-referensmodell, inte historiskt uppmätta kontrollpassager. Median kräver minst fem simulerade tider.</p>':'<p class="muted small">Varje rad motsvarar en faktisk kontroll i vald upplaga. Ordningen följer medianen av registrerade passertider, inte en antagen GPS-position. Median visas endast vid minst fem verkliga tider.</p>')
  +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>'+(demo?'Modell-km*':'Käll-km*')+'</th><th>'+(demo?'Simulerade tider (n)':'Observerade tider (n)')+'</th><th>Median passertid</th><th>Datastatus</th></tr></thead><tbody>'
  +'<tr class="gax-start-control"><th scope="row">Start · Ystad</th><td>0</td><td>Startens tidsnoll</td><td>0:00</td><td>Beräkningsankare, ingen uppmätt passage</td></tr>'
- +rows.map(st=>'<tr><th scope="row">'+h(st.name)+'</th><td>'+h(displayKm(st))+'</td><td>'+st.n+'</td><td>'+time(st.med)+'</td><td>'+(demo?'Simulerad kontrollpassage':st.distance_conflict?'Km-konflikt – tidsanalys enbart':st.n?'Verifierad tidsobservation':'Ingen tidsobservation')+'</td></tr>').join('')
- +'</tbody></table></div>'+(demo?'<p class="muted small">* Kilometer och tider är en pedagogisk modell efter aktuella stationsuppgifter; alla individvärden är fiktiva. Segmentfart presenteras inte som verifierad GPX-fart.</p>':'<p class="muted small">* Källans kilometerangivelser är inte verifierad årsspecifik GPS-distans. Inga km/h- eller min/km-värden beräknas här. ”Mål” bygger på officiell sluttid och visas skilt från mellankontrollerna.</p>');
+ +rows.map(st=>'<tr><th scope="row">'+h(st.name)+'</th><td>'+h(displayKm(st,race))+'</td><td>'+st.n+'</td><td>'+time(st.med)+'</td><td>'+(demo?'Simulerad kontrollpassage':(st.n?'Verifierad tid. ':'Ingen tidsobservation. ')+kmStatus(race,st))+'</td></tr>').join('')
+ +'</tbody></table></div>'+(demo?'<p class="muted small">* Kilometer och tider är en pedagogisk modell efter aktuella stationsuppgifter; alla individvärden är fiktiva. Segmentfart presenteras inte som verifierad GPX-fart.</p>':'<p class="muted small">* Årsverifierad km, motstridiga källrubriker och referenser från andra år märks separat. Ej årssäkra referenser får aldrig användas för segmentfart. ”Mål” bygger på officiell sluttid.</p>');
 }
 function renderProfile(race,runner){
+ openedRunner=runner;
  const content=$('#profile-content');
  if(!content||!race||!runner||race.release_state==='PRIVATE_DATA_WITHHELD')return;
  const previous=content.querySelector('#gax-runner-checkpoints');if(previous)previous.remove();
@@ -93,11 +129,11 @@ function renderProfile(race,runner){
   const elapsed=data.get(String(st.uid));
   const delta=last!==null&&elapsed>last?time(elapsed-last):'—';
   last=elapsed>0?elapsed:last;
-  return '<tr><th scope="row">'+h(st.name)+'</th><td>'+time(elapsed)+'</td><td>'+delta+'</td><td>'+h(displayKm(st))+'</td></tr>';
+  return '<tr><th scope="row">'+h(st.name)+'</th><td>'+time(elapsed)+'</td><td>'+delta+'</td><td>'+h(displayKm(st,race))+'</td></tr>';
  }).join('');
  panel.innerHTML='<h3>'+(race.demo_only?'Simulerade kontrollpassager · GAX':'Officiella kontrollpassager · GAX')+'</h3>'
  +'<p class="muted small">'+(race.demo_only?'Samtliga tider är fiktiva och utgår från en modell av loppets aktuella kontroller. Segmenten beräknas mellan påhittade, men stigande passertider.':'Exakta källtider i medianbaserad visningsordning. ”Sedan föregående” beräknas bara när två faktiska klocktider är stigande; saknade passager fylls inte ut.')+'</p>'
- +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Ack. tid</th><th>Sedan föregående observerade</th><th>Käll-km*</th></tr></thead><tbody><tr class="gax-start-control"><th scope="row">Start · Ystad</th><td>0:00</td><td>—</td><td>0</td></tr>'+body+'</tbody></table></div>'+(!race.demo_only&&rows.length===1&&rows[0].is_finish?'<p class="gax-timing-note">Denna upplaga har bara officiell målpassage. Tiden Start → Mål är ett verkligt totalresultat; historiska mellankontroller saknas i den publicerade datakällan.</p>':'');
+ +'<div class="table-scroll"><table class="gax-check-table"><thead><tr><th>Kontroll</th><th>Ack. tid</th><th>Sedan föregående observerade</th><th>Km, historisk källa / referens</th></tr></thead><tbody><tr class="gax-start-control"><th scope="row">Start · Ystad</th><td>0:00</td><td>—</td><td>0</td></tr>'+body+'</tbody></table></div>'+(!race.demo_only&&rows.length===1&&rows[0].is_finish?'<p class="gax-timing-note">Denna upplaga har bara officiell målpassage. Tiden Start → Mål är ett verkligt totalresultat; historiska mellankontroller saknas i den publicerade datakällan.</p>':'')+(kmReference?.editions?.[race.race_key]?.stations&&rows.some(st=>!st.is_finish)?'<p class="muted small">Historiska km från resultatlistan eller uttryckligen märkta referenser. Källkonflikter används inte för att beräkna segmentfart.</p>':'');
  content.appendChild(panel);
 }
 function renderComparison(race,a,b){
