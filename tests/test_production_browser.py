@@ -118,6 +118,36 @@ def check(site: Path):
             }""")
             assert [a["km"] for a in anchors]==[44,80,130]
             assert all(a["mode"]=="estimated_reference" and a["n"]>0 for a in anchors)
+            # End-to-end: the 2024 two-runner map must genuinely hit the
+            # participant's published Magleberg clock, not just display km.
+            probe = page.evaluate("""async () => {
+              const race=await fetch('data/races/2024-gax100.json').then(r=>r.json());
+              const runners=race.results.filter(r=>r.status==='FINISHED').slice(0,2);
+              const st=race.stations.find(s=>s.name.toLowerCase().includes('magleberg'));
+              const passage=race.splits.find(sp=>String(sp.result_id)===String(runners[0].id)&&String(sp.station_uid)===String(st.uid));
+              return {names:runners.map(r=>r.name),clock:passage?.elapsed_seconds};
+            }""")
+            assert len(probe["names"])==2 and probe["clock"]>0
+            for name in probe["names"]:
+                page.locator("#map-duel-search").fill(name)
+                page.locator("[data-map-duel-id]").first.click()
+            assert page.locator("#open-map-duel").is_enabled()
+            page.locator("#open-map-duel").click()
+            assert page.locator("#map-duel-dialog").evaluate("(el) => el.open")
+            assert "uppskattade" in page.locator("#map-duel-content").inner_text().lower()
+            page.locator("#map-duel-clock").evaluate(
+                "(el,clock) => {el.value=String(clock);el.dispatchEvent(new Event('input',{bubbles:true}));}",
+                probe["clock"])
+            assert "Magleberg" in page.locator("#map-duel-leaderboard").inner_text()
+            page.locator("#map-duel-dialog [data-close='map-duel-dialog']").click()
+            # Direct comparison graphs use the SAME source-time anchors and
+            # must not render NaN coordinates from 2024's missing native km.
+            assert page.locator("#open-compare").is_enabled()
+            page.locator("#open-compare").click()
+            assert page.locator("#duel-gap-chart circle").count()>=3
+            assert page.evaluate("""() => [...document.querySelectorAll('#duel-gap-chart circle')]
+              .every(x=>Number.isFinite(Number(x.getAttribute('cx'))))""")
+            page.locator("#compare-dialog [data-close='compare-dialog']").click()
             # For years with only finish results the same checkpoint method
             # must NOT invent an intermediate timing anchor.
             no_passages=page.evaluate("""async () => {
