@@ -30,19 +30,17 @@ def request(url):
         return response.read()
 
 def candidate_links(page, url):
-    # Common official Pixabay audio-CDN links embedded in public source HTML.
-    patterns = [
-        r"https?://cdn\\.pixabay\\.com/[^\\\"'<>\\s]+\\.mp3(?:\\?[^\\\"'<>\\s]*)?",
-        r"/(?:download/audio|audio)/[^\\\"'<>\\s]+\\.mp3(?:\\?[^\\\"'<>\\s]*)?",
-    ]
+    # Look up official Pixabay CDN audio URLs, never third-party assets.
+    source=html.unescape(page.decode("utf-8","replace")).replace("\\\\/", "/")
     found=[]
-    source=html.unescape(page.decode("utf-8","replace")).replace("\\/", "/")
-    for pattern in patterns:
-        for match in re.findall(pattern,source,re.IGNORECASE):
-            link=urljoin(url,match.replace('\\u0026','&'))
-            parsed=urlsplit(link)
-            if parsed.hostname=="cdn.pixabay.com" and ".mp3" in parsed.path and link not in found:
-                found.append(link)
+    for match in re.finditer(r"https?://cdn\\.pixabay\\.com/",source,re.IGNORECASE):
+        tail=source[match.start():]
+        i=0
+        while i<len(tail) and tail[i] not in ('"', "'", "<", ">", " ", "\\t", "\\r", "\\n", "\\\\"):
+            i+=1
+        link=tail[:i]
+        if urlsplit(link).hostname=="cdn.pixabay.com" and ".mp3" in urlsplit(link).path and link not in found:
+            found.append(link)
     return found
 
 def main():
