@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Fail-closed v1.0 checks for already privacy-filtered PUBLIC result files.
+"""Fail-closed v1.2 checks for already privacy-filtered PUBLIC result files.
 
 Never prints participant names, identifiers, source registries or row content.
 Private preprocessing and opt-out decisions remain upstream prerequisites.
 """
 from __future__ import annotations
+import hashlib
 import json
 import sys
 import unittest
@@ -73,11 +74,49 @@ class ProductionContract(unittest.TestCase):
             overall["splits"] += len(race["splits"])
         self.assertEqual(overall, Counter(rows=945, finish=651, splits=2482))
 
+    def test_visual_and_music_assets(self):
+        image = ROOT / "docs" / "assets" / "hero-ales-stenar-trail-runners.webp"
+        self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(),
+                         "1df7031ed35634b7170a584d8bdc4c5e77958dceddfc451a830eecd3d9c73070")
+        config = json.loads((DATA / "replay-audio.json").read_text(encoding="utf-8"))
+        sound = ROOT / "docs" / config["src"]
+        self.assertEqual(sound.stat().st_size, 4065071, "Original GAX replay MP3 missing")
+        self.assertEqual(hashlib.sha256(sound.read_bytes()).hexdigest(),
+                         "ed089921eb56654ab4c97025c5ceebd057e6c739a9d3f15328033dc909d09e49",
+                         "Wrong soundtrack – no substitutions permitted")
+        self.assertIn("AudioERA", config["credit"])
+
+    def test_historical_checkpoint_provenance_is_read_only(self):
+        km = json.loads((DATA / "historical-checkpoint-km.json").read_text(encoding="utf-8"))
+        self.assertEqual(km["schema"], "gax100-historical-station-distance-provenance-1")
+        self.assertEqual(len(km["editions"]),14)
+        for key, info in km["editions"].items():
+            original = json.loads((DATA / "races" / (key + ".json")).read_text(encoding="utf-8"))
+            values = info["stations"]
+            for st in original["stations"]:
+                if st["is_finish"]: continue
+                canonical = next((n for n in ("Magleberg","Haväng","Sandhammaren")
+                                  if n.lower() in st["name"].lower()),None)
+                self.assertIsNotNone(canonical,key)
+                source = values[canonical]
+                if source["mode"] == "year_verified":
+                    self.assertEqual(st["km"],source["km"],key)
+                elif source["mode"] in ("adjacent_reference","conflicting_source"):
+                    self.assertIsNone(st["km"],key)
+                    self.assertIsNone(source["km"],key)
+                    self.assertTrue(source["source"].startswith("https://gax100.se/"),key)
+        for key in ("2025-gax100","2026-gax100"):
+            self.assertFalse(km["editions"][key]["stations"])
+        for key in ("2019-gax100","2021-a-gax100","2021-b-gax100"):
+            for entry in km["editions"][key]["stations"].values():
+                self.assertEqual(entry["mode"],"conflicting_source")
+                self.assertEqual(len(entry["alternatives_km"]),2)
+
     def test_page_metadata_and_privacy_contract(self):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
         self.assertIn("https://www.loppanalys.se/integritet/", html)
-        self.assertIn("GAX100 Analys 1.0", html)
+        self.assertIn("GAX100 Analys 1.2", html)
         self.assertIn("gax-production-copy", html)
         self.assertNotIn("design-demo med fiktiva deltagare", html)
 
