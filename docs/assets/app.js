@@ -1751,7 +1751,39 @@ window.SatilaExtras=(()=>{
     }));
   }
   function renderSegments(){renderPacingIndex();renderSegmentSex();renderSexSeries();renderClassSeries();renderCheckpointSpread();syncSegmentOverlay();renderCourseIntel()}
-  function renderFiltered(){renderSexCompletion();renderGoal();renderAge();renderClub();renderPlacementGain();renderFinishProgress();renderLastSegmentStrength();renderSegments();renderCourseIntel();renderGroupTable()}
+  // Structural feature gate for real source coverage. A hidden panel occupies no
+  // grid space. We must not leave a blank column when a sibling has real data.
+  // This is deliberately based on actual displayed rows, not guessed checkpoints.
+  function syncDataVisibility(){
+    if(!S.race||S.race.demo_only)return;
+    const hasIntermediate=(S.race.stations||[]).some(st=>!st.is_finish &&
+      (S.race.splits||[]).some(p=>p.station_uid===st.uid && num(p.elapsed_seconds)));
+    const rules=[
+      ['#extra-overview #age-chart',S.filtered.some(r=>num(r.age)&&r.age>0)],
+      ['#extra-overview #club-chart',S.filtered.some(r=>typeof r.club==='string'&&r.club.trim())],
+      ['#extra-dynamics #placement-gain',Boolean($('#placement-gain .gain-row'))],
+      ['#extra-dynamics #finish-progression',Boolean($('#finish-progression .mini-result'))],
+      ['#extra-dynamics #last-segment-strength',hasIntermediate&&Boolean($('#last-segment-strength .mini-result'))],
+      ['#extra-segments #segment-pacing',hasIntermediate&&Boolean($('#segment-pacing .barline,.segment-pacing-row,svg'))],
+      ['#extra-segments #segment-sex-extra',hasIntermediate&&Boolean($('#segment-sex-extra svg,.band-chart,.chart-svg'))],
+      ['#extra-segments #checkpoint-spread',hasIntermediate&&Boolean($('#checkpoint-spread svg,.band-chart,.chart-svg'))],
+      ['#dynamics #standouts',hasIntermediate&&!Boolean($('#standouts .gax-coverage-note'))]
+    ];
+    for(const [selector,visible] of rules){
+      const node=$(selector),panel=node?.closest('article.panel');
+      if(panel){panel.hidden=!visible;panel.classList.toggle('gax-data-hidden',!visible);}
+    }
+    for(const selector of ['#extra-overview','#extra-dynamics','#extra-segments']){
+      const grid=$(selector);if(!grid)continue;
+      const panels=[...grid.children].filter(el=>el.matches('article.panel')&&!el.hidden);
+      grid.hidden=panels.length===0;
+      grid.dataset.visibleCount=String(panels.length);
+      for(const panel of panels)panel.classList.toggle('gax-full-width',panels.length===1);
+    }
+    // The core placement chart and finish distributions remain visible when
+    // actual end times exist; only unsupported segment-specific modules vanish.
+  }
+  function renderFiltered(){renderSexCompletion();renderGoal();renderAge();renderClub();renderPlacementGain();renderFinishProgress();renderLastSegmentStrength();renderSegments();renderCourseIntel();renderGroupTable();syncDataVisibility()}
   function wire(){if(wired)return;wired=true;document.addEventListener('click',e=>{const info=e.target.closest('[data-help-extra]');if(info){showHelp(info.closest('.panel')?.querySelector('h3')?.textContent,extraHelp[info.dataset.helpExtra]);return}const linked=e.target.closest('[data-extra-segment]');if(linked){$('#segment-table [data-select-segment="'+linked.dataset.extraSegment+'"]')?.click();return}if(e.target.closest('[data-segment],[data-select-segment]'))setTimeout(renderSegments,0)});document.addEventListener('change',e=>{if(e.target.matches('#podium-segment-start'))setTimeout(renderSegments,0)});document.addEventListener('click',e=>{if(e.target.matches('#goal-placement-run'))renderGoal()});document.addEventListener('keydown',e=>{if(e.target.matches('[data-extra-segment]')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('#segment-table [data-select-segment="'+e.target.dataset.extraSegment+'"]')?.click();return}if(e.target.matches('#goal-placement-time')&&e.key==='Enter')renderGoal()})}
   function renderAll(){ensurePanels();wire();renderFiltered();renderCourseIntel();renderMapHistory();renderHistoryPerformance();renderSexHistory();renderFingerprint();renderProvenance();renderCoverage()}
   return {renderAll,renderFiltered,renderSegments,renderProvenance,renderMapHistory};
