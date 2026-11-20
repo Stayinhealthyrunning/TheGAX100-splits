@@ -29,6 +29,28 @@ const CARD_HELP={
  'Spurten mot mål':'Jämför en löpares sista registrerade segment med andra fullföljare. I demoversionen är både loppet och kontrolltiderna påhittade.',
  'GAX · simulerade kontrollpassager':'Samtliga kontrolltider i den publika demon är fiktiva. Modellkilometer används för att pröva graferna men ska inte tolkas som verklig tidtagning.'
 };
+// The shared markup serves both the fictional offline preview and the
+// privacy-filtered public release. Help must describe the ACTIVE data mode.
+const IS_PRODUCTION=document.documentElement.classList.contains('gax-production');
+if(IS_PRODUCTION){
+ Object.assign(HELP,{
+  'race-context':'Välj loppår eller de två separata 2021-upplagorna. Resultaten kommer från den officiella, integritetsfiltrerade publiceringen. Mellantider och könsuppgifter finns bara när årskällan har sådana uppgifter.',
+  method:'Version 1.0 använder officiella tävlingsresultat efter integritetsfiltrering. Individuella sluttider och källregistrerade kontrolltider analyseras utan att saknade passager fylls i. Kartmarkörernas positioner är däremot modellerade mot en redovisad banreferens; de är inte uppmätt GPS.',
+  overview:'Översikten visar resultatstatus, målgångar och sluttidernas fördelning för de publicerade officiella deltagarposterna. Källornas täckning varierar mellan loppår.',
+  dynamics:'Här jämförs verkliga sluttider och registrerade kontrollpassager för samma upplaga. Saknas jämförbara kontrollpar visas inget konstruerat avslutningsindex.',
+  segments:'Hela loppet visar källbaserade tider där registrerade kontrollpassager finns. Min loppplan fördelar en angiven sluttid utifrån tillgängliga medianer; det är en modell, inte ett löfte om en prognos.',
+  results:'Sök, sortera och öppna profiler från officiella resultatfiler efter integritetsfiltrering. Namn, klubb, placering och tider visas bara där källan har uppgifter och publicering har tillåtits.',
+  'runner-tools':'Sök efter verkliga, publicerbara resultat för valt loppår och öppna profilen för att se sluttid, tillgängliga kontrollpassager och jämförelser.'
+ });
+ Object.assign(CARD_HELP,{
+  'Prestationer som sticker ut':'Jämför källbaserade prestationer inom samma loppår. Starkaste avslutningen utgår från samma faktiskt tidtagna kontrollpar fram till officiellt mål, och visas endast vid tillräckligt många jämförbara fullföljare.',
+  'Banans dimensioner':'Tävlingsdistans, faktisk täckning av tidtagna kontroller, sluttidsmedian och DNF-andel. Referensrutters GPX-längd är separat från verifierade tävlingssträckor.',
+  'Andel kvinnor och män över tid':'Könsfördelning från officiella uppgifter visas bara för de år där minst 80 procent av resultaten har tillräckligt klassunderlag. Övriga år visas utan påhittade värden.',
+  'Fördela din måltid över delsträckorna':'Ange din önskade sluttid. Fördelningen baseras på medianandelar från tillgängliga, verkliga passertider, men är fortfarande en planmodell.',
+  'Spurten mot mål':'Den sista tidtagna delsträckan jämförs bara med andra fullföljare som har samma källa, kontrollpar och tillräcklig täckning.',
+  'GAX · officiella kontrollpassager':'Kontrolltider och sluttider kommer från publicerade resultat. En kontroll som saknas hos arrangören fylls inte i med modellvärden.'
+ });
+}
 const human=(node)=>String(node?.textContent||'').trim().replace(/\s+/g,' ');
 function showInformation(title,message){
  const dlg=$('#help-dialog');
@@ -77,7 +99,7 @@ function decorate(){
    if(!heading)return;
    const title=human($('h3',heading));
    if(!title)return;
-   addInfo(heading,title,CARD_HELP[title]||'Analysen gäller det aktuella loppåret och resultatfiltreringen. Minst fem jämförbara observationer krävs för en stabil gruppmedian. I designversionen är alla individuella värden fiktiva.');
+   addInfo(heading,title,CARD_HELP[title]||(IS_PRODUCTION?'Analysen utgår från filtrerade, officiella resultat och den tillgängliga källtäckningen. Statistiska jämförelser kräver minst fem jämförbara observationer.':'Analysen gäller det aktuella loppåret och resultatfiltreringen. Minst fem jämförbara observationer krävs för en stabil gruppmedian. I designversionen är alla individuella värden fiktiva.'));
  });
 }
 function planMode(mode){
