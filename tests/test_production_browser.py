@@ -85,6 +85,22 @@ def check(site: Path):
             assert page.locator("#gax-direct-controls tbody tr").count()>=2
             assert "officiella" in page.locator("#gax-direct-controls h3").inner_text().lower()
             page.locator("#compare-dialog [data-close='compare-dialog']").first.click()
+            # Older GAX code preserved TIME even if historical km was unknown.
+            # This was accidentally regressed by requiring finite(st.km) for
+            # profile passage rows. Validate actual 2024/2021 source timing.
+            for key, total in [("2021-a-gax100",38),("2024-gax100",87)]:
+                page.select_option("#year-select",key)
+                page.wait_for_function("(n) => document.querySelector('#scope-status')?.textContent.includes(String(n))",arg=total,timeout=20000)
+                page.locator("#results-table [data-open]").first.click()
+                assert page.locator("#profile-dialog").evaluate("(el) => el.open")
+                source_table=page.locator(".profile-source-passages")
+                assert source_table.count()==1 and source_table.evaluate("(el) => el.open")
+                assert source_table.locator("tbody tr").count()==5, "Historical source TIME controls must not be filtered for null km"
+                assert source_table.locator("td").filter(has_text="Haväng").count()>=1
+                assert "referens" in source_table.inner_text().lower() or "källkonflikt" in source_table.inner_text().lower()
+                assert page.locator(".profile-split-table tbody tr").count()>=3, "Source-time segments should survive absent km"
+                assert "3/4" in page.locator(".profile2-facts").inner_text() or "4/4" in page.locator(".profile2-facts").inner_text()
+                page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
             # 2019: year source has class-conflicting km and must not collapse it.
             page.select_option("#year-select","2019-gax100")
             page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('källkonflikt')",timeout=20000)
