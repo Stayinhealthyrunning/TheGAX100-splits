@@ -326,3 +326,55 @@ a{transition:color .16s}
 .gax-production-copy{display:none}
 .gax-production .gax-production-copy{display:inline}
 .gax-production :is(.gax-preview-note,.gax-demo-copy){display:none}
+
+
+/* Gax100 Splits v1.1: Österlen / Ales stenar visual upgrade */
+:root{--gax-ocean:#477f83;--gax-dune:#dec58e;--gax-cliff:#64876a;--gax-ink:#254640}
+.gax-hero{
+ background:linear-gradient(112deg,#f8efe0 0%,#f6e9d0 35%,#dce4d9 71%,#b9d6d4 100%)!important;
+}
+.gax-hero-inner{gap:24px}
+.gax-hero-art{filter:saturate(.96)}
+.gax-summer-scene{max-height:245px;border-radius:26px 6px 26px 6px;box-shadow:0 22px 40px #284a4030;opacity:1}
+.gax-hero #gax-title{font-size:clamp(47px,5.7vw,77px)!important;letter-spacing:-.064em}
+.gax-hero #gax-title span{color:#bc7750}
+.gax-hero .gax-hero-desc{max-width:550px!important}
+.gax-art-caption{bottom:12px;right:10px;background:#f4e9d9dd;color:#335b53;font-size:9px}
+#gax-title,.section-heading h2{font-kerning:normal}
+#header .brand span{white-space:nowrap}
+.gax-guide-dialog{border:1px solid #dad6c7}
+.gax-station-track{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.gax-station-track:before{left:7.1%;right:7.1%}
+.gax-station-terminal .gax-station-km{color:#a86546}
+.gax-station-terminal:before{background:#315b51!important;border-color:#fdf7eb}
+.gax-station-terminal strong{font-weight:850}
+.gax-checkpoint-profile{padding:22px 24px 20px!important;margin-top:24px}
+.gax-checkpoint-profile>h3{margin:0 0 11px!important}
+.gax-checkpoint-profile>p{margin:0 0 14px!important;line-height:1.6}
+.gax-controls-panel>.panel-heading{padding:18px 22px 12px!important}
+.gax-controls-panel #gax-controls-content{padding:0 22px 18px!important}
+.gax-controls-panel .gax-check-table{border-radius:10px;overflow:hidden}
+.gax-check-table td,.gax-check-table th{padding:10px 14px!important}
+.gax-start-control{background:rgba(220,237,222,.56)}
+.gax-start-control th{color:#27534a!important}
+.gax-timing-note,.gax-coverage-note{padding:12px 15px;border:1px solid #d6e3db;background:#f1f6f1;border-radius:10px;color:#355a50;font-size:12px;line-height:1.65}
+.profile2-facts article{border-radius:13px}
+.profile2-facts article small{line-height:1.3}
+.gax-production #method .method-grid{background:#fffdf8}
+.replay-music-credit{font-size:10px;color:#526d64;margin:8px 0 6px;line-height:1.5}
+.replay-music-credit a{color:#356f6f;text-underline-offset:2px}
+.replay-controls,.map-duel-playback{flex-wrap:wrap;align-items:center;gap:8px}
+@media(max-width:900px){
+ .gax-station-track{grid-template-columns:repeat(7,minmax(105px,1fr));overflow-x:auto;overflow-y:hidden}
+ .gax-station-track:before{left:54px;right:54px}
+}
+@media(max-width:760px){
+ .gax-hero #gax-title{font-size:clamp(42px,10vw,64px)!important}
+ .gax-station-km{font-size:19px}
+ .gax-station-point{padding-inline:4px}
+ .gax-station-track{padding-inline:8px}
+ .gax-controls-panel>.panel-heading{padding:16px 15px 10px!important}
+ .gax-controls-panel #gax-controls-content{padding:0 14px 16px!important}
+ .gax-checkpoint-profile{padding:18px 16px!important}
+ .gax-check-table td,.gax-check-table th{padding:9px!important}
+}
