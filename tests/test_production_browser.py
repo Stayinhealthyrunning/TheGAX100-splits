@@ -188,6 +188,34 @@ def check(site: Path):
                 assert page.locator("#gax-runner-checkpoints tbody tr").count()==2
                 assert "bara officiell målpassage" in page.locator("#gax-runner-checkpoints").inner_text()
                 page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
+            # A finish-only race must NOT replay synthetic head-to-head positions.
+            # Keep real official finish facts and a static map instead.
+            page.goto(f"http://127.0.0.1:{server.server_port}/",wait_until="domcontentloaded")
+            page.wait_for_function("() => document.querySelector('#source-indicator')?.textContent.includes('Officiella GAX100-källor')",timeout=30000)
+            page.select_option("#year-select","2026-gax100")
+            page.wait_for_function("() => document.querySelector('#scope-status')?.textContent.includes('110')",timeout=20000)
+            finishers=page.evaluate("""async () => (await (await fetch('data/races/2026-gax100.json')).json())
+              .results.filter(r=>r.status==='FINISHED').slice(0,2).map(r=>r.name)""")
+            assert len(finishers)==2 and finishers[0]!=finishers[1]
+            for name in finishers:
+                page.locator("#map-duel-search").fill(name)
+                page.locator("[data-map-duel-id]").first.click()
+            page.locator("#open-map-duel").click()
+            assert page.locator("#map-duel-dialog").evaluate("(el)=>el.open")
+            assert page.locator("#map-duel-static-map svg").count()==1
+            assert page.locator("#map-duel-play").count()==0, "No time-driven race without actual mid-race times"
+            assert "Ingen tidsförankrad Kartduell" in page.locator("#map-duel-content").inner_text()
+            page.locator("#map-duel-dialog [data-close='map-duel-dialog']").click()
+            page.locator("#open-compare").click()
+            assert page.locator("#compare-dialog").evaluate("(el)=>el.open")
+            assert page.locator("#duel-clock").count()==0, "Direct comparison cannot invent a race clock"
+            assert "Ingen tidsförankrad kartjämförelse" in page.locator("#compare-content").inner_text()
+            page.locator("#compare-dialog [data-close='compare-dialog']").click()
+            page.locator("#results-table [data-open]").first.click()
+            page.locator("[data-profile-tab='replay']").first.click()
+            assert "utan tidsförankrad Replay" in page.locator("#profile-replay-stage").inner_text()
+            assert page.locator("#profile-replay-play").count()==0
+            page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
             assert not errors, f"Browser JavaScript error types: {errors}"
             browser.close()
     finally:
