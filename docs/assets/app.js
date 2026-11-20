@@ -1814,6 +1814,14 @@ window.SatilaExtras=(()=>{
       grid.dataset.visibleCount=String(panels.length);
       for(const panel of panels)panel.classList.toggle('gax-full-width',panels.length===1);
     }
+    // CSS grids with explicit display declarations can override the native
+    // hidden attribute. For finish-only years force display:none as well and
+    // restore it when genuine checkpoint times return in the selected year.
+    const segmentsGrid=$('#extra-segments');
+    if(segmentsGrid){
+      segmentsGrid.hidden=!hasIntermediate||segmentsGrid.dataset.visibleCount==='0';
+      segmentsGrid.style.display=segmentsGrid.hidden?'none':'';
+    }
     // The core placement chart and finish distributions remain visible when
     // actual end times exist; only unsupported segment-specific modules vanish.
   }
