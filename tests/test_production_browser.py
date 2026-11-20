@@ -165,12 +165,9 @@ def check(site: Path):
                 assert page.locator("#gax-controls-content .gax-start-control").count()==1
                 page.wait_for_function("() => document.querySelector('#extra-dynamics')?.hidden === true",timeout=15000)
                 assert page.locator("#extra-dynamics").is_hidden()
-                if not page.locator("#extra-segments").is_hidden():
-                    print("SEGMENTS_VISIBILITY_DIAGNOSTIC",page.evaluate("""() => {
-                      const x=document.querySelector('#extra-segments');
-                      return {hidden:x.hidden,inline:x.style.display,computed:getComputedStyle(x).display,
-                              visibleCount:x.dataset.visibleCount,children:[...x.children].map(y=>({hidden:y.hidden,display:getComputedStyle(y).display}))};
-                    }"""))
+                # Year changes rerender the source-backed extras asynchronously;
+                # wait for this edition's empty-panel gate, not previous year's DOM.
+                page.wait_for_function("() => document.querySelector('#extra-segments')?.hidden === true",timeout=15000)
                 assert page.locator("#extra-segments").is_hidden()
                 assert page.locator("#standouts").locator("xpath=ancestor::article[1]").is_hidden()
                 assert page.locator("#extra-overview #age-chart").locator("xpath=ancestor::article[1]").is_hidden()
