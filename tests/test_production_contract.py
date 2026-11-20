@@ -217,6 +217,17 @@ class ProductionContract(unittest.TestCase):
         self.assertIn('assets/plan-history.js', html)
         self.assertIn('id="plan-table"', html)
 
+    def test_gax_tablet_time_input_and_removed_group_expander(self):
+        html=(ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        app=(ROOT / "docs" / "assets" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('id="target-time" value="" inputmode="text"',html)
+        self.assertIn('id="target-time-hint"',html)
+        self.assertIn('replace(/[.,：]/g',app)
+        self.assertNotIn('Visa alla grupper, klass, kön och klubb',app)
+        self.assertNotIn('gax-group-details',app)
+        self.assertIn("gax-group-summary",app)
+        self.assertIn("group-bars",app)
+
     def test_page_metadata_and_privacy_contract(self):
         html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
