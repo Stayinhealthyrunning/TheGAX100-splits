@@ -1723,19 +1723,60 @@ window.SatilaExtras=(()=>{
     }).catch(()=>null);
     return coveragePromise;
   }
-  async function renderSexHistory(){
-    const host=$('#history-sex');
-    if(!host)return;
+  async async function renderSexHistory(){
+    const host=$('#history-sex');if(!host)return;
     const family=S.family;
-    host.innerHTML='<p class="muted small">Laddar källstödd könsfördelning…</p>';
+    host.innerHTML='<p class="muted small">Beräknar könsfördelning från offentliga resultat och märkta namnuppskattningar…</p>';
     const coverage=await loadCoverage();
     if(S.family!==family)return;
     if(!coverage){host.innerHTML=empty('Källtäckningsfilen kunde inte läsas.');return}
-    const rows=coverage.filter(e=>e.family===family).sort((a,b)=>a.year-b.year||(a.edition_label||'').localeCompare(b.edition_label||'')).map(e=>{
-      const known=Number(e.sex_known)||0,coverageRate=e.results?known/e.results:0;
-      return {...e,coverageRate,pf:known&&coverageRate>=.8?100*(Number(e.sex_f)||0)/known:null};
-    });
-    host.innerHTML=rows.some(e=>num(e.pf))?`<p class="small muted">${S.race?.demo_only?'DESIGNDEMO: kvinno- och mansfördelningen är simulerad; 2026 har kalibrerats mot offentliga årssummor. Ingen historisk könstrend kan utläsas.':'Andelar visas bara där könstäckningen är minst 80 %.'}</p><div class="sex-history-bars">${rows.map(e=>`<div><span>${html(e.edition_label||e.year)}</span><div class="stack">${num(e.pf)?`<i class="women" style="width:${e.pf}%"></i><i class="men" style="width:${100-e.pf}%"></i>`:''}</div><strong>${num(e.pf)?e.pf.toFixed(0)+' % K':'—'}</strong><small>${e.sex_f} K · ${e.sex_m} M · ${e.results-e.sex_known} utan kön · täckning ${(100*e.coverageRate).toFixed(0)} %${e.coverageRate<.8?' (trend dold under 80 %)':''}</small></div>`).join('')}</div>`:empty('Inget år når minst 80 % källstödd könstäckning.');
+    const editions=coverage.filter(e=>e.family===family)
+      .sort((a,b)=>a.year-b.year||(a.edition_label||'').localeCompare(b.edition_label||''));
+    const rows=await Promise.all(editions.map(async e=>{
+      let officialF=0,officialM=0,estimatedF=0,estimatedM=0,unclassified=0;
+      try{
+        const race=await fetch('data/races/'+encodeURIComponent(e.race_key)+'.json')
+          .then(r=>{if(!r.ok)throw Error('Missing race');return r.json()});
+        const verified=new Map((S.verifiedClassifications?.editions?.[e.race_key]||[])
+          .map(entry=>[String(entry.result_id),entry.sex]));
+        const guessed=new Map((S.nameEstimates?.editions?.[e.race_key]||[])
+          .map(entry=>[String(entry.result_id),entry.estimated_sex]));
+        for(const r of race.results){
+          const sex=r.sex==='F'||r.sex==='M'?r.sex:verified.get(String(r.id));
+          if(sex==='F')officialF++;
+          else if(sex==='M')officialM++;
+          else{
+            const estimate=guessed.get(String(r.id));
+            if(estimate==='F')estimatedF++;
+            else if(estimate==='M')estimatedM++;
+            else unclassified++;
+          }
+        }
+      }catch{
+        officialF=e.sex_f||0;officialM=e.sex_m||0;
+        unclassified=Math.max(0,(e.results||0)-officialF-officialM);
+      }
+      const women=officialF+estimatedF,men=officialM+estimatedM;
+      const known=women+men,coverageRate=e.results?known/e.results:0;
+      return {...e,sex_f:women,sex_m:men,sex_known:known,
+        official_known:officialF+officialM,estimated:estimatedF+estimatedM,
+        unclassified,coverageRate,pf:known&&coverageRate>=.8?100*women/known:null};
+    }));
+    if(S.family!==family)return;
+    host.innerHTML=rows.some(e=>Number.isFinite(e.pf))?
+      '<p class="small muted">Andelar visas vid minst 80 % täckning. <strong>Verifierad klass</strong> och <strong>namnstatistiskt uppskattad klass</strong> räknas separat och redovisas öppet. Namnuppskattning är inte ett faktum om personens kön.</p>'+
+      '<div class="sex-history-bars">'+rows.map(e=>{
+        const displayed=Number.isFinite(e.pf);
+        return '<div><span>'+html(e.edition_label||e.year)+'</span><div class="stack">'+
+          (displayed?'<i class="women" style="width:'+e.pf+'%"></i><i class="men" style="width:'+(100-e.pf)+'%"></i>':'')+
+          '</div><strong>'+(displayed?e.pf.toFixed(0)+' % K':'—')+'</strong><small>'+
+          e.sex_f+' K · '+e.sex_m+' M · '+e.unclassified+' okända · '+
+          e.official_known+' officiellt källbelagda · '+e.estimated+' namnuppskattade · '+
+          (100*e.coverageRate).toFixed(0)+' % täckning'+
+          (displayed?'':' (trend dold under 80 %)')+
+          '</small></div>';
+      }).join('')+'</div>':
+      empty('Inget år når 80 % könsuppgifts- och uppskattningstäckning.');
   }
 
   function renderFingerprint(){const h=$('#history-fingerprint');if(!h)return;const ed=historyEditions(),maxR=Math.max(1,...ed.map(e=>e.results)),maxT=Math.max(1,...ed.map(e=>e.timing_stations||0)),maxM=Math.max(1,...ed.map(e=>e.median_seconds||0)),maxD=Math.max(1,...ed.map(e=>e.results?100*e.dnf/e.results:0));h.innerHTML=`<div class="finger-table"><div class="finger-head"><b>År</b><b>Volym</b><b>Stationer</b><b>Median</b><b>DNF</b></div>${ed.map(e=>{const d=e.results?100*e.dnf/e.results:0;return `<div><b>${e.year}</b>${[[e.results/maxR,e.results],[ (e.timing_stations||0)/maxT,e.timing_stations||0],[ (e.median_seconds||0)/maxM,time(e.median_seconds)],[d/maxD,d.toFixed(1)+' %']].map(([p,v])=>`<span><i style="--v:${Math.max(0,p)*100}%"></i><em>${esc(v)}</em></span>`).join('')}</div>`}).join('')}</div>`}
