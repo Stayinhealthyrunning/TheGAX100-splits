@@ -293,26 +293,41 @@ function renderFinishChart(){
 }
 const initial=n=>String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 function podiumPair(objs,limit=3){
-  const known=objs.filter(x=>analyticalSex(x.r));
-  const estimateCount=objs.filter(x=>x.r.name_based_sex&&!['F','M'].includes(x.r.sex)).length;
-  const item=(o,i)=>`<button class="podium-row" type="button" data-open="${html(o.r.id)}"><span class="medal medal-${i+1}">${i+1}</span><span class="avatar" aria-hidden="true">${html(initial(o.r.name))}</span><span><strong>${html(o.r.name)}</strong><small>${html(o.r.class_name||'Klass saknas')} · ${o.r.place?'total #'+html(o.r.place):'klassplacering ej känd'}</small></span><span class="finish">${html(o.value)}</span></button>`;
-  if(known.length<objs.length){
-    // Never claim women's or men's podium for an incompletely sex-classified
-    // public result population. Show valid overall ranking instead.
-    return '<div class="podium-group podium-overall"><h4>SNABBASTE MÅLGÅNGAR · ALLA KLASSER <small>n='+objs.length+'</small></h4>'+
-      '<p class="muted small">Könsgrupp saknas eller är osäker för '+(objs.length-known.length)+' av '+objs.length+' resultat i listan. Samlad prestation visas utan påstådd könsklass.</p>'+
-      objs.slice(0,limit).map(item).join('')+'</div>';
-  }
-  return ['F','M'].map(sex=>{
-    const group=objs.filter(x=>analyticalSex(x.r)===sex);
-    const ranked=group.slice().sort((a,b)=>
+  // A missing class must never erase existing, verified women's/men's
+  // results, nor turn a statistical estimate into an official medal.
+  const known=objs.filter(x=>analyticalSex(x.r)),unknown=objs.length-known.length;
+  const estimated=objs.filter(x=>x.r.name_based_sex&&!['F','M'].includes(x.r.sex)).length;
+  const item=(o,i,rank)=>{
+    const medal=rank??i+1,officialRank=Number.isInteger(o.r.class_place)&&
+      ['duv_confirmed_class','published_class','computed_complete_class'].includes(o.r.class_place_provenance);
+    return `<button class="podium-row" type="button" data-open="${html(o.r.id)}"><span class="medal medal-${Math.min(medal,3)}">${medal}</span><span class="avatar" aria-hidden="true">${html(initial(o.r.name))}</span><span><strong>${html(o.r.name)}</strong><small>${html(o.r.class_name||'Klass saknas')} · ${o.r.place?'total #'+html(o.r.place):'totalplacering saknas'}${o.r.name_based_sex&&!['F','M'].includes(o.r.sex)?' · NAMNUPPSKATTAT':''}${officialRank?' · klass #'+html(o.r.class_place):''}</small></span><span class="finish">${html(o.value)}</span></button>`;
+  };
+  const groups=['F','M'].map(sex=>{
+    const members=objs.filter(x=>analyticalSex(x.r)===sex);
+    const ranked=members.slice().sort((a,b)=>
       (a.r.class_place??Infinity)-(b.r.class_place??Infinity)||
       a.r.finish_seconds-b.r.finish_seconds);
-    return '<div class="podium-group"><h4>'+(sex==='F'?'KVINNOR':'MÄN')+' <small>n='+group.length+'</small></h4>'+
-      (estimateCount?'<p class="muted small">Könsgrupper inkluderar '+estimateCount+' namnstatistiskt UPPSKATTADE uppgifter i aktuellt fält. Dessa är inte officiella könsklasser och kan vara fel.</p>':'')+
-      ranked.slice(0,limit).map(item).join('')+
-      (!group.length?'<p class="muted small">Ingen fullföljare i denna klass och detta urval.</p>':'')+'</div>';
+    const verifiedRanked=ranked.filter(x=>Number.isInteger(x.r.class_place)&&
+      ['duv_confirmed_class','published_class','computed_complete_class'].includes(x.r.class_place_provenance)&&
+      x.r.class_place<=limit);
+    const showOfficial=unknown===0&&estimated===0 ||
+      verifiedRanked.some(x=>x.r.class_place===1);
+    const candidates=verifiedRanked.length?verifiedRanked:ranked.slice(0,limit);
+    const title=sex==='F'?'KVINNOR':'MÄN';
+    const note=(unknown||estimated)?
+      '<p class="muted small">Resultaten omfattar '+unknown+' utan klass och '+estimated+
+      ' med namnstatistiskt uppskattad grupp. Källverifierade klassplaceringar markeras särskilt; övriga är inte officiella pallplaceringar.</p>':'';
+    return '<div class="podium-group"><h4>'+title+' <small>n='+members.length+
+      (unknown||estimated?' · ofullständig klassindelning':'')+'</small></h4>'+
+      note+candidates.map((o,i)=>item(o,i,verifiedRanked.length?o.r.class_place:null)).join('')+
+      (!members.length?'<p class="muted small">Ingen redovisad prestation med klassuppgift.</p>':'')+'</div>';
   }).join('');
+  const overall=unknown?
+    '<div class="podium-group podium-overall"><h4>SNABBASTE MÅLGÅNGAR · ALLA KLASSER <small>n='+objs.length+'</small></h4>'+
+    '<p class="muted small">När klassindelningen är ofullständig visas också en könsneutral total topplista. Därmed försvinner ingen faktisk målgång.</p>'+
+    objs.slice().sort((a,b)=>a.r.finish_seconds-b.r.finish_seconds).slice(0,limit).map((o,i)=>item(o,i)).join('')+
+    '</div>':'';
+  return groups+overall;
 }
 function renderDynamics(){
  const rows=S.filtered,host=$('#placement-chart'),original=rows.filter(r=>finish(r)&&num(r.place));let fs=original.slice(),zoom=S.placementZoom||0;
