@@ -97,7 +97,7 @@ def check(site: Path):
                 assert source_table.count()==1 and source_table.evaluate("(el) => el.open")
                 assert source_table.locator("tbody tr").count()==5, "Historical source TIME controls must not be filtered for null km"
                 assert source_table.locator("td").filter(has_text="Haväng").count()>=1
-                assert "referens" in source_table.inner_text().lower() or "källkonflikt" in source_table.inner_text().lower()
+                assert any(x in source_table.inner_text().lower() for x in ("uppskattat","referens","källkonflikt"))
                 assert page.locator(".profile-split-table tbody tr").count()>=3, "Source-time segments should survive absent km"
                 assert "3/4" in page.locator(".profile2-facts").inner_text() or "4/4" in page.locator(".profile2-facts").inner_text()
                 page.locator("#profile-dialog [data-close='profile-dialog']").first.click()
@@ -107,7 +107,24 @@ def check(site: Path):
             assert "43–44 km" in page.locator("#gax-controls-content").inner_text()
             # 2024: current organizer reference may be shown but not claimed for 2024.
             page.select_option("#year-select","2024-gax100")
-            page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('referens, ej årsverifierat')",timeout=20000)
+            page.wait_for_function("() => document.querySelector('#gax-controls-content')?.textContent.includes('uppskattat, ej årsmätt')",timeout=20000)
+            # The map-playback time anchors must use actual EQ TIMES and
+            # resolve only their positions from the estimated 44/80/130 km.
+            anchors = page.evaluate("""async () => {
+              await window.GaxCheckpointView.ready;
+              const race=await fetch('data/races/2024-gax100.json').then(r=>r.json());
+              return window.GaxCheckpointView.replayStations(race)
+                .map(s=>({km:s.km,mode:s.km_mode,n:s.n}));
+            }""")
+            assert [a["km"] for a in anchors]==[44,80,130]
+            assert all(a["mode"]=="estimated_reference" and a["n"]>0 for a in anchors)
+            # For years with only finish results the same checkpoint method
+            # must NOT invent an intermediate timing anchor.
+            no_passages=page.evaluate("""async () => {
+              const race=await fetch('data/races/2025-gax100.json').then(r=>r.json());
+              return window.GaxCheckpointView.replayStations(race).length;
+            }""")
+            assert no_passages == 0
             # Finish-only source years must remain finish-only, not invent checkpoints.
             for key, total in [("2025-gax100",119),("2026-gax100",110)]:
                 page.select_option("#year-select",key)
@@ -138,7 +155,7 @@ def check(site: Path):
         server.shutdown()
         server.server_close()
         thread.join(timeout=3)
-    print("GAX100_V1_2_BROWSER_PASS: original imagery and audio, 14 source years, km provenance conflicts, responsive data hiding, real profiles/comparisons")
+    print("GAX100_V1_3_BROWSER_PASS: original media, 14 years, genuine source checkpoint times, estimated 44-80-130 km anchors, finish-only safety, comparisons")
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
