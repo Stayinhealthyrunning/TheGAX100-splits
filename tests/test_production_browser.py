@@ -234,6 +234,39 @@ def check(site: Path):
                 assert "2014-gax100" in diagnostics and "2016-gax100" in diagnostics
                 assert "2024-gax100" in diagnostics
 
+                # Tablet keyboards may not expose ":" in numeric mode.
+                # All-digit, dot and comma input must normalize and
+                # calculate precisely the same full four-segment plan.
+                if key=="2025-gax100":
+                    target_input=page.locator("#target-time")
+                    assert target_input.get_attribute("inputmode")=="text"
+                    assert "252230" in page.locator("#target-time-hint").inner_text()
+                    assert page.locator("#gax-group-summary h4").is_visible()
+                    assert page.locator("#gax-group-summary .gax-group-details").count()==0
+                    assert page.locator("#group-table").count()==0
+                    assert page.locator("#group-bars").count()==1
+                    for typed,expected in [
+                        ("252230","25:22:30"),
+                        ("25.22.30","25:22:30"),
+                        ("25,22,30","25:22:30"),
+                        ("25:22:30","25:22:30"),
+                        ("2522","25:22:00"),
+                    ]:
+                        target_input.fill(typed)
+                        target_input.press("Tab")
+                        assert target_input.input_value()==expected
+                        page.locator("#calculate-plan").click()
+                        page.wait_for_function(
+                          "(expected) => document.querySelectorAll('#plan-table tbody tr').length===4 && "+
+                          "document.querySelector('#plan-table tbody tr:last-child td:nth-child(6)')?.textContent.trim()===expected",
+                          arg=expected,timeout=15000)
+                    # Restore a valid default so other analytics are unaffected.
+                    target_input.fill("252230")
+                    target_input.press("Tab")
+                    page.locator("#calculate-plan").click()
+                    page.wait_for_function("() => document.querySelector('#plan-table tbody tr:last-child td:nth-child(6)')?.textContent.trim()==='25:22:30'",timeout=15000)
+
+
                 assert page.locator("#gax-controls-content .gax-start-control").count()==1
                 page.wait_for_function("() => document.querySelector('#extra-dynamics')?.hidden === true",timeout=15000)
                 assert page.locator("#extra-dynamics").is_hidden()
