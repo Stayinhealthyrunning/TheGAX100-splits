@@ -1,4 +1,4 @@
-# Gax100 Splits – version 1.3.1
+# Gax100 Splits – version 1.3.2
 
 Webbaserad analys av **The GAX 100 miles**, byggd på samma grund som Loppanalys.se:s Sätila-analys.
 
@@ -61,6 +61,19 @@ Se [metod- och versionsanteckning 1.3](docs/V1_3_RELEASE_NOTES.md) för kontroll
 - Oförändrat: 14 historiska upplagor, 945 integritetsfiltrerade resultat och 651 fullföljande. Granskningsadressen ligger separat från Loppanalys.se:s startsida.
 
 Se [versionsanteckningar 1.2](docs/V1_2_RELEASE_NOTES.md) och [1.1](docs/V1_1_RELEASE_NOTES.md).
+
+
+## Version 1.3.2 – SCB:s fullständiga namnstatistik 2022
+
+**SCB:s slutliga publicerade namnregister**, inte bara topp 100, används nu som en statistisk stödkälla för de redan offentliga GAX-resultat som saknar officiell könsklass. Fyra sexuppdelade tabeller läses ur SCB:s officiella XLSX: tilltalsnamn respektive förnamn för kvinnor och män. Källa: [SCB – samtliga folkbokförda, namn med minst två bärare](https://www.scb.se/hitta-statistik/statistik-efter-amne/befolkning-och-levnadsforhallanden/ovrigt/namnstatistik/pong/tabell-och-diagram/samtliga-folkbokforda--fornamn-tilltalsnamn-och-efternamn-med-minst-tva-barare-uppdateras-ej/samtliga-folkbokforda--fornamn-tilltalsnamn-och-efternamn-med-minst-tva-barare/). Underlaget avser **31 december 2022** och publicerades av SCB 21 november 2024.
+
+- Tidigare 109 uppskattade poster har ersatts/kompletterats till **219** med enhetlig SCB-metod. Av 237 hittills oklassificerade poster är **18** fortfarande oklara.
+- Krav: minst **30** registrerade bärare i vanligaste könskategorin och minst **98 %** statistisk övervikt. När namnet saknas på andra könets lista räknas konservativt med att det kan finnas **en** bärare där (SCB:s publiceringströskel är två).
+- SCB:s **tilltalsnamn** används i första hand, sedan **förnamn**. Om GAX:s uttryckligen verifierade klasser motsäger en skattning används den inte.
+- Detta är en **namnstatistisk uppskattning** och **inte en fastställd uppgift om individens kön**. Alla SCB-uppskattningar är tydligt särskiljda från officiella tävlingsklasser i UI, statistik och metodtext. Tvetydiga och mycket sällsynta namn förblir okända.
+- Enbart det publika SCB-aggregatet laddas ned temporärt under GitHub Actions; **ingen individdata sänds till SCB**. Den omfattande XLSX-filen lagras inte i GitHub, och ingen av de 14 filtrerade historiska resultatfilerna ändras.
+- Källan är SHA-256-pinnad; publicerade uppskattningar i `docs/data/name-based-classification.json` refererar endast till redan integritetsgodkända resultat-ID:n.
+- Läs [detaljerad granskning](docs/SCB_NAME_SOURCE_AUDIT_2026-11-20.md).
 
 ## Version 1.3.1 – resultat- och klassificeringsgranskning
 

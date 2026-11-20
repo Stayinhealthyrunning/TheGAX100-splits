@@ -159,6 +159,10 @@ class ProductionContract(unittest.TestCase):
                 elif v["method"]=="verified_cohort_first_name_consensus":
                     self.assertIsNone(v["probability"])
                     self.assertGreaterEqual(v["evidence_count"],4)
+                elif v["method"] in ("scb_tilltalsnamn_population_2022","scb_fornamn_population_2022"):
+                    self.assertGreaterEqual(v["probability"],0.98)
+                    self.assertLessEqual(v["probability"],1.0)
+                    self.assertGreaterEqual(v["evidence_count"],30)
                 else:self.fail("Unknown name-estimate method")
             total_estimates += len(estimate_ids)
         self.assertEqual(confirmed_finishers, 480)
