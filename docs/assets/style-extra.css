@@ -532,3 +532,14 @@ svg [data-extra-segment]:focus-visible{stroke:#d4a858;stroke-width:3px;outline:n
 #map-duel-dialog .modal-head>div:first-child{min-width:0}
 #map-duel-dialog .multi-year-dialog-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
 #map-duel-modal-share-status:not(:empty){flex-basis:100%;text-align:right}
+
+/* GAX100 historical pacing: key checkpoint goals stay readable on phones. */
+.plan-milestones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 20px}
+.plan-milestone{min-width:0;border:1px solid var(--border,#d9ddce);border-radius:15px;padding:14px 15px;background:var(--paper,#fffef9)}
+.plan-milestone-heading{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px;margin-bottom:9px}
+.plan-milestone-heading span{font-weight:750;color:var(--ink,#24423c)}
+.plan-milestone-heading small{font-size:.76rem;color:var(--muted,#65766d)}
+.plan-milestone strong{display:block;font-size:clamp(1.14rem,2.3vw,1.6rem);font-variant-numeric:tabular-nums}
+.plan-milestone p{margin:6px 0 0;font-size:.81rem;color:var(--muted,#65766d);line-height:1.35}
+@media(max-width:900px){.plan-milestones{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.plan-milestones{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.plan-milestone{padding:11px}.plan-milestone-heading{display:block}.plan-milestone-heading small{display:block}.plan-milestone strong{font-size:1.13rem}}
