@@ -46,7 +46,7 @@ function mount(root,rawItems,options={}){
   return{destroy(){}};
  }
  const reduced=Boolean(global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
- const maxClock=Math.max(0,...items.map(item=>item.anchors.at(-1)?.time||0));
+ const maxClock=options.staticOnly?0:Math.max(0,...items.map(item=>item.anchors.at(-1)?.time||0));
  const all=mapped.flatMap(item=>item.points);
  const allGeo=all.map(p=>merc(p[0],p[1]));
  const bounds=geo=>{
@@ -72,8 +72,14 @@ function mount(root,rawItems,options={}){
  const tileCache=new Map();let neededTiles=new Set();
  const title='<div class="multi-year-map-head"><div><p class="eyebrow">KARTJÄMFÖRELSE MELLAN ÅR</p><h3>Banvarianter och beräknad position</h3><p>Varje löpare visas på upplagans banreferens. Markörerna visar beräknade positioner mellan tillgängliga tidsankare.</p></div></div>';
  const legend=items.map(item=>'<label class="multi-year-route-option"><input type="checkbox" data-route-visible="'+item.index+'" '+(item.points.length>=2?'checked':'disabled')+'><i style="background:'+item.color+'"></i><span><strong>'+esc(item.year+' · '+item.name)+'</strong><small>'+esc(item.provenance||'Rutt saknas')+(item.points.length>=2?' · '+item.points.at(-1)[2].toFixed(1).replace('.',',')+' km':'')+'</small></span></label>').join('');
- const musicControls=options.musicSrc?'<button type="button" data-map-music aria-pressed="true" aria-label="Slå av eller på musik">♫ Musik</button><label>Volym <input data-map-volume type="range" min="0" max="1" step=".05" value=".3" aria-label="Musikvolym"></label><span data-map-audio-note role="status" class="muted small" hidden></span>':'';
+ const musicControls=options.musicSrc&&!options.staticOnly?'<button type="button" data-map-music aria-pressed="true" aria-label="Slå av eller på musik">♫ Musik</button><label>Volym <input data-map-volume type="range" min="0" max="1" step=".05" value=".3" aria-label="Musikvolym"></label><span data-map-audio-note role="status" class="muted small" hidden></span>':'';
  root.innerHTML=title+'<div class="multi-year-route-legend">'+legend+'</div><div class="multi-year-map-surface"><svg id="multi-year-route-svg" viewBox="0 0 900 470" role="img" aria-label="Jämförelsekarta med separata bansträckningar"></svg><div class="multi-year-map-zoom"><button type="button" data-map-zoom="1" aria-label="Zooma in på banorna">+</button><button type="button" data-map-zoom="-1" aria-label="Zooma ut">−</button><button type="button" data-map-fit>Visa hela banorna</button></div></div><p class="multi-year-map-credit">Kartunderlag © OpenStreetMap contributors. GPX-geometri är banreferens, inte löparens uppmätta GPS-position.</p><div class="multi-year-map-controls"><button type="button" data-map-play '+(maxClock===0?'disabled':'')+'>Spela</button><button type="button" data-map-reset>Starta om</button><label>Uppspelningstid <select data-map-duration><option value="30">30 sek</option><option value="60">60 sek</option><option value="120" selected>120 sek</option><option value="180">180 sek</option></select></label><label>Kamera <select data-map-camera aria-label="Kameraläge"><option value="full">Hela banorna</option><option value="both" selected>'+(items.length<=2?'Följ båda':'Följ alla')+'</option><option value="leader">Följ längst kommen</option></select></label>'+musicControls+'<span data-map-time>'+fmt(0)+'</span></div><input class="multi-year-map-range" data-map-range type="range" min="0" max="'+Math.ceil(maxClock)+'" value="0" step="1" aria-label="Gemensam tävlingsklocka"><p class="multi-year-map-note" role="status" data-map-note>Följ längst kommen utgår från beräknad andel av den egna banan, inte från officiell placering mellan olika år. Musik startar bara vid ett aktivt klick på Spela.</p>';
+ if(options.staticOnly){
+  const controls=root.querySelector('.multi-year-map-controls'),clock=root.querySelector('[data-map-range]'),note=root.querySelector('[data-map-note]');
+  if(controls)controls.style.display='none';
+  if(clock)clock.style.display='none';
+  if(note)note.textContent='Statisk kartvisning. Minst en löpare saknar registrerad mellanpassage. Ingen löparposition eller tävlingsklocka beräknas.';
+ }
  const svg=root.querySelector('#multi-year-route-svg'),range=root.querySelector('[data-map-range]'),play=root.querySelector('[data-map-play]'),readout=root.querySelector('[data-map-time]');
  let audio=null,enabled=true,volume=.3,lastAudible=.3;
  const prefix=options.storagePrefix||'lopp-multi-year-music';
@@ -106,6 +112,7 @@ function mount(root,rawItems,options={}){
  });
  const toWorld=geo=>[geo[0]*2**renderZoom-origin[0],geo[1]*2**renderZoom-origin[1]];
  const selectedMarkers=()=>{
+  if(options.staticOnly)return [];
   const seen=[];
   for(const item of mapped){
    if(!item.visible||item.anchors.length<2)continue;
