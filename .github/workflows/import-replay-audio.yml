@@ -1,0 +1,45 @@
+name: GAX100 exact soundtrack import
+on:
+  push:
+    branches: [release/gax100-splits-v1-1]
+    paths:
+      - '.github/workflows/import-replay-audio.yml'
+permissions:
+  contents: write
+jobs:
+  import-original-audio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Obtain ONLY original audio directly from Pixabay
+        id: audio
+        shell: bash
+        run: |
+          if python3 -B scripts/import_public_replay_audio.py; then
+            echo "matched=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "matched=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit exactly verified original MP3 to GitHub branch
+        if: steps.audio.outputs.matched == 'true'
+        shell: bash
+        run: |
+          git config user.name "GAX100 Release Bot"
+          git config user.email "gax100-release@users.noreply.github.com"
+          git add docs/assets/audio/audioera-acoustic-guitar-happy-637709.mp3
+          git commit -m "assets(gax): original verified replay soundtrack by AudioERA" || exit 0
+          git pull --rebase origin release/gax100-splits-v1-1
+          git push origin HEAD:release/gax100-splits-v1-1
+      - name: Report exact-source status
+        run: |
+          if [ "${{ steps.audio.outputs.matched }}" = "true" ]; then
+            echo "Exact user-supplied MP3 has been verified and committed from its public source."
+          else
+            echo "The exact uploaded audio could not be recovered from its public source. No substitute was used."
+          fi
