@@ -30,6 +30,7 @@ R='http://schemas.openxmlformats.org/officeDocument/2006/relationships'
 PKG='http://schemas.openxmlformats.org/package/2006/relationships'
 P_MIN=.98
 N_MIN=30
+SOURCE_SHA256='b099822f53baf393fc0dba8b2c8665b7475c3b2001b6efbbe1d96525709792e4'
 SCB_METHOD={'tilltalsnamn':'scb_tilltalsnamn_population_2022','fornamn':'scb_fornamn_population_2022'}
 
 def normalize(name: str):
@@ -139,6 +140,8 @@ def main(path):
     if not source.exists() or source.stat().st_size<10000:
         raise ValueError('Expected full official SCB spreadsheet not available')
     digest=hashlib.sha256(source.read_bytes()).hexdigest()
+    if digest!=SOURCE_SHA256:
+        raise ValueError('SCB workbook changed from vetted 2022 dataset: manual review required')
     counts=scb_name_counts(source)
     official=json.loads((DATA/'official-result-classification.json').read_text(encoding='utf-8'))
     previous=json.loads((DATA/'name-based-classification.json').read_text(encoding='utf-8'))
