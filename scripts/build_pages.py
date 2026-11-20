@@ -106,7 +106,33 @@ def stage(docs, output):
                 shutil.copyfile(sound, dest)
             else:
                 print("Audio asset not yet present in GitHub; replay remains available without music")
-        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json"}
+        # Verified race-class overlay cannot import a new person, guess
+        # attributes from a name, or alter the 16 immutable release bundles.
+        source_classes=load(data/"official-result-classification.json")
+        check(source_classes.get("schema")=="gax100-confirmed-race-classification-1",
+              "Official classification overlay schema is invalid")
+        for edition_key,entries in source_classes.get("editions",{}).items():
+            check(edition_key in {e["race_key"] for e in load(data/"bootstrap.json")["editions"]},
+                  "Unknown edition in classification overlay")
+            public_race=load(data/"races"/(edition_key+".json"))
+            allowed={str(row["id"]):row for row in public_race["results"] if row["status"]=="FINISHED"}
+            seen=set()
+            for item in entries:
+                identifier=str(item.get("result_id"))
+                check(identifier not in seen,"Duplicate public result classification ID")
+                seen.add(identifier)
+                check(set(item).issubset({"result_id","sex","finish_seconds","overall_rank","sex_class_rank"}),
+                      "Unapproved attribute in public classification")
+                row=allowed.get(identifier)
+                check(row is not None and row["finish_seconds"]==item.get("finish_seconds")
+                      and item.get("sex") in {"F","M"},
+                      "Classification does not match privacy-released finisher and timing")
+                check(row.get("sex") in (None,item["sex"]),"Official classification source disagrees")
+            if edition_key=="2024-gax100":
+                check(len(entries)==54 and sum(e["sex"]=="F" for e in entries)==18
+                      and sum(e["sex"]=="M" for e in entries)==36,
+                      "2024 podium source coverage must be complete (18 F, 36 M)")
+        files |= {"course-display.json", "route-candidates.json", "route-inventory.json", "historical-checkpoint-km.json", "official-result-classification.json"}
         for name in files:
             target = output / "data" / name
             target.parent.mkdir(parents=True, exist_ok=True)
