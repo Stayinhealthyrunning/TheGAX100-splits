@@ -310,7 +310,7 @@ def build(docs:Path,out:Path):
         pattern = r'(<meta ' + re.escape(prop) + r' content=")[^"]*(")'
         page, count = re.subn(pattern, lambda m: m.group(1)+value+m.group(2), page, count=1)
         require(count==1, "Missing demo metadata field: "+prop)
-    required_scripts=["profile-analysis.js","multi-year-map.js",
+    required_scripts=["result-integrity.js","profile-analysis.js","multi-year-map.js",
                       "multi-year-comparison.js","gax-controls.js","app.js","gax-ux.js"]
     for name in required_scripts:
         require(f"assets/{name}" in page, f"Missing GAX app script {name}")
