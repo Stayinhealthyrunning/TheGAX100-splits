@@ -1,0 +1,20 @@
+name: GAX100 SCB name-table structural audit
+on:
+  push:
+    branches: [fix/gax100-comprehensive-results-audit-2026-11-20]
+    paths:
+      - scripts/audit_scb_name_workbook.py
+      - .github/workflows/scb-source-audit.yml
+permissions:
+  contents: read
+jobs:
+  inspect-aggregate-names:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Inspect public SCB 2022 and ISOF 2023 workbook structure
+        run: python3 -B scripts/audit_scb_name_workbook.py
