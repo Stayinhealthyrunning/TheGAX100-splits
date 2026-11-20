@@ -14,7 +14,7 @@ Webbaserad analys av **The GAX 100 miles**, byggd på samma grund som Loppanalys
 
 **Källbegränsningar:** 2025 och 2026 har enbart officiell målpassage i publicerade timing-stationsdata. Tidigare upplagor har varierande kontrolltäckning. Där källbaserad kilometersträcka eller rättighetsgodkänd historisk bana saknas ska fysisk fart och exakta historiska löparpositioner inte uppges. Kartduellens uppspelning är en modell mot en tydligt märkt banreferens, inte insamlad deltagar-GPS.
 
-**Integritet:** Offentlig webbplats har `noindex, nofollow` och `robots.txt` med `Disallow: /`. Uppgifter som omfattas av opt-out eller andra sekretessspärrar ska filtreras bort i den privata exporten **innan** signerat publiceringsmanifest byggs. Detta repo kan kontrollera manifest, dataintegritet och publicerad struktur men har inte tillgång till det privata registret. Full information och kontaktväg: https://www.loppanalys.se/integritet/
+**Integritet:** Offentlig webbplats har `noindex, nofollow` och `robots.txt` med `Disallow: /`. Uppgifter som omfattas av opt-out eller andra sekretessspärrar ska filtreras bort i den privata exporten **innan** det SHA-256-kontrollerade publiceringsmanifestet byggs. Detta repo kan kontrollera manifest, dataintegritet och publicerad struktur men har inte tillgång till det privata registret. Full information och kontaktväg: https://www.loppanalys.se/integritet/
 
 ## Publik drift
 
