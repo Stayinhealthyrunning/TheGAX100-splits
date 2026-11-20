@@ -54,7 +54,10 @@ function reconcile(race,doc,nameDoc){
    const fromCohort=estimate.method==='verified_cohort_first_name_consensus'&&
      Number.isInteger(estimate.evidence_count)&&estimate.evidence_count>=4&&
      estimate.probability==null;
-   if(!fromApi&&!fromCohort)throw Error('GAX first-name estimate lacks required supporting statistics');
+   const fromScb=['scb_tilltalsnamn_population_2022','scb_fornamn_population_2022'].includes(estimate.method)&&
+     typeof estimate.probability==='number'&&estimate.probability>=0.98&&estimate.probability<=1&&
+     Number.isInteger(estimate.evidence_count)&&estimate.evidence_count>=30;
+   if(!fromApi&&!fromCohort&&!fromScb)throw Error('GAX first-name estimate lacks required supporting statistics');
    estimateLookup.set(key,estimate);
  }
  for(const row of race.results){
