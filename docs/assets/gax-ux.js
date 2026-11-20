@@ -114,6 +114,7 @@ function planMode(mode){
    const field=$('#target-time'),src=$('#plan-summary');
    if(field&&!field.value&&src)src.textContent='Mediantiden i fältet används som standard. Ange valfri sluttid för att anpassa planen.';
    field?.focus({preventScroll:true});
+   document.dispatchEvent(new Event('gax:plan-visible'));
  }
 }
 function init(){
