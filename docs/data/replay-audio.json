@@ -1,0 +1,15 @@
+{
+  "schema": "loppanalys-replay-audio-1",
+  "src": "assets/audio/audioera-acoustic-guitar-happy-637709.mp3",
+  "title": "Acoustic Guitar Happy",
+  "artist": "Aleh Mikalayeu",
+  "artist_name": "AudioERA",
+  "source": "Pixabay",
+  "source_url": "https://pixabay.com/users/audioera-23560896/",
+  "license_url": "https://pixabay.com/service/license-summary/",
+  "volume": 0.3,
+  "enabled": true,
+  "require_local_audio_file": true,
+  "allow_override": true,
+  "credit": "Musik: Aleh Mikalayeu (AudioERA) · Pixabay"
+}
