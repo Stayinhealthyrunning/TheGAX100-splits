@@ -38,7 +38,7 @@ if(IS_PRODUCTION){
   method:'Version 1.3.2 använder officiella tävlingsresultat efter integritetsfiltrering. Där könsklass inte är källverifierad kan SCB:s statistik över förnamn och tilltalsnamn 2022 ge en separat, tydligt märkt uppskattning med minst 98 procents statistisk övervikt och minst 30 bärare. Detta är inte ett faktum om individens kön. Saknade passertider hittas aldrig på. Kartpositioner är modellerade mellan verkliga tidsankare, inte uppmätt GPS.',
   overview:'Översikten visar resultatstatus, målgångar och sluttidernas fördelning för de publicerade officiella deltagarposterna. Källornas täckning varierar mellan loppår.',
   dynamics:'Här jämförs verkliga sluttider och registrerade kontrollpassager för samma upplaga. Saknas jämförbara kontrollpar visas inget konstruerat avslutningsindex.',
-  segments:'Hela loppet visar källbaserade tider där registrerade kontrollpassager finns. Min loppplan fördelar en angiven sluttid utifrån tillgängliga medianer; det är en modell, inte ett löfte om en prognos.',
+  segments:'Hela loppet visar källbaserade tider där registrerade kontrollpassager finns. Min loppplan fördelar valfri sluttid över fyra kontroller med verkliga tidsandelar från historiska GAX100-upplagor. Även målpassage-år utan mellantider får en källmärkt flerårsreferens; detta är ingen prognos.',
   results:'Sök, sortera och öppna profiler från officiella resultatfiler efter integritetsfiltrering. Namn, klubb, placering och tider visas bara där källan har uppgifter och publicering har tillåtits.',
   'runner-tools':'Sök efter verkliga, publicerbara resultat för valt loppår och öppna profilen för att se sluttid, tillgängliga kontrollpassager och jämförelser.'
  });
@@ -46,7 +46,7 @@ if(IS_PRODUCTION){
   'Prestationer som sticker ut':'Jämför källbaserade prestationer inom samma loppår. Starkaste avslutningen utgår från samma faktiskt tidtagna kontrollpar fram till officiellt mål, och visas endast vid tillräckligt många jämförbara fullföljare.',
   'Banans dimensioner':'Tävlingsdistans, faktisk täckning av tidtagna kontroller, sluttidsmedian och DNF-andel. Referensrutters GPX-längd är separat från verifierade tävlingssträckor.',
   'Andel kvinnor och män över tid':'Könsdiagram visar minst 80 procents täckning och redovisar antalet officiellt verifierade, SCB-namnstatistiskt uppskattade och okända separat. Uppskattningen bygger på förekomsten av förnamn och tilltalsnamn i den svenska befolkningen 2022 och fastställer inte enskilda personers kön.',
-  'Fördela din måltid över delsträckorna':'Ange din önskade sluttid. Fördelningen baseras på medianandelar från tillgängliga, verkliga passertider, men är fortfarande en planmodell.',
+  'Fördela din måltid över delsträckorna':'Ange din önskade sluttid. Fördelningen bygger på viktade historiska tidsandelar från verkliga kontrollpassager 2014–2024; avstånd är referenspositioner, inte verifierade historiska banmätningar.',
   'Spurten mot mål':'Den sista tidtagna delsträckan jämförs bara med andra fullföljare som har samma källa, kontrollpar och tillräcklig täckning.',
   'GAX · officiella kontrollpassager':'Kontrolltider och sluttider kommer från publicerade resultat. En kontroll som saknas hos arrangören fylls inte i med modellvärden.'
  });
@@ -114,6 +114,7 @@ function planMode(mode){
    const field=$('#target-time'),src=$('#plan-summary');
    if(field&&!field.value&&src)src.textContent='Mediantiden i fältet används som standard. Ange valfri sluttid för att anpassa planen.';
    field?.focus({preventScroll:true});
+   document.dispatchEvent(new Event('gax:plan-visible'));
  }
 }
 function init(){

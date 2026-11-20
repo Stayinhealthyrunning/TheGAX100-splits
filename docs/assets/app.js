@@ -82,7 +82,7 @@ const replaySoundtrack={
 };
 
 const key='gax100-analys-favorites-v1';let S={boot:null,family:'gax100',year:null,editionKey:null,race:null,route:null,verifiedClassifications:null,manualClassifications:null,routeByFamily:{},filtered:[],page:0,sort:'place',q:'',sex:'all',status:'all',className:'all',club:'',clubExact:false,clubOptions:[],clubSuggestionIndex:-1,unit:'pace',finishSex:new Set(['F','M']),selectedSegment:0,podiumStart:0,podiumEnd:1,standoutTab:'relative',compare:[],mapDuel:[],favorites:readCache(key),searchIndex:-1,mapDuelSearchIndex:-1,loading:0,courseD:null,duelD:null,placementWindow:null,segmentSeriesMode:'all'};
-const HELP={finish:'Officiella sluttider för FINISHED. Samma 15-minutersbin används för alla könsserier. DNS, DNF och UNKNOWN ingår inte i histogrammet. Kvinna/man visas endast för källstödd uppgift.',percentiles:'P10, P25, P50, P75 och P90 är kvantiler av giltiga sluttider hos fullföljare i det aktuella fälturvalet. Median visas först vid n ≥ 5. Inga saknade tider blir noll.',podium:'Placering bland kvinnor respektive män bestäms av giltiga officiella målgångar eller positiva segmenttider mellan två valda, exakta observationer. Bilder från sociala medier används inte; initialavatarer visas.',groups:'Officiella könsklasser och klubb/ort kommer från publicerade resultat. SCB-baserade och manuellt angivna grupper märks separat och är inte verifierat individuellt kön. Ett filtrerat urval påverkar fältstatistik men inte sökfunktionen.',status:'Anmälda är alla publicerade resultatrader i urvalet. Startande kräver känd startstatus (FINISHED + DNF + DSQ); en post med okänd status räknas inte som bekräftad start. DNF och Fullföljt visar respektive källstatus; DSQ och okänd status redovisas inte som egna delar här.',flow:'Visar antal verkliga TIME-registreringar vid varje publik kontroll för urvalets löpare. Trivial Start=100 % utelämnas. En saknad passage innebär inte i sig DNF.',placement:'Endast FINISHED med verklig sluttid och publicerad totalplacering. Klick på en punkt för att öppna löparprofilen.',standouts:'Ovanliga prestationer beräknas inom en edition från två verkliga tidtagningspassager. Minst fem giltiga observationer krävs där en gruppmedian används. Ingen personidentitet mellan år antas.',segments:'En segmenttid kräver två verkliga och tidsmässigt positiva passager. Start=0 används före första observerade kontroll. Delsträckans distans kommer från källans timingaxel, inte från GPS-vägens längd. Median n ≥ 5; Q25–Q75 n ≥ 10.',course:'Källbelagd arrangörs- eller deltagargeometri används som displayrutt ovanpå OpenStreetMap med sin redovisade proveniens. Deltagarspår är inte officiell ban- eller tidtagningsevidens. Kartposition mellan verifierade ändankare är illustrativ; rå D+ är inte officiell höjdmetrik.',plan:'Måltiden fördelas efter medianen av exakta segmenttidsandelar (segmenttid / sluttid) inom vald edition och kohort, minst fem per segment. Saknas historiskt underlag används explicit timingdistans som märkt fallback. Värdena normaliseras till exakt hela måltiden; planen är en pacingreferens, inte prognos.',history:'Deltagarantal, fullföljare och status kan visas för alla källstödda år. Enskilda års mediantider redovisas separat men kopplas inte till en gemensam utvecklingskurva utan verifierad whole-course-jämförbarhet. År 2020 har ingen importkälla i arkivet.'};
+const HELP={finish:'Officiella sluttider för FINISHED. Samma 15-minutersbin används för alla könsserier. DNS, DNF och UNKNOWN ingår inte i histogrammet. Kvinna/man visas endast för källstödd uppgift.',percentiles:'P10, P25, P50, P75 och P90 är kvantiler av giltiga sluttider hos fullföljare i det aktuella fälturvalet. Median visas först vid n ≥ 5. Inga saknade tider blir noll.',podium:'Placering bland kvinnor respektive män bestäms av giltiga officiella målgångar eller positiva segmenttider mellan två valda, exakta observationer. Bilder från sociala medier används inte; initialavatarer visas.',groups:'Officiella könsklasser och klubb/ort kommer från publicerade resultat. SCB-baserade och manuellt angivna grupper märks separat och är inte verifierat individuellt kön. Ett filtrerat urval påverkar fältstatistik men inte sökfunktionen.',status:'Anmälda är alla publicerade resultatrader i urvalet. Startande kräver känd startstatus (FINISHED + DNF + DSQ); en post med okänd status räknas inte som bekräftad start. DNF och Fullföljt visar respektive källstatus; DSQ och okänd status redovisas inte som egna delar här.',flow:'Visar antal verkliga TIME-registreringar vid varje publik kontroll för urvalets löpare. Trivial Start=100 % utelämnas. En saknad passage innebär inte i sig DNF.',placement:'Endast FINISHED med verklig sluttid och publicerad totalplacering. Klick på en punkt för att öppna löparprofilen.',standouts:'Ovanliga prestationer beräknas inom en edition från två verkliga tidtagningspassager. Minst fem giltiga observationer krävs där en gruppmedian används. Ingen personidentitet mellan år antas.',segments:'En segmenttid kräver två verkliga och tidsmässigt positiva passager. Start=0 används före första observerade kontroll. Delsträckans distans kommer från källans timingaxel, inte från GPS-vägens längd. Median n ≥ 5; Q25–Q75 n ≥ 10.',course:'Källbelagd arrangörs- eller deltagargeometri används som displayrutt ovanpå OpenStreetMap med sin redovisade proveniens. Deltagarspår är inte officiell ban- eller tidtagningsevidens. Kartposition mellan verifierade ändankare är illustrativ; rå D+ är inte officiell höjdmetrik.',plan:'Min loppplan använder verkliga TIME-par från samtliga historiska GAX100-upplagor med kontroller. Fyra referensdelsträckor fördelas utifrån normaliserade, årsvisa medianandelar som viktas efter antal observationer, årsnärhet, källsäkerhet och 2024 års banändring. Om vald grupp har för lite underlag breddas den öppet till hela fältet; distansfallback är sista utväg. Kilometerpositioner 44/80/130 är referenser och inte verifierade historiska banmätningar. Planen är en pacingreferens, inte en prognos.',history:'Deltagarantal, fullföljare och status kan visas för alla källstödda år. Enskilda års mediantider redovisas separat men kopplas inte till en gemensam utvecklingskurva utan verifierad whole-course-jämförbarhet. År 2020 har ingen importkälla i arkivet.'};
 HELP.placement+=' okänd status räknas inte som bekräftad start.';
 function showHelp(title,body){$('#help-title').textContent=title||'Metod';$('#help-content').textContent=`${body||'Beskrivning saknas.'} Visningen utgår alltid från det aktuella urvalet och publicerade källfält. Saknade värden visas som saknade och ersätts aldrig med antaganden.`;$('#help-dialog').showModal()}
 const famLabel=id=>({gax100:'100 miles'}[id]||id);
@@ -255,7 +255,7 @@ $('#club-filter').addEventListener('keydown',e=>{
 });
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.club-filter-field'))hideClubSuggestions()});
 document.addEventListener('focusin',e=>{if(!e.target.closest('.club-filter-field'))hideClubSuggestions()});$('#speed-unit').addEventListener('change',e=>{S.unit=e.target.value;rerenderFilter();renderProfileIfOpen()});$('#reset-filters').addEventListener('click',()=>{S.sex=S.status=S.className='all';S.club='';S.clubExact=false;S.selectedClubs=null;hideClubSuggestions();for(let k of ['sex','status','class'])$('#'+k+'-filter').value='all';$('#club-filter').value='';rerenderFilter()});$('#results-search').addEventListener('input',e=>{S.q=e.target.value;S.page=0;renderResults()});$('#results-sort').addEventListener('change',e=>{S.sort=e.target.value;S.page=0;renderResults()});$('#page-prev').addEventListener('click',()=>{S.page=Math.max(0,S.page-1);renderResults()});$('#page-next').addEventListener('click',()=>{S.page++;renderResults()});$('#podium-segment-start').addEventListener('change',e=>{S.podiumStart=+e.target.value;if(S.podiumEnd<=S.podiumStart)S.podiumEnd=S.podiumStart+1;S.selectedSegment=S.podiumStart;renderSegmentSelectors();focusSelectedSegmentOnCourse();renderSegmentPodium();renderSegmentTable();renderSegmentGraph(segmentStats(S.filtered));renderCourse()});$('#podium-segment-end').addEventListener('change',e=>{S.podiumEnd=+e.target.value;renderSegmentPodium()});
-$('#runner-search').addEventListener('input',renderSearchSuggestions);$('#runner-search').addEventListener('keydown',e=>{let list=$$('.suggestion',$('#runner-suggestions'));if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;S.searchIndex=(S.searchIndex+(e.key==='ArrowDown'?1:-1)+list.length)%list.length;list.forEach((x,i)=>x.classList.toggle('active',i===S.searchIndex));list[S.searchIndex]?.focus()}else if(e.key==='Enter'&&list.length){e.preventDefault();openProfile(list[Math.max(0,S.searchIndex)].dataset.id)}else if(e.key==='Escape')$('#runner-suggestions').innerHTML=''});$('#map-duel-search').addEventListener('input',renderMapDuelSuggestions);$('#map-duel-search').addEventListener('keydown',e=>{const list=$$('.suggestion',$('#map-duel-suggestions'));if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;S.mapDuelSearchIndex=(S.mapDuelSearchIndex+(e.key==='ArrowDown'?1:-1)+list.length)%list.length;list.forEach((x,i)=>x.classList.toggle('active',i===S.mapDuelSearchIndex));list[S.mapDuelSearchIndex]?.focus()}else if(e.key==='Enter'&&list.length){e.preventDefault();addMapDuel(list[Math.max(0,S.mapDuelSearchIndex)].dataset.mapDuelId)}else if(e.key==='Escape')$('#map-duel-suggestions').innerHTML=''});$('#open-compare').addEventListener('click',openCompare);$('#calculate-plan').addEventListener('click',renderPlan);$('#target-time').addEventListener('change',e=>{const formatted=normalizeTargetTime(e.target.value);if(formatted)e.target.value=formatted});$('#target-time').addEventListener('keydown',e=>{if(e.key==='Enter')renderPlan()});$('#plan-cohort').addEventListener('change',renderPlan);$('#course-fit').addEventListener('click',()=>{S.courseD=null;renderCourseMap()});$$('.info').forEach(el=>el.addEventListener('click',()=>{let id=el.dataset.help;showHelp(el.parentElement?.querySelector('h3')?.textContent,HELP[id])}));$$('[data-close]').forEach(el=>el.addEventListener('click',()=>{const name=el.dataset.close;$('#'+name).close();if(name==='profile-dialog'){const target=S.profileReturnFocus?.isConnected?S.profileReturnFocus:$('#runner-search');target?.focus()}}));$$('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));$$('.section-nav a').forEach(a=>a.addEventListener('click',()=>{$$('.section-nav a').forEach(x=>x.classList.remove('active'));a.classList.add('active')}));const restoreEditionFromUrl=()=>{const fragment=new URLSearchParams(location.hash.slice(1)); // Section anchors are not requests to change the selected edition.
+$('#runner-search').addEventListener('input',renderSearchSuggestions);$('#runner-search').addEventListener('keydown',e=>{let list=$$('.suggestion',$('#runner-suggestions'));if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;S.searchIndex=(S.searchIndex+(e.key==='ArrowDown'?1:-1)+list.length)%list.length;list.forEach((x,i)=>x.classList.toggle('active',i===S.searchIndex));list[S.searchIndex]?.focus()}else if(e.key==='Enter'&&list.length){e.preventDefault();openProfile(list[Math.max(0,S.searchIndex)].dataset.id)}else if(e.key==='Escape')$('#runner-suggestions').innerHTML=''});$('#map-duel-search').addEventListener('input',renderMapDuelSuggestions);$('#map-duel-search').addEventListener('keydown',e=>{const list=$$('.suggestion',$('#map-duel-suggestions'));if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;S.mapDuelSearchIndex=(S.mapDuelSearchIndex+(e.key==='ArrowDown'?1:-1)+list.length)%list.length;list.forEach((x,i)=>x.classList.toggle('active',i===S.mapDuelSearchIndex));list[S.mapDuelSearchIndex]?.focus()}else if(e.key==='Enter'&&list.length){e.preventDefault();addMapDuel(list[Math.max(0,S.mapDuelSearchIndex)].dataset.mapDuelId)}else if(e.key==='Escape')$('#map-duel-suggestions').innerHTML=''});$('#open-compare').addEventListener('click',openCompare);document.addEventListener('gax:plan-visible',renderPlan);$('#calculate-plan').addEventListener('click',renderPlan);$('#target-time').addEventListener('change',e=>{const formatted=normalizeTargetTime(e.target.value);if(formatted)e.target.value=formatted});$('#target-time').addEventListener('keydown',e=>{if(e.key==='Enter')renderPlan()});$('#plan-cohort').addEventListener('change',renderPlan);$('#course-fit').addEventListener('click',()=>{S.courseD=null;renderCourseMap()});$$('.info').forEach(el=>el.addEventListener('click',()=>{let id=el.dataset.help;showHelp(el.parentElement?.querySelector('h3')?.textContent,HELP[id])}));$$('[data-close]').forEach(el=>el.addEventListener('click',()=>{const name=el.dataset.close;$('#'+name).close();if(name==='profile-dialog'){const target=S.profileReturnFocus?.isConnected?S.profileReturnFocus:$('#runner-search');target?.focus()}}));$$('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));$$('.section-nav a').forEach(a=>a.addEventListener('click',()=>{$$('.section-nav a').forEach(x=>x.classList.remove('active'));a.classList.add('active')}));const restoreEditionFromUrl=()=>{const fragment=new URLSearchParams(location.hash.slice(1)); // Section anchors are not requests to change the selected edition.
  if(location.hash&&!fragment.has('family')&&!fragment.has('year'))return;
  const requested=requestedEdition(),family=['ultra85','trail43','trail22'].includes(requested.family)?requested.family:S.family,years=S.boot?.editions.filter(e=>e.family===family).map(e=>e.year)||[],year=requested.year&&years.includes(requested.year)?requested.year:(family===S.family&&years.includes(S.year)?S.year:Math.max(...years));
  if(years.length&&(family!==S.family||year!==S.year)){S.family=family;S.year=year;loadRace('none').catch(console.error)}};window.addEventListener('hashchange',restoreEditionFromUrl);window.addEventListener('popstate',restoreEditionFromUrl);}
@@ -487,7 +487,7 @@ function normalizeTargetTime(value){
   return [h,m,s].map(n=>String(n).padStart(2,'0')).join(':');
 }
 function parseTarget(){const formatted=normalizeTargetTime($('#target-time').value);if(!formatted)return null;const p=formatted.split(':').map(Number);return p[0]*3600+p[1]*60+p[2]}
-function renderPlan(){
+function renderPlanLegacy(){
   if(!S.race)return;
   const cohortSelect=$('#plan-cohort');
   if(!cohortSelect.querySelector('[value="class"]'))cohortSelect.add(new Option('Vald klass','class'));
@@ -557,6 +557,125 @@ function renderPlan(){
   const cohortText=cohort==='near'?' inom ±10 % av måltiden':cohort==='class'?` i klassen ${classSelect.value}`:cohort==='all'?' i hela fältet':` med källkön ${cohort}`;
   const highest=parts.slice().sort((a,b)=>b.w-a.w)[0];
   const defaultSeconds=Number($('#target-time').dataset.defaultSeconds),usesEditionMedian=num(defaultSeconds)&&Math.abs(target-defaultSeconds)<1;summary.textContent=`${usesEditionMedian?'Grundvärde: upplagans mediantid · ':''}${time(target)} · ${rows.length} fullföljare${cohortText} · ${sampled}/${parts.length} segment med minst fem ${S.race?.demo_only?'simulerade':'verkliga'} tidsandelar. Övriga använder öppet märkt timingdistansfallback. Störst ${S.race?.demo_only?'simulerad':'historisk'} tidsandel: ${highest?highest.from.name+' → '+highest.to.name:'—'}. Planen är en pacingreferens, inte en prognos.`;
+}
+
+
+/* Every historical plan checkpoint is a display reference (44/80/130 km).
+ * The target allocation uses recorded TIME pairs in all source years, not
+ * synthetic checkpoints or a current-year Start-to-Finish-only split. */
+async function renderPlan(){
+  if(!S.race)return;
+  if(S.race.demo_only){renderPlanLegacy();return}
+  if($('#gax-personal-plan-panel')?.hidden)return;
+  const cohortSelect=$('#plan-cohort'),target=parseTarget();
+  if(!cohortSelect.querySelector('[value="class"]'))
+    cohortSelect.add(new Option('Vald klass','class'));
+  const near=cohortSelect.querySelector('[value="near"]');
+  if(near)near.textContent='Nära min måltid (±10 %)';
+  let classSelect=$('#plan-class');
+  if(!classSelect){
+    const label=document.createElement('label');
+    label.id='plan-class-label';
+    label.textContent='Klass för referens';
+    classSelect=document.createElement('select');
+    classSelect.id='plan-class';
+    classSelect.addEventListener('change',renderPlan);
+    label.appendChild(classSelect);
+    cohortSelect.closest('label').after(label);
+  }
+  const oldClass=classSelect.value;
+  const classes=[...new Set(records().map(r=>r.class_name).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'sv'));
+  classSelect.replaceChildren(...classes.map(name=>new Option(name,name)));
+  if(classes.includes(oldClass))classSelect.value=oldClass;
+  classSelect.closest('label').hidden=cohortSelect.value!=='class';
+  const out=$('#plan-table tbody'),summary=$('#plan-summary');
+  let cards=$('#plan-milestones');
+  if(!cards){
+    cards=document.createElement('div');
+    cards.id='plan-milestones';
+    cards.className='plan-milestones';
+    cards.setAttribute('aria-live','polite');
+    summary.after(cards);
+  }
+  const sequence=(S.planSequence||0)+1;
+  S.planSequence=sequence;
+  const edition=S.race.race_key;
+  if(!target){
+    summary.textContent='Ange en giltig måltid som HH:MM:SS, exempelvis 25:22:30.';
+    out.replaceChildren();cards.replaceChildren();return;
+  }
+  if(!window.GaxHistoricalPlan){
+    summary.textContent='Den historiska planmotorn kunde inte laddas.';
+    out.replaceChildren();cards.replaceChildren();return;
+  }
+  summary.textContent='Hämtar verifierade historiska kontrollpassager från GAX100 2014–2024…';
+  out.replaceChildren();cards.replaceChildren();
+  try{
+    const history=await window.GaxHistoricalPlan.load(S.boot);
+    if(sequence!==S.planSequence||S.race?.race_key!==edition)return;
+    const cohort=cohortSelect.value;
+    const model=window.GaxHistoricalPlan.build(history,{
+      edition,target,cohort,className:classSelect.value,
+      overlays:{official:S.verifiedClassifications,estimated:S.nameEstimates,
+        manual:S.manualClassifications}
+    });
+    if(sequence!==S.planSequence||S.race?.race_key!==edition)return;
+    const pts=model.parts;
+    out.innerHTML=pts.map(p=>
+      '<tr data-plan-index="'+p.index+'">'+
+      '<td><button type="button" data-plan-segment="'+p.index+'" aria-label="Visa '+html(p.from.name)+' till '+html(p.to.name)+' på banan">'+
+      html(p.from.name)+' → '+html(p.to.name)+' ↗</button></td>'+
+      '<td>≈'+fmtKm(p.km)+'</td>'+
+      '<td>'+p.n+'</td>'+
+      '<td>'+html(p.method)+'</td>'+
+      '<td><strong>'+time(p.allocation)+'</strong></td>'+
+      '<td><strong>'+time(p.elapsed)+'</strong></td>'+
+      '<td>Distans ej verifierad</td>'+
+      '<td>Ej verifierat</td>'+
+      '<td>Observerade TIME-par från '+p.years.length+' upplagor · n='+p.n+
+      ' · '+(p.fallback?'ENDAST distansfallback':p.expanded?'Breddat från vald referensgrupp':'Årsvis viktade medianandelar')+
+      '</td></tr>').join('');
+    cards.innerHTML=pts.map(p=>
+      '<article class="plan-milestone">'+
+      '<div class="plan-milestone-heading"><span>'+html(p.to.name)+'</span>'+
+      '<small>≈'+fmtKm(p.to.km)+' km</small></div>'+
+      '<strong>'+time(p.elapsed)+'</strong>'+
+      '<p>Delsträcka '+time(p.allocation)+' · '+p.n+' tidspar</p></article>'
+    ).join('');
+    $$('[data-plan-segment]',out).forEach(button=>button.addEventListener('click',()=>{
+      const part=pts.find(p=>p.index===+button.dataset.planSegment);
+      const points=routePoints();
+      if(part&&points.length){
+        S.courseD=timingToRouteKm((part.from.km+part.to.km)/2,points);
+        renderCourseMap();
+        $('#course-map').scrollIntoView({block:'center',behavior:'smooth'});
+      }
+    }));
+    const historical=pts.filter(p=>!p.fallback).length;
+    const widened=pts.filter(p=>p.expanded).length;
+    const basedOn=model.sourceEditions.length;
+    const editionLabel=cohort==='all'?'hela fältet':
+      cohort==='near'?'löpare inom ±10 % av måltiden':
+      cohort==='F'?'kvinnor (inklusive tydligt märkta gruppuppskattningar)':
+      cohort==='M'?'män (inklusive tydligt märkta gruppuppskattningar)':
+      'klassen '+classSelect.value;
+    const defaultSeconds=Number($('#target-time').dataset.defaultSeconds);
+    const isDefault=num(defaultSeconds)&&Math.abs(defaultSeconds-target)<1;
+    summary.textContent=(isDefault?'Grundvärde: vald upplagas mediantid · ':'')+
+      time(target)+' · '+basedOn+' historiska upplagor med användbara tidspassager · '+
+      historical+'/4 segment med historiska tidsandelar · Referens: '+editionLabel+'. '+
+      (widened?'För '+widened+' segment breddades urvalet till hela fältet på grund av få observationer. ':'')+
+      (model.failed.length?'Varning: historiska data saknades för '+model.failed.join(', ')+'. ':'')+
+      'Årsvisa medianandelar viktas efter observationsantal, årsnärhet, kilometerkällans säkerhet och 2024 års banändring. '+
+      'Kontrollavstånden ≈44/80/130 km är referensvärden, inte verifierade banmätningar. '+
+      'Planen är en pacingreferens, inte en prognos.';
+  }catch(error){
+    if(sequence!==S.planSequence||S.race?.race_key!==edition)return;
+    summary.textContent='Kunde inte skapa den historiska loppplanen: '+String(error?.message||'okänt fel')+
+      '. Inga kontrolltider har hittats på.';
+    out.replaceChildren();cards.replaceChildren();
+  }
 }
 
 function focusSelectedSegmentOnCourse(){
