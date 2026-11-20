@@ -4,6 +4,7 @@ on:
     branches: [release/gax100-splits-v1-1]
     paths:
       - '.github/workflows/import-replay-audio.yml'
+      - 'scripts/import_public_replay_audio.py'
 permissions:
   contents: write
 jobs:
